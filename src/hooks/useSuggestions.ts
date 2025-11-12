@@ -29,7 +29,7 @@ export const useSuggestions = (options: UseSuggestionsOptions = {}) => {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const { deviceId } = useDeviceId();
+  const deviceId = useDeviceId();
 
   // Debounce timeout
   const [debounceTimeout, setDebounceTimeout] = useState<number | null>(null);
@@ -152,7 +152,7 @@ export const useSuggestions = (options: UseSuggestionsOptions = {}) => {
 export const useCreateListWithAI = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const { deviceId } = useDeviceId();
+  const deviceId = useDeviceId();
 
   const createListFromPrompt = useCallback(async (prompt: string) => {
     setLoading(true);
