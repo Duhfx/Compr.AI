@@ -1,17 +1,25 @@
 // src/hooks/useDeviceId.ts
 // Generate and persist unique device ID for anonymous authentication
+// Or use userId when authenticated
 
 import { useState, useEffect } from 'react';
 import { db } from '../lib/db';
+import { useAuth } from '../contexts/AuthContext';
 
-export const useDeviceId = () => {
+export const useDeviceId = (): string => {
   const [deviceId, setDeviceId] = useState<string>('');
-  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
   useEffect(() => {
     const loadOrCreateDeviceId = async () => {
       try {
-        // Try to get existing device ID from IndexedDB
+        // If user is authenticated, use their user ID
+        if (user) {
+          setDeviceId(user.id);
+          return;
+        }
+
+        // Otherwise, use anonymous device ID
         const devices = await db.userDevice.toArray();
 
         if (devices.length > 0) {
@@ -30,13 +38,11 @@ export const useDeviceId = () => {
         }
       } catch (error) {
         console.error('Error loading device ID:', error);
-      } finally {
-        setLoading(false);
       }
     };
 
     loadOrCreateDeviceId();
-  }, []);
+  }, [user]);
 
-  return { deviceId, loading };
+  return deviceId;
 };

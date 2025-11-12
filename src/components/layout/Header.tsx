@@ -1,14 +1,29 @@
 import { useOfflineStatus } from '../../hooks/useOfflineStatus';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
+import { useState } from 'react';
 
 export const Header = () => {
   const { isOffline } = useOfflineStatus();
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
+  const [showMenu, setShowMenu] = useState(false);
 
   // Simple title based on route
   const getTitle = () => {
     if (location.pathname.startsWith('/list/')) return 'Lista';
     return 'Compr.AI';
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      setShowMenu(false);
+      navigate('/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   return (
@@ -25,7 +40,52 @@ export const Header = () => {
           )}
         </div>
 
-        <div className="flex-1" />
+        <div className="flex-1 flex justify-end relative">
+          {user ? (
+            <>
+              <button
+                onClick={() => setShowMenu(!showMenu)}
+                className="p-1.5 text-primary hover:bg-gray-100 rounded-full active:opacity-70 transition-colors"
+                title={user.email}
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </button>
+
+              {showMenu && (
+                <>
+                  <div
+                    className="fixed inset-0 z-10"
+                    onClick={() => setShowMenu(false)}
+                  />
+                  <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-ios shadow-lg border border-gray-200 z-20">
+                    <div className="p-3 border-b border-gray-100">
+                      <p className="text-[13px] text-gray-500">Conectado como</p>
+                      <p className="text-[15px] font-medium text-gray-900 truncate">{user.email}</p>
+                    </div>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full px-3 py-2 text-left text-[15px] text-red-600 hover:bg-gray-50 active:bg-gray-100"
+                    >
+                      Sair
+                    </button>
+                  </div>
+                </>
+              )}
+            </>
+          ) : (
+            <Link
+              to="/login"
+              className="p-1.5 text-primary hover:bg-gray-100 rounded-full active:opacity-70 transition-colors"
+              title="Fazer login"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+              </svg>
+            </Link>
+          )}
+        </div>
       </div>
     </header>
   );
