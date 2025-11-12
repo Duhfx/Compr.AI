@@ -74,6 +74,17 @@ export const useLocalLists = () => {
     }
   };
 
+  // Função para forçar re-query (útil após sincronização)
+  const refreshLists = async () => {
+    // useLiveQuery já reage automaticamente, mas podemos forçar um reload
+    setLoading(true);
+    try {
+      await db.shoppingLists.toArray(); // Força uma query
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     lists: lists || [],
     loading,
@@ -81,6 +92,7 @@ export const useLocalLists = () => {
     createList,
     updateList,
     deleteList,
-    getListById
+    getListById,
+    refreshLists
   };
 };

@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocalLists } from '../hooks/useLocalLists';
+import { useDeviceId } from '../hooks/useDeviceId';
+import { useSync } from '../hooks/useSync';
 import { Layout } from '../components/layout/Layout';
 import { ListCard } from '../components/lists/ListCard';
 import { CreateListWithAIModal } from '../components/lists/CreateListWithAIModal';
@@ -10,10 +12,34 @@ import { Sparkles } from 'lucide-react';
 
 export const Home = () => {
   const navigate = useNavigate();
-  const { lists, loading, createList, deleteList } = useLocalLists();
+  const { lists, loading, createList, deleteList, refreshLists } = useLocalLists();
+  const deviceId = useDeviceId();
+  const { sync, syncing } = useSync();
   const [isCreating, setIsCreating] = useState(false);
   const [newListName, setNewListName] = useState('');
   const [showAIModal, setShowAIModal] = useState(false);
+  const hasSynced = useRef(false);
+
+  // Sincronizar automaticamente quando o deviceId estiver disponível
+  useEffect(() => {
+    const autoSync = async () => {
+      if (deviceId && !hasSynced.current && !syncing && !loading) {
+        hasSynced.current = true;
+        console.log('Auto-syncing with deviceId:', deviceId);
+
+        const result = await sync(deviceId);
+
+        if (result.success && (result.listsDownloaded > 0 || result.itemsDownloaded > 0)) {
+          console.log('Sync successful:', result);
+          // Recarregar as listas após sincronização
+          await refreshLists();
+          toast.success(`Sincronizado! ${result.listsDownloaded} listas e ${result.itemsDownloaded} itens baixados.`);
+        }
+      }
+    };
+
+    autoSync();
+  }, [deviceId, syncing, loading, sync, refreshLists]);
 
   const handleCreateList = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,11 +73,11 @@ export const Home = () => {
     }
   };
 
-  if (loading) {
+  if (loading || syncing) {
     return (
       <Layout>
         <div className="flex items-center justify-center h-64">
-          <div className="text-gray-500">Carregando...</div>
+          <div className="text-gray-500">{syncing ? 'Sincronizando...' : 'Carregando...'}</div>
         </div>
       </Layout>
     );

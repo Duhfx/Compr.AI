@@ -39,6 +39,12 @@ export const ShareListModal: React.FC<ShareListModalProps> = ({
 
   // Gerar novo link de compartilhamento
   const handleCreateLink = async () => {
+    // Validar deviceId antes de criar o link
+    if (!deviceId) {
+      setError('Aguarde o carregamento do dispositivo...');
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
@@ -161,10 +167,10 @@ export const ShareListModal: React.FC<ShareListModalProps> = ({
 
             <button
               onClick={handleCreateLink}
-              disabled={loading}
+              disabled={loading || !deviceId}
               className="w-full bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
             >
-              {loading ? 'Gerando...' : 'Gerar Código de Compartilhamento'}
+              {loading ? 'Gerando...' : !deviceId ? 'Carregando...' : 'Gerar Código de Compartilhamento'}
             </button>
           </div>
         )}
