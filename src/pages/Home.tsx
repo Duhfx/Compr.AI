@@ -4,13 +4,16 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useLocalLists } from '../hooks/useLocalLists';
 import { Layout } from '../components/layout/Layout';
 import { ListCard } from '../components/lists/ListCard';
+import { CreateListWithAIModal } from '../components/lists/CreateListWithAIModal';
 import toast, { Toaster } from 'react-hot-toast';
+import { Sparkles } from 'lucide-react';
 
 export const Home = () => {
   const navigate = useNavigate();
   const { lists, loading, createList, deleteList } = useLocalLists();
   const [isCreating, setIsCreating] = useState(false);
   const [newListName, setNewListName] = useState('');
+  const [showAIModal, setShowAIModal] = useState(false);
 
   const handleCreateList = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,16 +62,31 @@ export const Home = () => {
       <Toaster position="top-center" />
 
       <div className="px-4 py-4">
-        {/* Add List Button */}
-        <button
-          onClick={() => setIsCreating(true)}
-          className="w-full mb-4 h-12 bg-primary text-white rounded-ios text-[17px] font-semibold active:bg-opacity-90 transition-colors flex items-center justify-center gap-2"
-        >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          Nova Lista
-        </button>
+        {/* Add List Buttons */}
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          <button
+            onClick={() => setIsCreating(true)}
+            className="h-12 bg-primary text-white rounded-ios text-[17px] font-semibold active:bg-opacity-90 transition-colors flex items-center justify-center gap-2"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Nova Lista
+          </button>
+          <button
+            onClick={() => setShowAIModal(true)}
+            className="h-12 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-ios text-[17px] font-semibold active:opacity-90 transition-opacity flex items-center justify-center gap-2"
+          >
+            <Sparkles className="w-5 h-5" />
+            Com IA
+          </button>
+        </div>
+
+        {/* AI Modal */}
+        <CreateListWithAIModal
+          isOpen={showAIModal}
+          onClose={() => setShowAIModal(false)}
+        />
 
         {/* Create List Input (iOS Bottom Sheet style) */}
         <AnimatePresence>

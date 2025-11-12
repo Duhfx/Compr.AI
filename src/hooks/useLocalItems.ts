@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { db } from '../lib/db';
 import type { ShoppingItem } from '../lib/db';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { normalizeItemNameCached } from '../services/api';
 
 export const useLocalItems = (listId: string) => {
   const [loading, setLoading] = useState(true);
@@ -43,6 +44,40 @@ export const useLocalItems = (listId: string) => {
 
       await db.shoppingItems.add(newItem);
       return newItem;
+    } catch (err) {
+      const error = err as Error;
+      setError(error);
+      throw error;
+    }
+  };
+
+  const createItemWithNormalization = async (
+    rawName: string,
+    quantity: number = 1,
+    unit?: string,
+    category?: string
+  ): Promise<ShoppingItem> => {
+    try {
+      // Tentar normalizar o nome
+      let finalName = rawName;
+      let finalUnit = unit || 'un';
+      let finalCategory = category;
+
+      try {
+        const normalized = await normalizeItemNameCached(rawName);
+        finalName = normalized.normalized;
+        if (!unit && normalized.suggestedUnit) {
+          finalUnit = normalized.suggestedUnit;
+        }
+        if (!category && normalized.category) {
+          finalCategory = normalized.category;
+        }
+      } catch (normError) {
+        // Se a normalização falhar, usar o nome original
+        console.warn('Failed to normalize item name, using original:', normError);
+      }
+
+      return createItem(finalName, quantity, finalUnit, finalCategory);
     } catch (err) {
       const error = err as Error;
       setError(error);
@@ -111,6 +146,7 @@ export const useLocalItems = (listId: string) => {
     error,
     stats,
     createItem,
+    createItemWithNormalization,
     updateItem,
     toggleItem,
     deleteItem,

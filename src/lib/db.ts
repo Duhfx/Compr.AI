@@ -49,22 +49,55 @@ export interface PriceHistory {
   createdAt: Date;
 }
 
+export interface SharedList {
+  id: string;
+  listId: string;
+  shareCode: string;
+  ownerDeviceId: string;
+  permission: 'edit' | 'readonly';
+  createdAt: Date;
+  expiresAt?: Date;
+}
+
+export interface ListMember {
+  id: string;
+  listId: string;
+  deviceId: string;
+  joinedAt: Date;
+  lastSeenAt?: Date;
+  isActive: boolean;
+}
+
 export class CompraiDB extends Dexie {
   shoppingLists!: EntityTable<ShoppingList, 'id'>;
   shoppingItems!: EntityTable<ShoppingItem, 'id'>;
   userDevice!: EntityTable<UserDevice, 'deviceId'>;
   purchaseHistory!: EntityTable<PurchaseHistory, 'id'>;
   priceHistory!: EntityTable<PriceHistory, 'id'>;
+  sharedLists!: EntityTable<SharedList, 'id'>;
+  listMembers!: EntityTable<ListMember, 'id'>;
 
   constructor() {
     super('CompraiDB');
 
+    // Version 1: Schema inicial
     this.version(1).stores({
       shoppingLists: 'id, isLocal, syncedAt, updatedAt',
       shoppingItems: 'id, listId, checked, createdAt',
       userDevice: 'deviceId',
       purchaseHistory: 'id, deviceId, itemName, purchasedAt',
       priceHistory: 'id, deviceId, itemName, purchasedAt'
+    });
+
+    // Version 2: Adiciona tabelas de compartilhamento
+    this.version(2).stores({
+      shoppingLists: 'id, isLocal, syncedAt, updatedAt',
+      shoppingItems: 'id, listId, checked, createdAt',
+      userDevice: 'deviceId',
+      purchaseHistory: 'id, deviceId, itemName, purchasedAt',
+      priceHistory: 'id, deviceId, itemName, purchasedAt',
+      sharedLists: 'id, listId, shareCode',
+      listMembers: 'id, listId, deviceId, isActive'
     });
   }
 }
