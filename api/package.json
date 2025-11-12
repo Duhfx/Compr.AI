@@ -1,0 +1,11 @@
+{
+  "name": "comprai-api",
+  "version": "1.0.0",
+  "description": "Vercel Functions for Compr.AI",
+  "type": "module",
+  "dependencies": {
+    "@google/generative-ai": "^0.21.0",
+    "@supabase/supabase-js": "^2.47.10",
+    "@vercel/node": "^3.2.26"
+  }
+}

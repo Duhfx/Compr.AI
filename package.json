@@ -7,7 +7,10 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:api": "node tests/test-suggest-items.js && node tests/test-normalize-item.js",
+    "test:suggest": "node tests/test-suggest-items.js",
+    "test:normalize": "node tests/test-normalize-item.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.81.1",
