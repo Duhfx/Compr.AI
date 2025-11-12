@@ -11,7 +11,6 @@ export const Home = () => {
   const { lists, loading, createList, deleteList } = useLocalLists();
   const [isCreating, setIsCreating] = useState(false);
   const [newListName, setNewListName] = useState('');
-  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const handleCreateList = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,19 +44,6 @@ export const Home = () => {
     }
   };
 
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-
-    // Haptic feedback
-    if ('vibrate' in navigator) {
-      navigator.vibrate(10);
-    }
-
-    // Simulate refresh (in future, sync with Supabase)
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setIsRefreshing(false);
-  };
-
   if (loading) {
     return (
       <Layout>
@@ -73,17 +59,6 @@ export const Home = () => {
       <Toaster position="top-center" />
 
       <div className="px-4 py-4">
-        {/* Pull to Refresh Indicator */}
-        {isRefreshing && (
-          <div className="flex justify-center py-2">
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-              className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full"
-            />
-          </div>
-        )}
-
         {/* Add List Button */}
         <button
           onClick={() => setIsCreating(true)}

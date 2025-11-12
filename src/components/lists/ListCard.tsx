@@ -8,15 +8,8 @@ interface ListCardProps {
   onDelete: (id: string) => void;
 }
 
-export const ListCard = ({ list, onClick, onDelete }: ListCardProps) => {
+export const ListCard = ({ list, onClick }: ListCardProps) => {
   const { stats } = useLocalItems(list.id);
-
-  const handleDelete = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (confirm(`Deseja realmente excluir a lista "${list.name}"?`)) {
-      onDelete(list.id);
-    }
-  };
 
   return (
     <div

@@ -1,4 +1,3 @@
-import { useRef } from 'react';
 import { useDrag } from '@use-gesture/react';
 import { motion, useMotionValue, useTransform } from 'framer-motion';
 import type { ShoppingItem } from '../../lib/db';
@@ -75,7 +74,7 @@ export const ItemRow = ({ item, onToggle, onEdit, onDelete }: ItemRowProps) => {
 
       {/* Swipeable content */}
       <motion.div
-        {...bind()}
+        {...(bind() as any)}
         style={{ x }}
         className="flex items-center gap-3 px-4 py-3 bg-white touch-pan-y"
       >
