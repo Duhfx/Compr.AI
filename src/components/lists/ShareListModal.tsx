@@ -61,7 +61,7 @@ export const ShareListModal: React.FC<ShareListModalProps> = ({
   };
 
   // Copiar código/link para área de transferência
-  const copyToClipboard = async (text: string, type: 'code' | 'url') => {
+  const copyToClipboard = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
@@ -185,7 +185,7 @@ export const ShareListModal: React.FC<ShareListModalProps> = ({
                   className="flex-1 border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 font-mono text-lg text-center"
                 />
                 <button
-                  onClick={() => copyToClipboard(shareCode, 'code')}
+                  onClick={() => copyToClipboard(shareCode)}
                   className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg"
                   title="Copiar código"
                 >
@@ -215,7 +215,7 @@ export const ShareListModal: React.FC<ShareListModalProps> = ({
                   className="flex-1 border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 text-sm"
                 />
                 <button
-                  onClick={() => copyToClipboard(shareUrl, 'url')}
+                  onClick={() => copyToClipboard(shareUrl)}
                   className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg"
                   title="Copiar link"
                 >

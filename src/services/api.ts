@@ -79,7 +79,9 @@ export const normalizeItemNameCached = async (rawName: string): Promise<Normaliz
   // Limit cache size to 100 items
   if (normalizationCache.size > 100) {
     const firstKey = normalizationCache.keys().next().value;
-    normalizationCache.delete(firstKey);
+    if (firstKey !== undefined) {
+      normalizationCache.delete(firstKey);
+    }
   }
 
   return result;

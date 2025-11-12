@@ -32,7 +32,7 @@ export const useSuggestions = (options: UseSuggestionsOptions = {}) => {
   const { deviceId } = useDeviceId();
 
   // Debounce timeout
-  const [debounceTimeout, setDebounceTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [debounceTimeout, setDebounceTimeout] = useState<number | null>(null);
 
   const getSuggestions = useCallback(async (input: string) => {
     // Limpar timeout anterior

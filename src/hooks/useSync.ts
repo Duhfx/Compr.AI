@@ -8,7 +8,6 @@ import type { Database } from '../types/database';
 
 type ShoppingListRow = Database['public']['Tables']['shopping_lists']['Row'];
 type ShoppingItemRow = Database['public']['Tables']['shopping_items']['Row'];
-type ListMemberRow = Database['public']['Tables']['list_members']['Row'];
 
 interface SyncResult {
   success: boolean;
@@ -30,7 +29,7 @@ export const useSync = () => {
   const uploadLists = useCallback(async (deviceId: string): Promise<number> => {
     const localLists = await db.shoppingLists
       .where('isLocal')
-      .equals(true)
+      .equals(1)
       .toArray();
 
     let uploaded = 0;
