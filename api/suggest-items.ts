@@ -24,13 +24,24 @@ interface SuggestionResponse {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  console.log('[suggest-items] Function invoked');
+  console.log('[suggest-items] Method:', req.method);
+  console.log('[suggest-items] Node version:', process.version);
+  console.log('[suggest-items] Environment check:', {
+    hasSupabaseUrl: !!process.env.SUPABASE_URL,
+    hasSupabaseKey: !!process.env.SUPABASE_SERVICE_KEY,
+    hasGeminiKey: !!process.env.GEMINI_API_KEY
+  });
+
   // Validar método
   if (req.method !== 'POST') {
+    console.log('[suggest-items] Method not allowed:', req.method);
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
     const { deviceId, prompt, listType, maxResults = 10 } = req.body as SuggestionRequest;
+    console.log('[suggest-items] Request params:', { deviceId, prompt, listType, maxResults });
 
     // Validação básica
     if (!deviceId) {
@@ -38,12 +49,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // Cliente Supabase (com service key para acesso admin)
+    console.log('[suggest-items] Creating Supabase client');
     const supabase = createClient(
       process.env.SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_KEY!
     );
 
     // Buscar histórico do usuário (últimos 50 itens únicos)
+    console.log('[suggest-items] Fetching purchase history for device:', deviceId);
     const { data: history, error: historyError } = await supabase
       .from('purchase_history')
       .select('item_name, category, quantity, unit')
@@ -52,7 +65,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .limit(50);
 
     if (historyError) {
-      console.error('Error fetching history:', historyError);
+      console.error('[suggest-items] Error fetching history:', historyError);
+    } else {
+      console.log('[suggest-items] Found', history?.length || 0, 'history items');
     }
 
     // Agregar itens mais comprados
@@ -79,6 +94,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }));
 
     // Chamar Gemini AI
+    console.log('[suggest-items] Initializing Gemini AI with model: gemini-2.5-flash-lite');
+    console.log('[suggest-items] Top items for context:', topItems.length);
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
     const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
 
@@ -113,8 +130,10 @@ ${prompt ? `**Contexto adicional**: ${prompt}` : ''}
 }
 `.trim();
 
+    console.log('[suggest-items] Calling Gemini API...');
     const result = await model.generateContent(systemPrompt);
     const responseText = result.response.text();
+    console.log('[suggest-items] Gemini response received, length:', responseText.length);
 
     // Remover markdown se houver
     const cleanText = responseText.replace(/```json|```/g, '').trim();
@@ -122,26 +141,31 @@ ${prompt ? `**Contexto adicional**: ${prompt}` : ''}
     let suggestions: SuggestionResponse;
     try {
       suggestions = JSON.parse(cleanText);
+      console.log('[suggest-items] Successfully parsed AI response');
     } catch (parseError) {
-      console.error('Failed to parse Gemini response:', cleanText);
+      console.error('[suggest-items] Failed to parse Gemini response:', cleanText);
       throw new Error('Invalid AI response format');
     }
 
     // Validar estrutura da resposta
     if (!suggestions.items || !Array.isArray(suggestions.items)) {
+      console.error('[suggest-items] Invalid response structure:', suggestions);
       throw new Error('Invalid response structure from AI');
     }
 
     // Limitar número de resultados
     suggestions.items = suggestions.items.slice(0, maxResults);
+    console.log('[suggest-items] Returning', suggestions.items.length, 'suggestions');
 
     return res.status(200).json(suggestions);
 
   } catch (error) {
-    console.error('Error in suggest-items:', error);
+    console.error('[suggest-items] ERROR:', error);
+    console.error('[suggest-items] Error stack:', error instanceof Error ? error.stack : 'No stack');
     return res.status(500).json({
       error: 'Internal server error',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      message: error instanceof Error ? error.message : 'Unknown error',
+      details: process.env.NODE_ENV === 'development' ? error : undefined
     });
   }
 }
