@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useLocalLists } from '../hooks/useLocalLists';
 import { useLocalItems } from '../hooks/useLocalItems';
+import { useDeviceId } from '../hooks/useDeviceId';
 import { Layout } from '../components/layout/Layout';
 import { ItemRow } from '../components/items/ItemRow';
 import { ItemModal } from '../components/items/ItemModal';
+import { ShareListModal } from '../components/lists/ShareListModal';
 import toast, { Toaster } from 'react-hot-toast';
 import type { ShoppingItem } from '../lib/db';
 
@@ -13,10 +15,12 @@ export const ListDetail = () => {
   const navigate = useNavigate();
   const { getListById } = useLocalLists();
   const { items, stats, createItem, updateItem, toggleItem, deleteItem } = useLocalItems(id || '');
+  const deviceId = useDeviceId();
 
   const [list, setList] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<ShoppingItem | undefined>(undefined);
 
   useEffect(() => {
@@ -112,8 +116,19 @@ export const ListDetail = () => {
           <span className="text-[17px] font-medium">Listas</span>
         </button>
 
-        {/* List Title */}
-        <h1 className="text-[28px] font-bold text-gray-900 mb-2">{list.name}</h1>
+        {/* List Title and Share Button */}
+        <div className="flex items-center justify-between mb-2">
+          <h1 className="text-[28px] font-bold text-gray-900">{list.name}</h1>
+          <button
+            onClick={() => setIsShareModalOpen(true)}
+            className="p-2 text-primary hover:bg-gray-100 rounded-lg active:opacity-70 transition-colors"
+            title="Compartilhar lista"
+          >
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+            </svg>
+          </button>
+        </div>
 
         {/* Stats */}
         <div className="flex items-center gap-4 text-[15px] text-gray-500 mb-6">
@@ -186,7 +201,7 @@ export const ListDetail = () => {
         )}
       </div>
 
-      {/* Modal */}
+      {/* Item Modal */}
       <ItemModal
         isOpen={isModalOpen}
         item={editingItem}
@@ -195,6 +210,15 @@ export const ListDetail = () => {
           setEditingItem(undefined);
         }}
         onSave={handleSaveItem}
+      />
+
+      {/* Share Modal */}
+      <ShareListModal
+        listId={id || ''}
+        listName={list.name}
+        deviceId={deviceId}
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
       />
     </Layout>
   );
