@@ -4,8 +4,8 @@
   "description": "Vercel Functions for Compr.AI",
   "type": "module",
   "dependencies": {
-    "@google/generative-ai": "^0.21.0",
-    "@supabase/supabase-js": "^2.47.10",
-    "@vercel/node": "^3.2.26"
+    "@google/generative-ai": "^0.24.1",
+    "@supabase/supabase-js": "^2.81.1",
+    "@vercel/node": "^5.5.5"
   }
 }
