@@ -22,7 +22,12 @@
       "Bash(npm:*)",
       "Bash(cat:*)",
       "Bash(if exist nul rmdir /s /q nul 2)",
-      "Bash(del /f /q nul 2)"
+      "Bash(del /f /q nul 2)",
+      "Bash(vercel --version:*)",
+      "Bash(vercel dev:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(taskkill:*)"
     ],
     "deny": [],
     "ask": []

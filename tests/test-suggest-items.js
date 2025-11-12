@@ -15,7 +15,7 @@ const testSuggestItems = async () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        deviceId: 'test-device-123',
+        deviceId: '550e8400-e29b-41d4-a716-446655440000',
         prompt: 'churrasco',
         maxResults: 5
       })
@@ -45,7 +45,7 @@ const testSuggestItems = async () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        deviceId: 'test-device-123',
+        deviceId: '550e8400-e29b-41d4-a716-446655440000',
         listType: 'café da manhã saudável',
         maxResults: 8
       })

@@ -2,7 +2,7 @@
 
 Este documento contém instruções detalhadas para desenvolver o Compr.AI usando Claude Code como assistente de desenvolvimento.
 Sempre que possivel, crie testes para validar a funcionalidade implementada.
-
+NÃO precisa criar arquivos .md com passo a passo, a não ser que seja solicitado
 ---
 
 ## 📋 Visão Geral do Projeto

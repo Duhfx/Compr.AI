@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "api:dev": "tsx tests/local-server.js",
     "test:api": "node tests/test-suggest-items.js && node tests/test-normalize-item.js",
     "test:suggest": "node tests/test-suggest-items.js",
     "test:normalize": "node tests/test-normalize-item.js"
@@ -44,6 +45,7 @@
     "globals": "^16.5.0",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.18",
+    "tsx": "^4.20.6",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.3",
     "vite": "^7.2.2",
