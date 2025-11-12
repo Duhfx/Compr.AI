@@ -56,6 +56,15 @@ export const Home = () => {
       }
 
       toast.success('Lista criada!');
+
+      // Sincronizar automaticamente se o usuário está autenticado
+      if (deviceId) {
+        console.log('[Home] Auto-syncing after list creation with deviceId:', deviceId);
+        sync(deviceId).catch(err => {
+          console.error('[Home] Error syncing after list creation:', err);
+        });
+      }
+
       navigate(`/list/${newList.id}`);
     } catch (error) {
       console.error('Erro ao criar lista:', error);

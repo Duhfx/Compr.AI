@@ -8,25 +8,41 @@ import { useAuth } from '../contexts/AuthContext';
 
 export const useDeviceId = (): string => {
   const [deviceId, setDeviceId] = useState<string>('');
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
 
   useEffect(() => {
     const loadOrCreateDeviceId = async () => {
       try {
+        console.log('[useDeviceId] Auth state:', {
+          user: user ? { id: user.id, email: user.email } : null,
+          loading
+        });
+
+        // Wait for auth to finish loading
+        if (loading) {
+          console.log('[useDeviceId] Auth still loading, waiting...');
+          return;
+        }
+
         // If user is authenticated, use their user ID
         if (user) {
+          console.log('[useDeviceId] Using authenticated user ID:', user.id);
           setDeviceId(user.id);
           return;
         }
+
+        console.log('[useDeviceId] No authenticated user, using anonymous device ID');
 
         // Otherwise, use anonymous device ID
         const devices = await db.userDevice.toArray();
 
         if (devices.length > 0) {
+          console.log('[useDeviceId] Found existing device ID:', devices[0].deviceId);
           setDeviceId(devices[0].deviceId);
         } else {
           // Create new device ID
           const newDeviceId = crypto.randomUUID();
+          console.log('[useDeviceId] Creating new device ID:', newDeviceId);
 
           await db.userDevice.add({
             deviceId: newDeviceId,
@@ -37,12 +53,12 @@ export const useDeviceId = (): string => {
           setDeviceId(newDeviceId);
         }
       } catch (error) {
-        console.error('Error loading device ID:', error);
+        console.error('[useDeviceId] Error loading device ID:', error);
       }
     };
 
     loadOrCreateDeviceId();
-  }, [user]);
+  }, [user, loading]);
 
   return deviceId;
 };
