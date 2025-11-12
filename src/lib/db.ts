@@ -1,4 +1,5 @@
-import Dexie, { Table } from 'dexie';
+import Dexie from 'dexie';
+import type { EntityTable } from 'dexie';
 
 export interface ShoppingList {
   id: string;
@@ -49,18 +50,18 @@ export interface PriceHistory {
 }
 
 export class CompraiDB extends Dexie {
-  shoppingLists!: Table<ShoppingList, string>;
-  shoppingItems!: Table<ShoppingItem, string>;
-  userDevice!: Table<UserDevice, string>;
-  purchaseHistory!: Table<PurchaseHistory, string>;
-  priceHistory!: Table<PriceHistory, string>;
+  shoppingLists!: EntityTable<ShoppingList, 'id'>;
+  shoppingItems!: EntityTable<ShoppingItem, 'id'>;
+  userDevice!: EntityTable<UserDevice, 'deviceId'>;
+  purchaseHistory!: EntityTable<PurchaseHistory, 'id'>;
+  priceHistory!: EntityTable<PriceHistory, 'id'>;
 
   constructor() {
     super('CompraiDB');
 
     this.version(1).stores({
-      shoppingLists: 'id, isLocal, syncedAt',
-      shoppingItems: 'id, listId, checked',
+      shoppingLists: 'id, isLocal, syncedAt, updatedAt',
+      shoppingItems: 'id, listId, checked, createdAt',
       userDevice: 'deviceId',
       purchaseHistory: 'id, deviceId, itemName, purchasedAt',
       priceHistory: 'id, deviceId, itemName, purchasedAt'

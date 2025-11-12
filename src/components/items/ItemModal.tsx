@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
-import { ShoppingItem } from '../../lib/db';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useDrag } from '@use-gesture/react';
+import type { ShoppingItem } from '../../lib/db';
 
 interface ItemModalProps {
   isOpen: boolean;
@@ -31,6 +33,7 @@ export const ItemModal = ({ isOpen, item, onClose, onSave }: ItemModalProps) => 
   const [quantity, setQuantity] = useState(1);
   const [unit, setUnit] = useState('un');
   const [category, setCategory] = useState('');
+  const [y, setY] = useState(0);
 
   useEffect(() => {
     if (item) {
@@ -46,6 +49,31 @@ export const ItemModal = ({ isOpen, item, onClose, onSave }: ItemModalProps) => 
     }
   }, [item, isOpen]);
 
+  const bind = useDrag(
+    ({ movement: [, my], last }) => {
+      // Only allow drag down
+      if (my < 0) {
+        setY(0);
+        return;
+      }
+
+      setY(my);
+
+      // Close if dragged far enough
+      if (last && my > 100) {
+        onClose();
+        setY(0);
+      } else if (last) {
+        setY(0);
+      }
+    },
+    {
+      axis: 'y',
+      bounds: { top: 0 },
+      rubberband: true,
+    }
+  );
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
@@ -60,101 +88,128 @@ export const ItemModal = ({ isOpen, item, onClose, onSave }: ItemModalProps) => 
     onClose();
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
-        <div className="p-6">
-          <h2 className="text-xl font-bold mb-4">
-            {item ? 'Editar Item' : 'Adicionar Item'}
-          </h2>
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          {/* Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="fixed inset-0 bg-black bg-opacity-40 z-40"
+          />
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                Nome do Produto *
-              </label>
-              <input
-                id="name"
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                placeholder="Ex: Arroz integral"
-                required
-                autoFocus
-              />
+          {/* Bottom Sheet */}
+          <motion.div
+            initial={{ y: '100%' }}
+            animate={{ y: y }}
+            exit={{ y: '100%' }}
+            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+            className="fixed bottom-0 left-0 right-0 bg-white rounded-t-[20px] z-50 max-w-screen-sm mx-auto shadow-ios-lg safe-bottom"
+          >
+            {/* Handle */}
+            <div {...bind()} className="flex justify-center pt-3 pb-2 cursor-grab active:cursor-grabbing">
+              <div className="w-10 h-1 bg-gray-300 rounded-full" />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 mb-1">
-                  Quantidade
-                </label>
-                <input
-                  id="quantity"
-                  type="number"
-                  min="0.01"
-                  step="0.01"
-                  value={quantity}
-                  onChange={(e) => setQuantity(parseFloat(e.target.value) || 1)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                />
-              </div>
+            <div className="px-4 pb-6">
+              <h2 className="text-[20px] font-semibold text-center mb-6">
+                {item ? 'Editar Item' : 'Adicionar Item'}
+              </h2>
 
-              <div>
-                <label htmlFor="unit" className="block text-sm font-medium text-gray-700 mb-1">
-                  Unidade
-                </label>
-                <select
-                  id="unit"
-                  value={unit}
-                  onChange={(e) => setUnit(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                >
-                  {UNITS.map(u => (
-                    <option key={u} value={u}>{u}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Name Input */}
+                <div>
+                  <label htmlFor="name" className="block text-[13px] font-medium text-gray-500 mb-1 ml-3">
+                    Nome do Produto
+                  </label>
+                  <input
+                    id="name"
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-100 rounded-ios text-[17px] focus:outline-none focus:bg-gray-150 transition-colors"
+                    placeholder="Ex: Arroz integral"
+                    required
+                    autoFocus
+                  />
+                </div>
 
-            <div>
-              <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
-                Categoria (opcional)
-              </label>
-              <select
-                id="category"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-              >
-                <option value="">Selecione...</option>
-                {CATEGORIES.map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
-                ))}
-              </select>
-            </div>
+                {/* Quantity and Unit */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label htmlFor="quantity" className="block text-[13px] font-medium text-gray-500 mb-1 ml-3">
+                      Quantidade
+                    </label>
+                    <input
+                      id="quantity"
+                      type="number"
+                      min="0.01"
+                      step="0.01"
+                      value={quantity}
+                      onChange={(e) => setQuantity(parseFloat(e.target.value) || 1)}
+                      className="w-full px-4 py-3 bg-gray-100 rounded-ios text-[17px] focus:outline-none focus:bg-gray-150 transition-colors"
+                    />
+                  </div>
 
-            <div className="flex gap-3 pt-4">
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors"
-              >
-                {item ? 'Salvar' : 'Adicionar'}
-              </button>
+                  <div>
+                    <label htmlFor="unit" className="block text-[13px] font-medium text-gray-500 mb-1 ml-3">
+                      Unidade
+                    </label>
+                    <select
+                      id="unit"
+                      value={unit}
+                      onChange={(e) => setUnit(e.target.value)}
+                      className="w-full px-4 py-3 bg-gray-100 rounded-ios text-[17px] focus:outline-none focus:bg-gray-150 transition-colors"
+                    >
+                      {UNITS.map(u => (
+                        <option key={u} value={u}>{u}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Category */}
+                <div>
+                  <label htmlFor="category" className="block text-[13px] font-medium text-gray-500 mb-1 ml-3">
+                    Categoria
+                  </label>
+                  <select
+                    id="category"
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-100 rounded-ios text-[17px] focus:outline-none focus:bg-gray-150 transition-colors"
+                  >
+                    <option value="">Nenhuma</option>
+                    {CATEGORIES.map(cat => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Buttons */}
+                <div className="flex gap-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="flex-1 h-12 rounded-ios text-[17px] font-semibold text-primary border-2 border-primary hover:bg-primary hover:bg-opacity-5 transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 h-12 bg-primary text-white rounded-ios text-[17px] font-semibold hover:bg-opacity-90 transition-colors"
+                  >
+                    {item ? 'Salvar' : 'Adicionar'}
+                  </button>
+                </div>
+              </form>
             </div>
-          </form>
-        </div>
-      </div>
-    </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
   );
 };

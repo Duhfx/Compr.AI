@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { db, ShoppingItem } from '../lib/db';
+import { db } from '../lib/db';
+import type { ShoppingItem } from '../lib/db';
 import { useLiveQuery } from 'dexie-react-hooks';
 
 export const useLocalItems = (listId: string) => {
