@@ -3,11 +3,13 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useSupabaseLists } from '../hooks/useSupabaseLists';
 import { useSupabaseItems } from '../hooks/useSupabaseItems';
 import { useAuth } from '../contexts/AuthContext';
+import { useListSuggestions } from '../hooks/useListSuggestions';
 import { Layout } from '../components/layout/Layout';
 import { ItemRow } from '../components/items/ItemRow';
 import { ItemModal } from '../components/items/ItemModal';
 import { ShareListModal } from '../components/lists/ShareListModal';
 import { MembersModal } from '../components/lists/MembersModal';
+import { SuggestionsBanner } from '../components/suggestions/SuggestionsBanner';
 import toast, { Toaster } from 'react-hot-toast';
 import type { ShoppingItem } from '../hooks/useSupabaseItems';
 
@@ -17,6 +19,14 @@ export const ListDetail = () => {
   const { user, loading: authLoading } = useAuth();
   const { getListById, deleteList } = useSupabaseLists();
   const { items, stats, createItem, updateItem, toggleItem, deleteItem } = useSupabaseItems(id || '');
+
+  // Sugestões de IA
+  const {
+    suggestions,
+    loading: suggestionsLoading,
+    refreshSuggestions,
+    dismissSuggestions
+  } = useListSuggestions(id, items);
 
   const [list, setList] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -192,6 +202,16 @@ export const ListDetail = () => {
     }
   };
 
+  const handleAddSuggestion = async (suggestion: { name: string; quantity: number; unit: string; category?: string }) => {
+    try {
+      await createItem(suggestion.name, suggestion.quantity, suggestion.unit, suggestion.category);
+      toast.success(`${suggestion.name} adicionado!`);
+    } catch (error) {
+      console.error('Erro ao adicionar sugestão:', error);
+      toast.error('Erro ao adicionar item');
+    }
+  };
+
   // Mostrar loading enquanto autentica ou carrega lista
   if (authLoading || loading) {
     return (
@@ -300,6 +320,15 @@ export const ListDetail = () => {
           </svg>
           Adicionar Item
         </button>
+
+        {/* AI Suggestions Banner */}
+        <SuggestionsBanner
+          suggestions={suggestions}
+          loading={suggestionsLoading}
+          onAddSuggestion={handleAddSuggestion}
+          onDismiss={dismissSuggestions}
+          onRefresh={refreshSuggestions}
+        />
 
         {/* Items */}
         {items.length === 0 ? (

@@ -68,6 +68,19 @@ export interface ListMember {
   isActive: boolean;
 }
 
+export interface ListSuggestionCache {
+  listId: string;
+  suggestions: {
+    name: string;
+    quantity: number;
+    unit: string;
+    category?: string;
+  }[];
+  createdAt: Date;
+  itemsCountWhenGenerated: number;
+  lastItemNamesHash: string; // Hash dos últimos 5 itens para detectar mudanças
+}
+
 export class CompraiDB extends Dexie {
   shoppingLists!: EntityTable<ShoppingList, 'id'>;
   shoppingItems!: EntityTable<ShoppingItem, 'id'>;
@@ -76,6 +89,7 @@ export class CompraiDB extends Dexie {
   priceHistory!: EntityTable<PriceHistory, 'id'>;
   sharedLists!: EntityTable<SharedList, 'id'>;
   listMembers!: EntityTable<ListMember, 'id'>;
+  listSuggestionCache!: EntityTable<ListSuggestionCache, 'listId'>;
 
   constructor() {
     super('CompraiDB');
@@ -98,6 +112,18 @@ export class CompraiDB extends Dexie {
       priceHistory: 'id, userId, itemName, purchasedAt',
       sharedLists: 'id, listId, shareCode',
       listMembers: 'id, listId, userId, isActive'
+    });
+
+    // Version 3: Adiciona cache de sugestões de IA
+    this.version(3).stores({
+      shoppingLists: 'id, isLocal, syncedAt, updatedAt',
+      shoppingItems: 'id, listId, checked, createdAt',
+      userDevice: 'userId',
+      purchaseHistory: 'id, userId, itemName, purchasedAt',
+      priceHistory: 'id, userId, itemName, purchasedAt',
+      sharedLists: 'id, listId, shareCode',
+      listMembers: 'id, listId, userId, isActive',
+      listSuggestionCache: 'listId, createdAt'
     });
   }
 }
