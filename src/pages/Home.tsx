@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSupabaseLists } from '../hooks/useSupabaseLists';
@@ -7,8 +7,10 @@ import { Layout } from '../components/layout/Layout';
 import { ListCard } from '../components/lists/ListCard';
 import { CreateListWithAIModal } from '../components/lists/CreateListWithAIModal';
 import { JoinListModal } from '../components/lists/JoinListModal';
+import { ActionSheet } from '../components/ui/ActionSheet';
+import { SegmentedControl } from '../components/ui/SegmentedControl';
 import toast, { Toaster } from 'react-hot-toast';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Edit, Users, Plus } from 'lucide-react';
 
 export const Home = () => {
   const navigate = useNavigate();
@@ -18,6 +20,8 @@ export const Home = () => {
   const [newListName, setNewListName] = useState('');
   const [showAIModal, setShowAIModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
+  const [showActionSheet, setShowActionSheet] = useState(false);
+  const [selectedFilter, setSelectedFilter] = useState('Todas');
 
   // Redirect to landing if not authenticated
   useEffect(() => {
@@ -65,6 +69,33 @@ export const Home = () => {
     navigate(`/list/${listId}`);
   };
 
+  // Filter lists based on selected tab
+  const filteredLists = useMemo(() => {
+    // TODO: Implement actual filtering logic when we have list status
+    // For now, just return all lists
+    return lists;
+  }, [lists, selectedFilter]);
+
+  // Action Sheet options
+  const actionSheetOptions = [
+    {
+      icon: <Edit className="w-5 h-5" />,
+      label: 'Nova Lista',
+      onClick: () => setIsCreating(true),
+    },
+    {
+      icon: <Sparkles className="w-5 h-5" />,
+      label: 'Criar com IA',
+      onClick: () => setShowAIModal(true),
+      gradient: true,
+    },
+    {
+      icon: <Users className="w-5 h-5" />,
+      label: 'Entrar em Lista',
+      onClick: () => setShowJoinModal(true),
+    },
+  ];
+
   // Show loading while checking auth
   if (authLoading || loading) {
     return (
@@ -85,39 +116,43 @@ export const Home = () => {
     <Layout>
       <Toaster position="top-center" />
 
-      <div className="px-4 py-4">
-        {/* Add List Buttons */}
-        <div className="space-y-3 mb-4">
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              onClick={() => setIsCreating(true)}
-              className="h-12 bg-primary text-white rounded-ios text-[17px] font-semibold active:bg-opacity-90 transition-colors flex items-center justify-center gap-2"
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              Nova Lista
-            </button>
-            <button
-              onClick={() => setShowAIModal(true)}
-              className="h-12 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-ios text-[17px] font-semibold active:opacity-90 transition-opacity flex items-center justify-center gap-2"
-            >
-              <Sparkles className="w-5 h-5" />
-              Com IA
-            </button>
-          </div>
-
-          {/* Join Shared List Button */}
-          <button
-            onClick={() => setShowJoinModal(true)}
-            className="w-full h-12 bg-white border-2 border-primary text-primary rounded-ios text-[17px] font-semibold active:bg-opacity-5 transition-colors flex items-center justify-center gap-2"
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
-            Entrar em Lista Compartilhada
-          </button>
+      <div className="px-4 py-4 pb-24">
+        {/* Header */}
+        <div className="mb-6">
+          <h1 className="text-[34px] font-bold text-gray-900 mb-2">
+            Compr.AI
+          </h1>
+          <p className="text-[17px] text-gray-500">
+            {lists.length === 0
+              ? 'Crie sua primeira lista'
+              : `${lists.length} ${lists.length === 1 ? 'lista' : 'listas'}`
+            }
+          </p>
         </div>
+
+        {/* Segmented Control (Tabs) */}
+        {lists.length > 0 && (
+          <SegmentedControl
+            options={['Todas', 'Ativas', 'Concluídas']}
+            selected={selectedFilter}
+            onChange={setSelectedFilter}
+          />
+        )}
+
+        {/* Smart Banner for new users */}
+        {lists.length === 0 && (
+          <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-ios p-4 mb-4 border border-purple-100">
+            <div className="flex items-start gap-3">
+              <Sparkles className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <h4 className="font-semibold text-[15px] mb-1">💡 Experimente criar com IA</h4>
+                <p className="text-[13px] text-gray-600">
+                  Descreva o que precisa e deixe a IA montar a lista para você!
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* AI Modal */}
         <CreateListWithAIModal
@@ -193,42 +228,63 @@ export const Home = () => {
         </AnimatePresence>
 
         {/* Lists */}
-        {lists.length === 0 ? (
-          <div className="text-center py-16">
-            <svg
-              className="h-24 w-24 mx-auto text-gray-300 mb-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-              />
-            </svg>
-            <h3 className="text-[20px] font-semibold text-gray-900 mb-2">
-              Nenhuma lista
+        {filteredLists.length === 0 ? (
+          <div className="text-center py-20">
+            <div className="w-20 h-20 mx-auto mb-4 bg-primary bg-opacity-10 rounded-full flex items-center justify-center">
+              <svg
+                className="h-10 w-10 text-primary"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                />
+              </svg>
+            </div>
+            <h3 className="text-[22px] font-bold text-gray-900 mb-2">
+              Comece sua primeira lista
             </h3>
-            <p className="text-[15px] text-gray-500">
-              Toque em "Nova Lista" para começar
+            <p className="text-[15px] text-gray-500 mb-6">
+              Organize suas compras de forma inteligente
             </p>
+            <button
+              onClick={() => setShowActionSheet(true)}
+              className="text-primary font-semibold text-[17px]"
+            >
+              Criar Lista →
+            </button>
           </div>
         ) : (
-          <div className="bg-white rounded-ios overflow-hidden">
-            {lists.map((list, index) => (
-              <div key={list.id}>
-                <ListCard
-                  list={list}
-                  onClick={() => navigate(`/list/${list.id}`)}
-                  onDelete={handleDeleteList}
-                />
-                {index < lists.length - 1 && <div className="h-px bg-gray-150 ml-4" />}
-              </div>
+          <div className="space-y-0">
+            {filteredLists.map((list) => (
+              <ListCard
+                key={list.id}
+                list={list}
+                onClick={() => navigate(`/list/${list.id}`)}
+                onDelete={handleDeleteList}
+              />
             ))}
           </div>
         )}
+
+        {/* FAB (Floating Action Button) */}
+        <button
+          onClick={() => setShowActionSheet(true)}
+          className="fixed bottom-20 right-6 w-14 h-14 bg-primary rounded-full shadow-ios-lg flex items-center justify-center text-white active:scale-95 transition-transform z-40"
+        >
+          <Plus className="w-6 h-6" />
+        </button>
+
+        {/* Action Sheet */}
+        <ActionSheet
+          isOpen={showActionSheet}
+          onClose={() => setShowActionSheet(false)}
+          options={actionSheetOptions}
+        />
       </div>
     </Layout>
   );

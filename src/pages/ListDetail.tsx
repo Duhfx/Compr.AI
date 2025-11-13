@@ -26,6 +26,8 @@ export const ListDetail = () => {
   const [editingItem, setEditingItem] = useState<ShoppingItem | undefined>(undefined);
 
   useEffect(() => {
+    let isCancelled = false;
+
     const loadList = async () => {
       console.log('[ListDetail] useEffect triggered:', {
         id,
@@ -56,6 +58,13 @@ export const ListDetail = () => {
 
       try {
         const foundList = await getListById(id);
+
+        // Não atualizar o estado se o componente foi desmontado
+        if (isCancelled) {
+          console.log('[ListDetail] Component unmounted, skipping state update');
+          return;
+        }
+
         if (!foundList) {
           console.warn('[ListDetail] List not found:', id);
           toast.error('Lista não encontrada');
@@ -65,15 +74,28 @@ export const ListDetail = () => {
         console.log('[ListDetail] List loaded successfully:', foundList.name);
         setList(foundList);
       } catch (error) {
+        // Não mostrar erro se o componente foi desmontado
+        if (isCancelled) {
+          console.log('[ListDetail] Component unmounted, skipping error handling');
+          return;
+        }
+
         console.error('[ListDetail] Error loading list:', error);
         toast.error('Erro ao carregar lista');
         navigate('/home');
       } finally {
-        setLoading(false);
+        if (!isCancelled) {
+          setLoading(false);
+        }
       }
     };
 
     loadList();
+
+    // Cleanup: cancelar operações quando o componente desmontar
+    return () => {
+      isCancelled = true;
+    };
   }, [id, user, authLoading, getListById, navigate]);
 
   const handleAddItem = () => {
