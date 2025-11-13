@@ -100,7 +100,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
 
     const systemPrompt = `
-Você é um assistente de lista de compras inteligente.
+Você é um assistente de lista de compras inteligente para o mercado BRASILEIRO.
 
 **Histórico do usuário** (produtos mais comprados):
 ${topItems.map(item => `- ${item.name} (${item.category || 'Sem categoria'}, ${item.frequency}x)`).join('\n')}
@@ -109,20 +109,57 @@ ${topItems.map(item => `- ${item.name} (${item.category || 'Sem categoria'}, ${i
 ${listType ? `**Tipo de lista**: ${listType}` : ''}
 ${prompt ? `**Contexto adicional**: ${prompt}` : ''}
 
+**CONTEXTO BRASILEIRO - IMPORTANTE**:
+- Sugira produtos COMUNS em supermercados brasileiros (Pão Francês, Leite Longa Vida, Café em pó, Feijão carioca/preto, Arroz tipo 1, etc.)
+- Use unidades de medida brasileiras: kg, g, L, ml, un (unidade), pacote, lata, caixa, dúzia, maço
+- Considere marcas e produtos típicos do Brasil quando relevante
+- Para carnes: picanha, fraldinha, costela, linguiça toscana, file de frango, etc.
+- Para laticínios: requeijão, queijo minas, iogurte natural, leite condensado, creme de leite
+- Para básicos: feijão (carioca/preto), arroz, óleo de soja, açúcar cristal/refinado, sal
+- Para temperos: alho, cebola, tomate, pimentão, cheiro-verde (salsinha e cebolinha), coentro
+- Para bebidas: refrigerante, suco de caixinha, água mineral, cerveja, guaraná
+
+**Categorias sugeridas**:
+- Alimentos (Grãos, Massas, Cereais)
+- Carnes e Frios (Bovina, Suína, Frango, Peixes)
+- Hortifruti (Verduras, Legumes, Frutas)
+- Laticínios e Frios
+- Bebidas (Não alcoólicas, Alcoólicas)
+- Padaria e Confeitaria
+- Limpeza
+- Higiene Pessoal
+- Pet (Ração, Produtos para animais)
+- Mercearia (Temperos, Condimentos, Enlatados)
+
+**Exemplos de listas típicas brasileiras**:
+- "Churrasco": Picanha, Fraldinha, Linguiça, Pão de alho, Farofa, Vinagrete, Cerveja, Refrigerante, Carvão
+- "Feijoada": Feijão preto, Costelinha de porco, Linguiça calabresa, Laranja, Couve, Arroz branco, Farofa
+- "Café da manhã": Pão francês, Manteiga, Café em pó, Leite, Queijo minas, Presunto, Frutas, Suco
+- "Lanche da tarde": Biscoito, Achocolatado, Leite, Pão de forma, Requeijão, Bolo pronto
+- "Feira/Hortifruti": Tomate, Cebola, Alho, Batata, Cenoura, Alface, Banana, Maçã, Laranja, Limão
+
 **Instruções**:
 1. Baseie as sugestões no histórico do usuário sempre que possível
-2. Para tipos específicos de lista (ex: "churrasco", "café da manhã"), sugira itens apropriados
-3. Use quantidades realistas (ex: 1kg de arroz, não 10kg)
-4. Categorize os itens corretamente (Alimentos, Bebidas, Limpeza, Higiene, etc.)
+2. Para tipos específicos de lista, sugira itens apropriados ao contexto brasileiro
+3. Use quantidades REALISTAS para consumo familiar brasileiro (ex: 1-2kg de arroz, 1kg de feijão, 1L de óleo)
+4. Evite quantidades industriais ou muito pequenas (não sugira 10kg de arroz nem 50g de feijão)
 5. Priorize itens que o usuário já comprou no passado
+6. Use nomes comuns no Brasil (ex: "Pão Francês" ao invés de "Pão", "Leite Longa Vida" ao invés de apenas "Leite")
+7. Para itens frescos (hortifruti), considere sazonalidade brasileira quando possível
 
 **IMPORTANTE**: Retorne APENAS um JSON válido, sem markdown, sem explicações:
 
 {
   "items": [
     {
-      "name": "Arroz integral",
+      "name": "Arroz tipo 1",
       "quantity": 2,
+      "unit": "kg",
+      "category": "Alimentos"
+    },
+    {
+      "name": "Feijão carioca",
+      "quantity": 1,
       "unit": "kg",
       "category": "Alimentos"
     }
