@@ -39,20 +39,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  // Validar variáveis de ambiente
+  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY || !process.env.GEMINI_API_KEY) {
+    console.error('[suggest-items] Missing required environment variables');
+    return res.status(500).json({
+      error: 'Server configuration error',
+      message: 'Missing required environment variables'
+    });
+  }
+
   try {
     const { userId, prompt, listType, maxResults = 10 } = req.body as SuggestionRequest;
     console.log('[suggest-items] Request params:', { userId, prompt, listType, maxResults });
 
     // Validação básica
     if (!userId) {
+      console.log('[suggest-items] Missing userId in request');
       return res.status(400).json({ error: 'userId is required' });
     }
 
     // Cliente Supabase (com service key para acesso admin)
     console.log('[suggest-items] Creating Supabase client');
     const supabase = createClient(
-      process.env.SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_KEY!
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_KEY
     );
 
     // Buscar histórico do usuário (últimos 50 itens únicos)
@@ -186,7 +196,7 @@ Frutas: Banana, Maçã, Laranja, Mamão, Melancia, Abacaxi
 ═══════════════════════════════════════════════════════════════════
 📤 FORMATO DE RESPOSTA (JSON VÁLIDO)
 ═══════════════════════════════════════════════════════════════════
-Retorne APENAS JSON válido, sem markdown (```), sem explicações adicionais.
+Retorne APENAS JSON válido, sem markdown ou code blocks, sem explicações adicionais.
 
 Exemplo para "churrasco para 2 pessoas":
 {
