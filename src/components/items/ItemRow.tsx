@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { useDrag } from '@use-gesture/react';
-import { motion, useMotionValue, useTransform } from 'framer-motion';
+import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
 import type { ShoppingItem } from '../../hooks/useSupabaseItems';
 
 interface ItemRowProps {
@@ -10,28 +11,44 @@ interface ItemRowProps {
 }
 
 export const ItemRow = ({ item, onToggle, onEdit, onDelete }: ItemRowProps) => {
+  const [isOpen, setIsOpen] = useState(false);
   const x = useMotionValue(0);
-  const deleteButtonOpacity = useTransform(x, [-100, -50, 0], [1, 0.5, 0]);
-  const deleteButtonScale = useTransform(x, [-100, -50, 0], [1, 0.8, 0.5]);
+  const xSpring = useSpring(x, { damping: 20, stiffness: 300 });
+  const deleteButtonOpacity = useTransform(xSpring, [-100, -50, 0], [1, 0.5, 0]);
+  const deleteButtonScale = useTransform(xSpring, [-100, -50, 0], [1, 0.8, 0.5]);
 
   const bind = useDrag(
     ({ movement: [mx], last }) => {
-      // Only allow swipe to left
-      if (mx > 0) {
-        x.set(0);
+      // During drag, follow finger
+      if (!last) {
+        // Only allow swipe to left when closed
+        if (mx > 0 && !isOpen) {
+          x.set(0);
+          return;
+        }
+        // Allow swipe to right when open (to close)
+        if (isOpen && mx > -80) {
+          x.set(Math.max(mx, -80));
+          return;
+        }
+        x.set(Math.max(mx, -120));
         return;
       }
 
-      x.set(mx);
-
-      // If swiped far enough on release, trigger delete
-      if (last && mx < -100) {
-        if (confirm(`Deseja realmente excluir "${item.name}"?`)) {
-          onDelete(item.id);
-        } else {
-          x.set(0);
-        }
-      } else if (last) {
+      // On release
+      if (mx < -50 && !isOpen) {
+        // Swipe left: open delete button
+        x.set(-80);
+        setIsOpen(true);
+      } else if (mx > -40 && isOpen) {
+        // Swipe right: close delete button
+        x.set(0);
+        setIsOpen(false);
+      } else if (isOpen) {
+        // Snap back to open position
+        x.set(-80);
+      } else {
+        // Snap back to closed position
         x.set(0);
       }
     },
@@ -41,6 +58,10 @@ export const ItemRow = ({ item, onToggle, onEdit, onDelete }: ItemRowProps) => {
       rubberband: true,
     }
   );
+
+  const handleDelete = () => {
+    onDelete(item.id);
+  };
 
   const handleToggle = () => {
     // Haptic feedback
@@ -53,9 +74,10 @@ export const ItemRow = ({ item, onToggle, onEdit, onDelete }: ItemRowProps) => {
   return (
     <div className="relative bg-white overflow-hidden border-b border-gray-150">
       {/* Delete button background */}
-      <motion.div
+      <motion.button
+        onClick={handleDelete}
         style={{ opacity: deleteButtonOpacity, scale: deleteButtonScale }}
-        className="absolute right-0 top-0 bottom-0 w-20 bg-error flex items-center justify-center"
+        className="absolute right-0 top-0 bottom-0 w-20 bg-error flex items-center justify-center active:bg-red-700 transition-colors"
       >
         <svg
           className="w-6 h-6 text-white"
@@ -70,12 +92,12 @@ export const ItemRow = ({ item, onToggle, onEdit, onDelete }: ItemRowProps) => {
             d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
           />
         </svg>
-      </motion.div>
+      </motion.button>
 
       {/* Swipeable content */}
       <motion.div
         {...(bind() as any)}
-        style={{ x }}
+        style={{ x: xSpring }}
         className="flex items-center gap-3 px-4 py-3 bg-white touch-pan-y"
       >
         {/* iOS-style checkbox */}
