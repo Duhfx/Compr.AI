@@ -106,7 +106,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Enviar emails em paralelo
     const emailPromises = memberEmails.map(email =>
       resend.emails.send({
-        from: 'Compr.AI <noreply@compr-ai.app>', // Você precisará configurar um domínio no Resend
+        from: 'Compr.AI <onboarding@resend.dev>', // Domínio padrão do Resend (gratuito)
         to: email,
         subject: `📝 ${listName} foi atualizada`,
         html: `
