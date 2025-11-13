@@ -31,7 +31,13 @@
       "Bash(npx vitest:*)",
       "Bash(npx tsc:*)",
       "Bash(supabase --version:*)",
-      "Bash(supabase db push:*)"
+      "Bash(supabase db push:*)",
+      "Bash(git pull:*)",
+      "Bash(vercel env:*)",
+      "Bash(vercel login)",
+      "Bash(vercel link:*)",
+      "Bash(vercel --prod)",
+      "Bash(vercel inspect:*)"
     ],
     "deny": [],
     "ask": []

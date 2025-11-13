@@ -152,6 +152,46 @@ export const ListDetail = () => {
     }
   };
 
+  const handleNotifyMembers = async () => {
+    if (!id || !user) return;
+
+    const loadingToast = toast.loading('Enviando notificações...');
+
+    try {
+      const response = await fetch('/api/notify-members', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          listId: id,
+          listName: list?.name,
+          currentUserId: user.id,
+        }),
+      });
+
+      const data = await response.json();
+
+      toast.dismiss(loadingToast);
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Erro ao enviar notificações');
+      }
+
+      if (data.notifiedCount === 0) {
+        toast('Nenhum membro para notificar', { icon: 'ℹ️' });
+      } else {
+        toast.success(
+          `${data.notifiedCount} ${data.notifiedCount === 1 ? 'membro notificado' : 'membros notificados'}!`
+        );
+      }
+    } catch (error) {
+      toast.dismiss(loadingToast);
+      console.error('Erro ao notificar membros:', error);
+      toast.error('Erro ao enviar notificações');
+    }
+  };
+
   // Mostrar loading enquanto autentica ou carrega lista
   if (authLoading || loading) {
     return (
@@ -193,6 +233,17 @@ export const ListDetail = () => {
         <div className="flex items-center justify-between mb-2">
           <h1 className="text-[28px] font-bold text-gray-900">{list.name}</h1>
           <div className="flex gap-2">
+            {/* Notify Members Button */}
+            <button
+              onClick={handleNotifyMembers}
+              className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg active:opacity-70 transition-colors"
+              title="Notificar membros sobre atualização"
+            >
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+            </button>
+
             {/* Members Button */}
             <button
               onClick={() => setIsMembersModalOpen(true)}
