@@ -4,44 +4,24 @@
 export interface Database {
   public: {
     Tables: {
-      devices: {
-        Row: {
-          id: string;
-          nickname: string;
-          created_at: string;
-          last_seen_at: string;
-        };
-        Insert: {
-          id?: string;
-          nickname: string;
-          created_at?: string;
-          last_seen_at?: string;
-        };
-        Update: {
-          id?: string;
-          nickname?: string;
-          created_at?: string;
-          last_seen_at?: string;
-        };
-      };
       shopping_lists: {
         Row: {
           id: string;
-          device_id: string;
+          user_id: string; // Changed from device_id
           name: string;
           created_at: string;
           updated_at: string;
         };
         Insert: {
           id?: string;
-          device_id: string;
+          user_id: string; // Changed from device_id
           name: string;
           created_at?: string;
           updated_at?: string;
         };
         Update: {
           id?: string;
-          device_id?: string;
+          user_id?: string; // Changed from device_id
           name?: string;
           created_at?: string;
           updated_at?: string;
@@ -87,7 +67,7 @@ export interface Database {
           id: string;
           list_id: string;
           share_code: string;
-          owner_device_id: string;
+          owner_user_id: string; // Changed from owner_device_id
           permission: 'edit' | 'readonly';
           created_at: string;
           expires_at: string | null;
@@ -96,7 +76,7 @@ export interface Database {
           id?: string;
           list_id: string;
           share_code: string;
-          owner_device_id: string;
+          owner_user_id: string; // Changed from owner_device_id
           permission?: 'edit' | 'readonly';
           created_at?: string;
           expires_at?: string | null;
@@ -105,7 +85,7 @@ export interface Database {
           id?: string;
           list_id?: string;
           share_code?: string;
-          owner_device_id?: string;
+          owner_user_id?: string; // Changed from owner_device_id
           permission?: 'edit' | 'readonly';
           created_at?: string;
           expires_at?: string | null;
@@ -115,7 +95,7 @@ export interface Database {
         Row: {
           id: string;
           list_id: string;
-          device_id: string;
+          user_id: string; // Changed from device_id
           joined_at: string;
           last_seen_at: string | null;
           is_active: boolean;
@@ -123,7 +103,7 @@ export interface Database {
         Insert: {
           id?: string;
           list_id: string;
-          device_id: string;
+          user_id: string; // Changed from device_id
           joined_at?: string;
           last_seen_at?: string | null;
           is_active?: boolean;
@@ -131,7 +111,7 @@ export interface Database {
         Update: {
           id?: string;
           list_id?: string;
-          device_id?: string;
+          user_id?: string; // Changed from device_id
           joined_at?: string;
           last_seen_at?: string | null;
           is_active?: boolean;
@@ -140,7 +120,7 @@ export interface Database {
       purchase_history: {
         Row: {
           id: string;
-          device_id: string;
+          user_id: string; // Changed from device_id
           item_name: string;
           category: string | null;
           quantity: number | null;
@@ -150,7 +130,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
-          device_id: string;
+          user_id: string; // Changed from device_id
           item_name: string;
           category?: string | null;
           quantity?: number | null;
@@ -160,7 +140,7 @@ export interface Database {
         };
         Update: {
           id?: string;
-          device_id?: string;
+          user_id?: string; // Changed from device_id
           item_name?: string;
           category?: string | null;
           quantity?: number | null;
@@ -172,7 +152,7 @@ export interface Database {
       price_history: {
         Row: {
           id: string;
-          device_id: string;
+          user_id: string; // Changed from device_id
           item_name: string;
           price: number;
           store: string | null;
@@ -181,7 +161,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
-          device_id: string;
+          user_id: string; // Changed from device_id
           item_name: string;
           price: number;
           store?: string | null;
@@ -190,7 +170,7 @@ export interface Database {
         };
         Update: {
           id?: string;
-          device_id?: string;
+          user_id?: string; // Changed from device_id
           item_name?: string;
           price?: number;
           store?: string | null;

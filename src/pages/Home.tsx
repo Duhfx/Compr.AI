@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSupabaseLists } from '../hooks/useSupabaseLists';
+import { useAuth } from '../contexts/AuthContext';
 import { Layout } from '../components/layout/Layout';
 import { ListCard } from '../components/lists/ListCard';
 import { CreateListWithAIModal } from '../components/lists/CreateListWithAIModal';
@@ -10,10 +11,19 @@ import { Sparkles } from 'lucide-react';
 
 export const Home = () => {
   const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
   const { lists, loading, createList, deleteList } = useSupabaseLists();
   const [isCreating, setIsCreating] = useState(false);
   const [newListName, setNewListName] = useState('');
   const [showAIModal, setShowAIModal] = useState(false);
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!authLoading && !user) {
+      console.log('[Home] User not authenticated, redirecting to login');
+      navigate('/login');
+    }
+  }, [user, authLoading, navigate]);
 
   const handleCreateList = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,7 +57,8 @@ export const Home = () => {
     }
   };
 
-  if (loading) {
+  // Show loading while checking auth
+  if (authLoading || loading) {
     return (
       <Layout>
         <div className="flex items-center justify-center h-64">
@@ -55,6 +66,11 @@ export const Home = () => {
         </div>
       </Layout>
     );
+  }
+
+  // Don't render anything if not authenticated (will redirect)
+  if (!user) {
+    return null;
   }
 
   return (

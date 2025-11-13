@@ -60,7 +60,7 @@ export const createShareLink = async (
     .insert({
       list_id: listId,
       share_code: shareCode,
-      owner_device_id: deviceId,
+      owner_user_id: deviceId, // Changed from owner_device_id
       permission,
       expires_at: expiresAt,
     } as SharedListInsert)
@@ -77,7 +77,7 @@ export const createShareLink = async (
     id: data.id,
     listId: data.list_id,
     shareCode: data.share_code,
-    ownerDeviceId: data.owner_device_id,
+    ownerDeviceId: data.owner_user_id, // Changed from owner_device_id
     permission: data.permission,
     createdAt: new Date(data.created_at),
     expiresAt: data.expires_at ? new Date(data.expires_at) : undefined,
@@ -129,7 +129,7 @@ export const validateShareCode = async (code: string) => {
       listId: data.list_id,
       listName: (data.shopping_lists as any).name,
       permission: data.permission,
-      ownerDeviceId: data.owner_device_id,
+      ownerDeviceId: data.owner_user_id, // Changed from owner_device_id
     },
   };
 };
@@ -151,7 +151,7 @@ export const joinSharedList = async (code: string, deviceId: string) => {
     .from('list_members')
     .select('id')
     .eq('list_id', listId)
-    .eq('device_id', deviceId)
+    .eq('user_id', deviceId) // Changed from device_id
     .single();
 
   if (existingMember) {
@@ -166,7 +166,7 @@ export const joinSharedList = async (code: string, deviceId: string) => {
       .from('list_members')
       .insert({
         list_id: listId,
-        device_id: deviceId,
+        user_id: deviceId, // Changed from device_id
         is_active: true,
       } as ListMemberInsert);
 
@@ -237,7 +237,7 @@ export const leaveSharedList = async (listId: string, deviceId: string) => {
     .from('list_members')
     .update({ is_active: false })
     .eq('list_id', listId)
-    .eq('device_id', deviceId);
+    .eq('user_id', deviceId) // Changed from device_id;
 
   if (error) {
     console.error('Error leaving list:', error);
@@ -272,7 +272,7 @@ export const getListMembers = async (listId: string) => {
 
   return data.map((member) => ({
     id: member.id,
-    deviceId: member.device_id,
+    deviceId: member.user_id, // Changed from device_id
     nickname: (member.devices as any).nickname,
     joinedAt: new Date(member.joined_at),
     lastSeenAt: member.last_seen_at ? new Date(member.last_seen_at) : undefined,
@@ -287,7 +287,7 @@ export const updateLastSeen = async (listId: string, deviceId: string) => {
     .from('list_members')
     .update({ last_seen_at: new Date().toISOString() })
     .eq('list_id', listId)
-    .eq('device_id', deviceId);
+    .eq('user_id', deviceId) // Changed from device_id;
 };
 
 /**

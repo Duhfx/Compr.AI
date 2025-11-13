@@ -38,7 +38,7 @@ export const useSupabaseLists = () => {
       const { data: ownLists, error: ownError } = await supabase
         .from('shopping_lists')
         .select('*')
-        .eq('device_id', user.id)
+        .eq('user_id', user.id)
         .order('updated_at', { ascending: false });
 
       if (ownError) {
@@ -53,7 +53,7 @@ export const useSupabaseLists = () => {
           list_id,
           shopping_lists (*)
         `)
-        .eq('device_id', user.id)
+        .eq('user_id', user.id)
         .eq('is_active', true);
 
       if (memberError) {
@@ -106,7 +106,7 @@ export const useSupabaseLists = () => {
       console.log('[useSupabaseLists] Creating list:', name, 'for user:', user.id);
 
       const newList: ShoppingListInsert = {
-        device_id: user.id,
+        user_id: user.id,
         name,
       };
 
