@@ -22,8 +22,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log('[AuthContext] Initializing auth...');
+
     // Verificar sessão atual
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('[AuthContext] Session loaded:', {
+        hasSession: !!session,
+        userId: session?.user?.id
+      });
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
@@ -32,7 +38,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Escutar mudanças de autenticação
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('[AuthContext] Auth state changed:', {
+        event,
+        hasSession: !!session,
+        userId: session?.user?.id
+      });
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);

@@ -25,6 +25,13 @@ export const ListDetail = () => {
 
   useEffect(() => {
     const loadList = async () => {
+      console.log('[ListDetail] useEffect triggered:', {
+        id,
+        authLoading,
+        hasUser: !!user,
+        userId: user?.id
+      });
+
       if (!id) {
         navigate('/');
         return;
@@ -32,26 +39,31 @@ export const ListDetail = () => {
 
       // Aguardar o carregamento da autenticação antes de buscar a lista
       if (authLoading) {
+        console.log('[ListDetail] Auth still loading, waiting...');
         return;
       }
 
       // Se não estiver autenticado após carregar, redirecionar para login
       if (!user) {
-        console.log('[ListDetail] User not authenticated, redirecting to login');
+        console.log('[ListDetail] User not authenticated after auth loaded, redirecting to login');
         navigate('/login');
         return;
       }
 
+      console.log('[ListDetail] Fetching list for user:', user.id);
+
       try {
         const foundList = await getListById(id);
         if (!foundList) {
+          console.warn('[ListDetail] List not found:', id);
           toast.error('Lista não encontrada');
           navigate('/');
           return;
         }
+        console.log('[ListDetail] List loaded successfully:', foundList.name);
         setList(foundList);
       } catch (error) {
-        console.error('Erro ao carregar lista:', error);
+        console.error('[ListDetail] Error loading list:', error);
         toast.error('Erro ao carregar lista');
         navigate('/');
       } finally {
