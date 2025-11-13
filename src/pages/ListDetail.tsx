@@ -13,7 +13,7 @@ import type { ShoppingItem } from '../hooks/useSupabaseItems';
 export const ListDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { getListById } = useSupabaseLists();
   const { items, stats, createItem, updateItem, toggleItem, deleteItem } = useSupabaseItems(id || '');
 
@@ -27,6 +27,18 @@ export const ListDetail = () => {
     const loadList = async () => {
       if (!id) {
         navigate('/');
+        return;
+      }
+
+      // Aguardar o carregamento da autenticação antes de buscar a lista
+      if (authLoading) {
+        return;
+      }
+
+      // Se não estiver autenticado após carregar, redirecionar para login
+      if (!user) {
+        console.log('[ListDetail] User not authenticated, redirecting to login');
+        navigate('/login');
         return;
       }
 
@@ -48,7 +60,7 @@ export const ListDetail = () => {
     };
 
     loadList();
-  }, [id, getListById, navigate]);
+  }, [id, user, authLoading, getListById, navigate]);
 
   const handleAddItem = () => {
     setEditingItem(undefined);
@@ -85,7 +97,8 @@ export const ListDetail = () => {
     }
   };
 
-  if (loading) {
+  // Mostrar loading enquanto autentica ou carrega lista
+  if (authLoading || loading) {
     return (
       <Layout>
         <div className="flex items-center justify-center h-64">
@@ -93,6 +106,11 @@ export const ListDetail = () => {
         </div>
       </Layout>
     );
+  }
+
+  // Se não estiver autenticado, não renderizar nada (redirecionará)
+  if (!user) {
+    return null;
   }
 
   if (!list) return null;
