@@ -40,117 +40,86 @@ CREATE INDEX idx_price_user ON price_history(user_id);
 -- Step 5: Drop the devices table
 DROP TABLE IF EXISTS devices CASCADE;
 
--- Step 6: Update RLS policies to use auth.uid()
+-- Step 6: Create helper function to check list ownership (SECURITY DEFINER to avoid recursion)
+CREATE OR REPLACE FUNCTION user_owns_list(list_id_param UUID, user_id_param UUID)
+RETURNS BOOLEAN
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM shopping_lists
+    WHERE id = list_id_param AND user_id = user_id_param
+  );
+$$;
+
+-- Step 7: Update RLS policies to use auth.uid()
 -- Shopping Lists policies
 DROP POLICY IF EXISTS "Acesso a listas próprias" ON shopping_lists;
-CREATE POLICY "Users can manage their own lists"
+DROP POLICY IF EXISTS "Users can manage their own lists" ON shopping_lists;
+DROP POLICY IF EXISTS "Users can view shared lists" ON shopping_lists;
+DROP POLICY IF EXISTS "Users can CRUD their own lists" ON shopping_lists;
+DROP POLICY IF EXISTS "Permitir acesso a listas próprias" ON shopping_lists;
+
+CREATE POLICY "Users can CRUD their own lists"
   ON shopping_lists
   FOR ALL
-  USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Users can view shared lists"
-  ON shopping_lists
-  FOR SELECT
-  USING (
-    EXISTS (
-      SELECT 1 FROM list_members
-      WHERE list_members.list_id = shopping_lists.id
-        AND list_members.user_id = auth.uid()
-        AND list_members.is_active = true
-    )
-  );
+  USING (user_id = auth.uid())
+  WITH CHECK (user_id = auth.uid());
 
 -- Shopping Items policies
 DROP POLICY IF EXISTS "Acesso a itens" ON shopping_items;
-CREATE POLICY "Users can manage items in their lists"
-  ON shopping_items
-  FOR ALL
-  USING (
-    EXISTS (
-      SELECT 1 FROM shopping_lists
-      WHERE shopping_lists.id = shopping_items.list_id
-        AND shopping_lists.user_id = auth.uid()
-    )
-  )
-  WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM shopping_lists
-      WHERE shopping_lists.id = shopping_items.list_id
-        AND shopping_lists.user_id = auth.uid()
-    )
-  );
+DROP POLICY IF EXISTS "Users can manage items in their lists" ON shopping_items;
+DROP POLICY IF EXISTS "Users can manage items in shared lists" ON shopping_items;
+DROP POLICY IF EXISTS "Users can CRUD items in own lists" ON shopping_items;
+DROP POLICY IF EXISTS "Permitir acesso a itens" ON shopping_items;
 
-CREATE POLICY "Users can manage items in shared lists"
+-- Use helper function to avoid recursion
+CREATE POLICY "Users can CRUD items in own lists"
   ON shopping_items
   FOR ALL
-  USING (
-    EXISTS (
-      SELECT 1 FROM list_members
-      INNER JOIN shopping_lists ON shopping_lists.id = list_members.list_id
-      WHERE shopping_items.list_id = list_members.list_id
-        AND list_members.user_id = auth.uid()
-        AND list_members.is_active = true
-    )
-  )
-  WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM list_members
-      INNER JOIN shopping_lists ON shopping_lists.id = list_members.list_id
-      WHERE shopping_items.list_id = list_members.list_id
-        AND list_members.user_id = auth.uid()
-        AND list_members.is_active = true
-    )
-  );
+  USING (user_owns_list(list_id, auth.uid()))
+  WITH CHECK (user_owns_list(list_id, auth.uid()));
 
 -- List Members policies
 DROP POLICY IF EXISTS "Acesso a membros" ON list_members;
-CREATE POLICY "Users can view members of their lists"
-  ON list_members
-  FOR SELECT
-  USING (
-    EXISTS (
-      SELECT 1 FROM shopping_lists
-      WHERE shopping_lists.id = list_members.list_id
-        AND shopping_lists.user_id = auth.uid()
-    )
-    OR user_id = auth.uid()
-  );
+DROP POLICY IF EXISTS "Users can view members of their lists" ON list_members;
+DROP POLICY IF EXISTS "List owners can manage members" ON list_members;
+DROP POLICY IF EXISTS "Users can view and manage list members" ON list_members;
+DROP POLICY IF EXISTS "Permitir acesso a membros" ON list_members;
 
-CREATE POLICY "List owners can manage members"
+CREATE POLICY "Users can view and manage list members"
   ON list_members
   FOR ALL
-  USING (
-    EXISTS (
-      SELECT 1 FROM shopping_lists
-      WHERE shopping_lists.id = list_members.list_id
-        AND shopping_lists.user_id = auth.uid()
-    )
-  )
-  WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM shopping_lists
-      WHERE shopping_lists.id = list_members.list_id
-        AND shopping_lists.user_id = auth.uid()
-    )
-  );
+  USING (user_owns_list(list_id, auth.uid()) OR user_id = auth.uid())
+  WITH CHECK (user_owns_list(list_id, auth.uid()));
 
 -- Shared Lists policies
 DROP POLICY IF EXISTS "Acesso a compartilhamentos" ON shared_lists;
-CREATE POLICY "List owners can manage sharing"
+DROP POLICY IF EXISTS "List owners can manage sharing" ON shared_lists;
+DROP POLICY IF EXISTS "Anyone can view share codes to join" ON shared_lists;
+DROP POLICY IF EXISTS "Users can manage their own shared lists" ON shared_lists;
+DROP POLICY IF EXISTS "Anyone can view share codes" ON shared_lists;
+DROP POLICY IF EXISTS "Permitir acesso a compartilhamentos" ON shared_lists;
+
+CREATE POLICY "Users can manage their own shared lists"
   ON shared_lists
   FOR ALL
   USING (owner_user_id = auth.uid())
   WITH CHECK (owner_user_id = auth.uid());
 
-CREATE POLICY "Anyone can view share codes to join"
+CREATE POLICY "Anyone can view share codes"
   ON shared_lists
   FOR SELECT
   USING (true);
 
 -- Purchase History policies
 DROP POLICY IF EXISTS "Acesso ao histórico" ON purchase_history;
-CREATE POLICY "Users can manage their own purchase history"
+DROP POLICY IF EXISTS "Users can manage their own purchase history" ON purchase_history;
+DROP POLICY IF EXISTS "Users can CRUD own purchase history" ON purchase_history;
+DROP POLICY IF EXISTS "Permitir acesso ao histórico" ON purchase_history;
+
+CREATE POLICY "Users can CRUD own purchase history"
   ON purchase_history
   FOR ALL
   USING (user_id = auth.uid())
@@ -158,7 +127,11 @@ CREATE POLICY "Users can manage their own purchase history"
 
 -- Price History policies
 DROP POLICY IF EXISTS "Acesso ao histórico de preços" ON price_history;
-CREATE POLICY "Users can manage their own price history"
+DROP POLICY IF EXISTS "Users can manage their own price history" ON price_history;
+DROP POLICY IF EXISTS "Users can CRUD own price history" ON price_history;
+DROP POLICY IF EXISTS "Permitir acesso ao histórico de preços" ON price_history;
+
+CREATE POLICY "Users can CRUD own price history"
   ON price_history
   FOR ALL
   USING (user_id = auth.uid())
