@@ -31,12 +31,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     );
 
-    // Buscar membros da lista (exceto o usuário atual)
+    // Buscar membros da lista (incluindo o usuário atual para testes)
     const { data: members, error: membersError } = await supabase
       .from('list_members')
       .select('user_id')
       .eq('list_id', listId)
-      .neq('user_id', currentUserId)
+      // .neq('user_id', currentUserId) // Comentado para incluir quem solicitou (para testes)
       .eq('is_active', true);
 
     if (membersError) {
