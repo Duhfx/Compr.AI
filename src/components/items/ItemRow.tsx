@@ -18,9 +18,9 @@ export const ItemRow = ({ item, onToggle, onEdit, onDelete }: ItemRowProps) => {
   const deleteButtonScale = useTransform(x, [-100, -50, 0], [1, 0.8, 0.5]);
 
   const bind = useDrag(
-    ({ movement: [mx], offset: [ox], last, distance }) => {
+    ({ movement: [mx], last, distance }) => {
       // Mark that user started dragging
-      if (distance > 3) {
+      if (distance[0] > 3 || distance[1] > 3) {
         hasDraggedRef.current = true;
       }
 
