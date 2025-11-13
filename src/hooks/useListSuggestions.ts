@@ -23,9 +23,9 @@ interface UseListSuggestionsReturn {
 
 // Configurações de throttling
 const CACHE_VALIDITY_MS = 5 * 60 * 1000; // 5 minutos
-const DEBOUNCE_MS = 30 * 1000; // 30 segundos após mudanças
-const MIN_ITEMS_FOR_CONTEXT = 2; // Mínimo de itens para gerar sugestões
-const ITEMS_CHANGE_THRESHOLD = 3; // Recalcular após N novos itens
+const DEBOUNCE_MS = 3 * 1000; // 3 segundos após mudanças (reduzido de 30s)
+const MIN_ITEMS_FOR_CONTEXT = 1; // Mínimo de itens para gerar sugestões (reduzido de 2)
+const ITEMS_CHANGE_THRESHOLD = 1; // Recalcular após N novos itens (reduzido de 3)
 
 /**
  * Cria um hash simples dos nomes dos itens para detectar mudanças de contexto
