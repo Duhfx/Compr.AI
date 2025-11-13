@@ -25,7 +25,7 @@ export const Login = () => {
       setLoading(true);
       await signIn(email, password);
       toast.success('Login realizado com sucesso!');
-      navigate('/');
+      navigate('/home');
     } catch (error: any) {
       console.error('Login error:', error);
       if (error.message.includes('Invalid login credentials')) {
@@ -130,7 +130,7 @@ export const Login = () => {
               to="/"
               className="text-[15px] text-primary hover:text-opacity-80"
             >
-              Continuar sem login
+              Voltar para início
             </Link>
           </div>
         </div>

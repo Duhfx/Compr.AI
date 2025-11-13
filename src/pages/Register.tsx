@@ -163,7 +163,7 @@ export const Register = () => {
               to="/"
               className="text-[15px] text-primary hover:text-opacity-80"
             >
-              Continuar sem login
+              Voltar para início
             </Link>
           </div>
         </div>

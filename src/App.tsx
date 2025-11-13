@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { Landing } from './pages/Landing';
 import { Home } from './pages/Home';
 import { ListDetail } from './pages/ListDetail';
 import { Login } from './pages/Login';
@@ -11,7 +12,8 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Landing />} />
+          <Route path="/home" element={<Home />} />
           <Route path="/list/:id" element={<ListDetail />} />
           <Route path="/join/:code" element={<JoinList />} />
           <Route path="/login" element={<Login />} />

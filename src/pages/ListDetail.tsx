@@ -35,7 +35,7 @@ export const ListDetail = () => {
       });
 
       if (!id) {
-        navigate('/');
+        navigate('/home');
         return;
       }
 
@@ -45,10 +45,10 @@ export const ListDetail = () => {
         return;
       }
 
-      // Se não estiver autenticado após carregar, redirecionar para login
+      // Se não estiver autenticado após carregar, redirecionar para landing
       if (!user) {
-        console.log('[ListDetail] User not authenticated after auth loaded, redirecting to login');
-        navigate('/login');
+        console.log('[ListDetail] User not authenticated after auth loaded, redirecting to landing');
+        navigate('/');
         return;
       }
 
@@ -59,7 +59,7 @@ export const ListDetail = () => {
         if (!foundList) {
           console.warn('[ListDetail] List not found:', id);
           toast.error('Lista não encontrada');
-          navigate('/');
+          navigate('/home');
           return;
         }
         console.log('[ListDetail] List loaded successfully:', foundList.name);
@@ -67,7 +67,7 @@ export const ListDetail = () => {
       } catch (error) {
         console.error('[ListDetail] Error loading list:', error);
         toast.error('Erro ao carregar lista');
-        navigate('/');
+        navigate('/home');
       } finally {
         setLoading(false);
       }

@@ -19,11 +19,11 @@ export const Home = () => {
   const [showAIModal, setShowAIModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
 
-  // Redirect to login if not authenticated
+  // Redirect to landing if not authenticated
   useEffect(() => {
     if (!authLoading && !user) {
-      console.log('[Home] User not authenticated, redirecting to login');
-      navigate('/login');
+      console.log('[Home] User not authenticated, redirecting to landing');
+      navigate('/');
     }
   }, [user, authLoading, navigate]);
 
