@@ -31,6 +31,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     );
 
+    // Buscar owner da lista
+    const { data: list, error: listError } = await supabase
+      .from('shopping_lists')
+      .select('user_id')
+      .eq('id', listId)
+      .single();
+
+    if (listError) {
+      console.error('Error fetching list:', listError);
+      return res.status(500).json({ error: 'Failed to fetch list' });
+    }
+
     // Buscar membros da lista (incluindo o usuário atual para testes)
     const { data: members, error: membersError } = await supabase
       .from('list_members')
@@ -44,7 +56,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(500).json({ error: 'Failed to fetch members' });
     }
 
-    if (!members || members.length === 0) {
+    // Combinar owner + membros (sem duplicatas)
+    const allUserIds = new Set<string>();
+
+    // Adicionar owner
+    if (list.user_id) {
+      allUserIds.add(list.user_id);
+    }
+
+    // Adicionar membros
+    if (members && members.length > 0) {
+      members.forEach(m => allUserIds.add(m.user_id));
+    }
+
+    if (allUserIds.size === 0) {
       return res.status(200).json({
         message: 'No members to notify',
         notifiedCount: 0
@@ -60,9 +85,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // Filtrar apenas os usuários que são membros da lista
-    const memberUserIds = members.map(m => m.user_id);
     const memberEmails = users
-      .filter(user => memberUserIds.includes(user.id))
+      .filter(user => allUserIds.has(user.id))
       .map(user => user.email)
       .filter((email): email is string => !!email);
 
