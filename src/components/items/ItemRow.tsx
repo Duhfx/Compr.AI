@@ -1,5 +1,5 @@
 import { useDrag } from '@use-gesture/react';
-import { motion, useMotionValue, useTransform } from 'framer-motion';
+import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
 import type { ShoppingItem } from '../../hooks/useSupabaseItems';
 
 interface ItemRowProps {
@@ -24,15 +24,13 @@ export const ItemRow = ({ item, onToggle, onEdit, onDelete }: ItemRowProps) => {
 
       x.set(mx);
 
-      // If swiped far enough on release, trigger delete
-      if (last && mx < -100) {
-        if (confirm(`Deseja realmente excluir "${item.name}"?`)) {
-          onDelete(item.id);
-        } else {
-          x.set(0);
-        }
+      // If swiped far enough on release, keep the delete button visible
+      if (last && mx < -80) {
+        // Snap to open position to reveal delete button
+        animate(x, -100, { type: 'spring', stiffness: 300, damping: 30 });
       } else if (last) {
-        x.set(0);
+        // Snap back to closed if not swiped far enough
+        animate(x, 0, { type: 'spring', stiffness: 300, damping: 30 });
       }
     },
     {
@@ -42,7 +40,23 @@ export const ItemRow = ({ item, onToggle, onEdit, onDelete }: ItemRowProps) => {
     }
   );
 
+  const handleDelete = () => {
+    if (confirm(`Deseja realmente excluir "${item.name}"?`)) {
+      onDelete(item.id);
+    } else {
+      // Close the swipe if user cancels
+      animate(x, 0, { type: 'spring', stiffness: 300, damping: 30 });
+    }
+  };
+
+  const closeSwipe = () => {
+    animate(x, 0, { type: 'spring', stiffness: 300, damping: 30 });
+  };
+
   const handleToggle = () => {
+    // Close swipe if open
+    closeSwipe();
+
     // Haptic feedback
     if ('vibrate' in navigator) {
       navigator.vibrate(10);
@@ -50,12 +64,19 @@ export const ItemRow = ({ item, onToggle, onEdit, onDelete }: ItemRowProps) => {
     onToggle(item.id);
   };
 
+  const handleEdit = () => {
+    // Close swipe before editing
+    closeSwipe();
+    onEdit(item);
+  };
+
   return (
     <div className="relative bg-white overflow-hidden border-b border-gray-150">
-      {/* Delete button background */}
-      <motion.div
+      {/* Delete button background (clickable) */}
+      <motion.button
+        onClick={handleDelete}
         style={{ opacity: deleteButtonOpacity, scale: deleteButtonScale }}
-        className="absolute right-0 top-0 bottom-0 w-20 bg-error flex items-center justify-center"
+        className="absolute right-0 top-0 bottom-0 w-20 bg-error flex items-center justify-center cursor-pointer active:bg-red-700 transition-colors"
       >
         <svg
           className="w-6 h-6 text-white"
@@ -70,7 +91,7 @@ export const ItemRow = ({ item, onToggle, onEdit, onDelete }: ItemRowProps) => {
             d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
           />
         </svg>
-      </motion.div>
+      </motion.button>
 
       {/* Swipeable content */}
       <motion.div
@@ -104,7 +125,7 @@ export const ItemRow = ({ item, onToggle, onEdit, onDelete }: ItemRowProps) => {
           )}
         </button>
 
-        <div onClick={() => onEdit(item)} className="flex-1 cursor-pointer min-w-0">
+        <div onClick={handleEdit} className="flex-1 cursor-pointer min-w-0">
           <h4
             className={`text-[17px] truncate ${
               item.checked ? 'line-through text-gray-400' : 'text-gray-900'
