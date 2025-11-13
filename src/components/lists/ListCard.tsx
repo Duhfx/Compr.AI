@@ -26,7 +26,7 @@ export const ListCard = ({ list, onClick }: ListCardProps) => {
   return (
     <div
       onClick={onClick}
-      className="bg-white rounded-ios p-4 mb-3 shadow-ios active:shadow-ios-pressed transition-all cursor-pointer"
+      className="bg-white rounded-ios p-4 shadow-ios active:shadow-ios-pressed transition-all cursor-pointer"
     >
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-3 flex-1 min-w-0">
