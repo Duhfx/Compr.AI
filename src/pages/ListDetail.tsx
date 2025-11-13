@@ -39,13 +39,6 @@ export const ListDetail = () => {
     let isCancelled = false;
 
     const loadList = async () => {
-      console.log('[ListDetail] useEffect triggered:', {
-        id,
-        authLoading,
-        hasUser: !!user,
-        userId: user?.id
-      });
-
       if (!id) {
         navigate('/home');
         return;
@@ -53,25 +46,20 @@ export const ListDetail = () => {
 
       // Aguardar o carregamento da autenticação antes de buscar a lista
       if (authLoading) {
-        console.log('[ListDetail] Auth still loading, waiting...');
         return;
       }
 
       // Se não estiver autenticado após carregar, redirecionar para landing
       if (!user) {
-        console.log('[ListDetail] User not authenticated after auth loaded, redirecting to landing');
         navigate('/');
         return;
       }
-
-      console.log('[ListDetail] Fetching list for user:', user.id);
 
       try {
         const foundList = await getListById(id);
 
         // Não atualizar o estado se o componente foi desmontado
         if (isCancelled) {
-          console.log('[ListDetail] Component unmounted, skipping state update');
           return;
         }
 
@@ -81,12 +69,10 @@ export const ListDetail = () => {
           navigate('/home');
           return;
         }
-        console.log('[ListDetail] List loaded successfully:', foundList.name);
         setList(foundList);
       } catch (error) {
         // Não mostrar erro se o componente foi desmontado
         if (isCancelled) {
-          console.log('[ListDetail] Component unmounted, skipping error handling');
           return;
         }
 
