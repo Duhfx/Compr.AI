@@ -4,6 +4,8 @@
 import { useState, useCallback, useEffect } from 'react';
 import { db } from '../lib/db';
 import { useDeviceId } from './useDeviceId';
+import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
 
 interface Suggestion {
   name: string;
@@ -152,64 +154,95 @@ export const useSuggestions = (options: UseSuggestionsOptions = {}) => {
 export const useCreateListWithAI = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const deviceId = useDeviceId();
+  const { user } = useAuth();
 
   const createListFromPrompt = useCallback(async (prompt: string) => {
+    if (!user) {
+      const error = new Error('Usuário não autenticado. Por favor, faça login.');
+      setError(error);
+      throw error;
+    }
+
     setLoading(true);
     setError(null);
 
     try {
+      console.log('[useCreateListWithAI] Creating list for user:', user.id, 'Prompt:', prompt);
+
       // Chamar API para obter sugestões
       const response = await fetch('/api/suggest-items', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          deviceId,
+          userId: user.id, // Usar userId ao invés de deviceId
           prompt,
-          listType: 'interpretação livre'
+          listType: 'interpretação livre',
+          maxResults: 15
         })
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create list with AI');
+        const errorData = await response.json().catch(() => ({}));
+        console.error('[useCreateListWithAI] API error:', response.status, errorData);
+        throw new Error(`Failed to create list with AI: ${errorData.error || errorData.message || response.statusText}`);
       }
 
       const data = await response.json();
+      console.log('[useCreateListWithAI] Got', data.items?.length || 0, 'suggestions from AI');
 
-      // Criar lista no IndexedDB
-      const listId = crypto.randomUUID();
-      await db.shoppingLists.add({
-        id: listId,
-        name: prompt,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        isLocal: true
-      });
-
-      // Adicionar itens sugeridos
-      for (const item of data.items) {
-        await db.shoppingItems.add({
-          id: crypto.randomUUID(),
-          listId,
-          name: item.name,
-          quantity: item.quantity || 1,
-          unit: item.unit || 'un',
-          category: item.category,
-          checked: false,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        });
+      if (!data.items || data.items.length === 0) {
+        throw new Error('IA não retornou sugestões. Tente reformular sua descrição.');
       }
 
+      // Criar lista no Supabase
+      const { data: createdList, error: listError } = await supabase
+        .from('shopping_lists')
+        .insert({
+          user_id: user.id,
+          name: prompt,
+        })
+        .select()
+        .single();
+
+      if (listError) {
+        console.error('[useCreateListWithAI] Error creating list:', listError);
+        throw new Error(`Failed to create list: ${listError.message}`);
+      }
+
+      console.log('[useCreateListWithAI] List created:', createdList.id);
+
+      // Adicionar itens sugeridos ao Supabase
+      const itemsToInsert = data.items.map((item: any) => ({
+        list_id: createdList.id,
+        name: item.name,
+        quantity: item.quantity || 1,
+        unit: item.unit || 'un',
+        category: item.category,
+        checked: false,
+      }));
+
+      const { error: itemsError } = await supabase
+        .from('shopping_items')
+        .insert(itemsToInsert);
+
+      if (itemsError) {
+        console.error('[useCreateListWithAI] Error creating items:', itemsError);
+        // Deletar a lista se falhar ao criar itens
+        await supabase.from('shopping_lists').delete().eq('id', createdList.id);
+        throw new Error(`Failed to create items: ${itemsError.message}`);
+      }
+
+      console.log('[useCreateListWithAI] Created', itemsToInsert.length, 'items');
+
       setLoading(false);
-      return listId;
+      return createdList.id;
     } catch (err) {
       console.error('Error creating list with AI:', err);
       setError(err as Error);
       setLoading(false);
       throw err;
     }
-  }, [deviceId]);
+  }, [user]);
 
   return {
     createListFromPrompt,
