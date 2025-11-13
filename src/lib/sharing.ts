@@ -94,6 +94,8 @@ export const createShareLink = async (
  * Valida e busca informações de um código de compartilhamento
  */
 export const validateShareCode = async (code: string) => {
+  console.log('[validateShareCode] Validating code:', code.toUpperCase());
+
   const { data, error } = await supabase
     .from('shared_lists')
     .select(`
@@ -106,30 +108,41 @@ export const validateShareCode = async (code: string) => {
       )
     `)
     .eq('share_code', code.toUpperCase())
-    .single();
+    .maybeSingle();
+
+  console.log('[validateShareCode] Result:', { data, error });
 
   if (error) {
-    if (error.code === 'PGRST116') {
-      return { valid: false, error: 'Código inválido' };
-    }
-    return { valid: false, error: 'Erro ao validar código' };
+    console.error('[validateShareCode] Error:', error);
+    return { valid: false, error: `Erro ao validar código: ${error.message}` };
+  }
+
+  if (!data) {
+    console.warn('[validateShareCode] No data found for code:', code);
+    return { valid: false, error: 'Código inválido ou não encontrado' };
   }
 
   // Verificar se expirou
   if (data.expires_at) {
     const expiresAt = new Date(data.expires_at);
     if (expiresAt < new Date()) {
+      console.warn('[validateShareCode] Code expired:', data.expires_at);
       return { valid: false, error: 'Código expirado' };
     }
   }
+
+  console.log('[validateShareCode] Valid code:', {
+    listId: data.list_id,
+    listName: (data.shopping_lists as any)?.name,
+  });
 
   return {
     valid: true,
     data: {
       listId: data.list_id,
-      listName: (data.shopping_lists as any).name,
+      listName: (data.shopping_lists as any)?.name || 'Lista Compartilhada',
       permission: data.permission,
-      ownerDeviceId: data.owner_user_id, // Changed from owner_device_id
+      ownerDeviceId: data.owner_user_id,
     },
   };
 };
