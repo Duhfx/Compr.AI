@@ -33,3 +33,4 @@ nul
 src/Test.tsx
 
 .vercel
+.env.production

@@ -109,7 +109,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Chamar Gemini AI
     console.log('[suggest-items] Initializing Gemini AI with model: gemini-2.5-flash-lite');
     console.log('[suggest-items] Top items for context:', topItems.length);
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+
+    // Validar API key
+    if (!process.env.GEMINI_API_KEY) {
+      throw new Error('GEMINI_API_KEY environment variable is not set');
+    }
+
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
 
     const systemPrompt = `
