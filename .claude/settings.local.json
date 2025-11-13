@@ -30,7 +30,8 @@
       "Bash(taskkill:*)",
       "Bash(npx vitest:*)",
       "Bash(npx tsc:*)",
-      "Bash(supabase --version:*)"
+      "Bash(supabase --version:*)",
+      "Bash(supabase db push:*)"
     ],
     "deny": [],
     "ask": []

@@ -6,6 +6,7 @@ import { db } from '../lib/db';
 import { useDeviceId } from './useDeviceId';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import toast from 'react-hot-toast';
 
 interface Suggestion {
   name: string;
@@ -202,6 +203,45 @@ Considere quantidades realistas e apropriadas para o contexto descrito.`;
 
       if (!data.items || data.items.length === 0) {
         throw new Error('IA não retornou sugestões. Tente reformular sua descrição.');
+      }
+
+      // Validar lista com IA (dupla checagem)
+      console.log('[useCreateListWithAI] Validating list with AI...');
+      const validationResponse = await fetch('/api/validate-list', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          originalPrompt: prompt,
+          suggestedItems: data.items
+        })
+      });
+
+      if (validationResponse.ok) {
+        const validation = await validationResponse.json();
+        console.log('[useCreateListWithAI] Validation result:', {
+          isValid: validation.isValid,
+          confidence: validation.confidence,
+          issues: validation.issues
+        });
+
+        // Filtrar itens que a IA recomendou manter
+        const validatedItems = validation.validatedItems.filter((item: any) => item.shouldKeep);
+
+        if (validatedItems.length === 0) {
+          throw new Error('A IA não conseguiu validar nenhum item da lista. Tente reformular sua descrição.');
+        }
+
+        // Se a confiança for muito baixa, avisar mas continuar
+        if (validation.confidence < 70) {
+          console.warn('[useCreateListWithAI] Low confidence validation:', validation.confidence);
+          toast('⚠️ Lista gerada com baixa confiança. Revise os itens.', { duration: 4000 });
+        }
+
+        // Usar apenas itens validados
+        data.items = validatedItems;
+        console.log('[useCreateListWithAI] Using', validatedItems.length, 'validated items');
+      } else {
+        console.warn('[useCreateListWithAI] Validation API failed, proceeding without validation');
       }
 
       // Criar lista no Supabase
