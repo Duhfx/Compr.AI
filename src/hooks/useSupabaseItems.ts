@@ -102,7 +102,9 @@ export const useSupabaseItems = (listId: string) => {
     category?: string
   ): Promise<ShoppingItem> => {
     if (!user) {
-      throw new Error('Usuário não autenticado');
+      const error = new Error('Usuário não autenticado. Por favor, faça login.');
+      console.error('[useSupabaseItems] User not authenticated:', { user });
+      throw error;
     }
 
     try {
@@ -124,8 +126,14 @@ export const useSupabaseItems = (listId: string) => {
         .single();
 
       if (error) {
-        console.error('[useSupabaseItems] Error creating item:', error);
-        throw error;
+        console.error('[useSupabaseItems] Error creating item:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code,
+          error
+        });
+        throw new Error(`Failed to create item: ${error.message}`);
       }
 
       console.log('[useSupabaseItems] Item created:', data);

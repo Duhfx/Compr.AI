@@ -97,7 +97,9 @@ export const useSupabaseLists = () => {
   // Criar nova lista
   const createList = async (name: string): Promise<ShoppingList> => {
     if (!user) {
-      throw new Error('Usuário não autenticado');
+      const error = new Error('Usuário não autenticado. Por favor, faça login.');
+      console.error('[useSupabaseLists] User not authenticated:', { user, loading });
+      throw error;
     }
 
     try {
@@ -115,8 +117,14 @@ export const useSupabaseLists = () => {
         .single();
 
       if (error) {
-        console.error('[useSupabaseLists] Error creating list:', error);
-        throw error;
+        console.error('[useSupabaseLists] Error creating list:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code,
+          error
+        });
+        throw new Error(`Failed to create list: ${error.message}`);
       }
 
       console.log('[useSupabaseLists] List created:', data);
