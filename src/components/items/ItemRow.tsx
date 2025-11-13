@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useDrag } from '@use-gesture/react';
-import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
+import { motion, useMotionValue, useSpring } from 'framer-motion';
 import type { ShoppingItem } from '../../hooks/useSupabaseItems';
 
 interface ItemRowProps {
@@ -12,13 +12,17 @@ interface ItemRowProps {
 
 export const ItemRow = ({ item, onToggle, onEdit, onDelete }: ItemRowProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const isDragging = useRef(false);
   const x = useMotionValue(0);
   const xSpring = useSpring(x, { damping: 20, stiffness: 300 });
-  const deleteButtonOpacity = useTransform(xSpring, [-100, -50, 0], [1, 0.5, 0]);
-  const deleteButtonScale = useTransform(xSpring, [-100, -50, 0], [1, 0.8, 0.5]);
 
   const bind = useDrag(
     ({ movement: [mx], last }) => {
+      // Mark as dragging
+      if (!last) {
+        isDragging.current = true;
+      }
+
       // During drag, follow finger
       if (!last) {
         // Only allow swipe to left when closed
@@ -38,10 +42,12 @@ export const ItemRow = ({ item, onToggle, onEdit, onDelete }: ItemRowProps) => {
       // On release
       if (mx < -50 && !isOpen) {
         // Swipe left: open delete button
+        console.log('[ItemRow] Opening delete button');
         x.set(-80);
         setIsOpen(true);
       } else if (mx > -40 && isOpen) {
         // Swipe right: close delete button
+        console.log('[ItemRow] Closing delete button');
         x.set(0);
         setIsOpen(false);
       } else if (isOpen) {
@@ -51,6 +57,11 @@ export const ItemRow = ({ item, onToggle, onEdit, onDelete }: ItemRowProps) => {
         // Snap back to closed position
         x.set(0);
       }
+
+      // Reset dragging flag after a short delay
+      setTimeout(() => {
+        isDragging.current = false;
+      }, 100);
     },
     {
       axis: 'x',
@@ -59,11 +70,24 @@ export const ItemRow = ({ item, onToggle, onEdit, onDelete }: ItemRowProps) => {
     }
   );
 
-  const handleDelete = () => {
+  const handleDelete = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('[ItemRow] Delete button clicked, deleting item:', item.name);
     onDelete(item.id);
   };
 
-  const handleToggle = () => {
+  const handleToggle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (isDragging.current) {
+      console.log('[ItemRow] Ignoring toggle during drag');
+      return;
+    }
+
+    console.log('[ItemRow] Toggling item:', item.name);
+
     // Haptic feedback
     if ('vibrate' in navigator) {
       navigator.vibrate(10);
@@ -71,13 +95,32 @@ export const ItemRow = ({ item, onToggle, onEdit, onDelete }: ItemRowProps) => {
     onToggle(item.id);
   };
 
+  const handleEdit = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (isDragging.current) {
+      console.log('[ItemRow] Ignoring edit during drag');
+      return;
+    }
+
+    if (isOpen) {
+      console.log('[ItemRow] Ignoring edit while delete button is open');
+      return;
+    }
+
+    console.log('[ItemRow] Opening edit modal for:', item.name);
+    onEdit(item);
+  };
+
   return (
     <div className="relative bg-white overflow-hidden border-b border-gray-150">
       {/* Delete button background */}
       <motion.button
         onClick={handleDelete}
-        style={{ opacity: deleteButtonOpacity, scale: deleteButtonScale }}
-        className="absolute right-0 top-0 bottom-0 w-20 bg-error flex items-center justify-center active:bg-red-700 transition-colors"
+        style={{ opacity: isOpen ? 1 : 0 }}
+        className="absolute right-0 top-0 bottom-0 w-20 bg-error flex items-center justify-center active:bg-red-700 transition-opacity"
+        tabIndex={isOpen ? 0 : -1}
       >
         <svg
           className="w-6 h-6 text-white"
@@ -126,7 +169,7 @@ export const ItemRow = ({ item, onToggle, onEdit, onDelete }: ItemRowProps) => {
           )}
         </button>
 
-        <div onClick={() => onEdit(item)} className="flex-1 cursor-pointer min-w-0">
+        <div onClick={handleEdit} className="flex-1 cursor-pointer min-w-0">
           <h4
             className={`text-[17px] truncate ${
               item.checked ? 'line-through text-gray-400' : 'text-gray-900'
