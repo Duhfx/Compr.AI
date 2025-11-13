@@ -56,11 +56,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     );
 
     // Buscar histórico do usuário (últimos 50 itens únicos)
+    // IMPORTANTE: Filtra apenas itens de listas que ainda existem (list_id NOT NULL)
+    // Quando uma lista é deletada, list_id vira NULL (ON DELETE SET NULL)
     console.log('[suggest-items] Fetching purchase history for user:', userId);
     const { data: history, error: historyError } = await supabase
       .from('purchase_history')
       .select('item_name, category, quantity, unit')
       .eq('user_id', userId)
+      .not('list_id', 'is', null)  // Exclui itens de listas deletadas
       .order('purchased_at', { ascending: false })
       .limit(50);
 
