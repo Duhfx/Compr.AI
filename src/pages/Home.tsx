@@ -259,7 +259,7 @@ export const Home = () => {
             </button>
           </div>
         ) : (
-          <div className="space-y-0">
+          <div className="space-y-3">
             {filteredLists.map((list) => (
               <ListCard
                 key={list.id}
