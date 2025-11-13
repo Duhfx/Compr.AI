@@ -50,19 +50,50 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
 
     const systemPrompt = `
-Você é um validador de listas de compras. Analise se os itens sugeridos fazem sentido para a solicitação original.
+Você é um validador de listas de compras para o mercado BRASILEIRO. Analise se os itens sugeridos fazem sentido para a solicitação original e para a realidade brasileira.
 
 **Solicitação Original**: "${originalPrompt}"
 
 **Itens Sugeridos**:
 ${suggestedItems.map((item, i) => `${i + 1}. ${item.name} (${item.quantity} ${item.unit}, ${item.category || 'Sem categoria'})`).join('\n')}
 
-**Tarefa**: Avaliar se CADA item faz sentido para a solicitação. Considere:
-1. O item é relevante para o contexto da solicitação?
-2. A quantidade é adequada?
-3. O item é realmente um produto de supermercado/compras?
-4. Há itens importantes faltando?
-5. Há itens duplicados ou muito similares?
+**Tarefa**: Avaliar se CADA item faz sentido para a solicitação E para o mercado brasileiro. Considere:
+
+**1. Relevância para o contexto**:
+   - O item é apropriado para a solicitação original?
+   - Para listas temáticas (churrasco, feijoada, café da manhã), o item faz sentido?
+
+**2. Disponibilidade no Brasil**:
+   - O item é COMUM em supermercados brasileiros?
+   - Prefira nomes brasileiros (ex: "Pão Francês" ao invés de "baguette", "Requeijão" ao invés de "cream cheese")
+   - Evite produtos muito específicos de outros países
+
+**3. Quantidades realistas**:
+   - A quantidade é adequada para consumo familiar brasileiro?
+   - Evite quantidades industriais (ex: 20kg de arroz) ou muito pequenas (50g de feijão)
+   - Quantidades típicas: 1-2kg arroz, 1kg feijão, 1L óleo, 500g café
+
+**4. Unidades de medida brasileiras**:
+   - Verifique se usa unidades corretas: kg, g, L, ml, un, pacote, lata, caixa, dúzia, maço
+   - Evite unidades estrangeiras (oz, lb, gallon)
+
+**5. Completude da lista**:
+   - Há itens essenciais faltando para a solicitação?
+   - Para "churrasco": carne, carvão, farofa, bebidas?
+   - Para "café da manhã": pão, café, leite, manteiga?
+   - Para "almoço": arroz, feijão, proteína, salada?
+
+**6. Duplicatas e redundâncias**:
+   - Há itens duplicados ou muito similares?
+   - Ex: "Arroz" e "Arroz tipo 1" é redundante
+
+**CONTEXTO BRASILEIRO - Produtos comuns**:
+- Básicos: Arroz tipo 1, Feijão carioca/preto, Óleo de soja, Açúcar, Sal, Café em pó
+- Carnes: Picanha, Fraldinha, Costela, Linguiça toscana, Filé de frango
+- Laticínios: Leite longa vida, Requeijão, Queijo minas, Iogurte natural
+- Hortifruti: Tomate, Cebola, Alho, Batata, Cenoura, Alface, Banana, Laranja
+- Bebidas: Refrigerante, Cerveja, Guaraná, Suco de caixinha
+- Padaria: Pão francês, Pão de forma, Biscoito
 
 **IMPORTANTE**: Retorne APENAS um JSON válido, sem markdown:
 
@@ -78,16 +109,18 @@ ${suggestedItems.map((item, i) => `${i + 1}. ${item.name} (${item.quantity} ${it
       "unit": "kg",
       "category": "Alimentos",
       "shouldKeep": true,
-      "reason": "Item relevante e quantidade apropriada"
+      "reason": "Item relevante, comum no Brasil e quantidade apropriada"
     }
   ]
 }
 
 **Critérios de validação**:
-- shouldKeep: true = item adequado para a lista
-- shouldKeep: false = item não faz sentido para a solicitação
+- shouldKeep: true = item adequado (relevante, disponível no Brasil, quantidade ok)
+- shouldKeep: false = item problemático (não faz sentido, quantidade inadequada, produto não comum)
 - confidence: 0-100 (quão confiante você está na lista como um todo)
 - isValid: true se >80% dos itens são válidos, false caso contrário
+- issues: liste problemas específicos encontrados
+- suggestions: sugira melhorias concretas (ex: "Adicionar carvão para o churrasco", "Trocar 'baguette' por 'Pão Francês'")
 `.trim();
 
     console.log('[validate-list] Calling Gemini API...');
