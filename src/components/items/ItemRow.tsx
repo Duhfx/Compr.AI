@@ -1,5 +1,6 @@
+import { useState, useRef } from 'react';
 import { useDrag } from '@use-gesture/react';
-import { motion, useMotionValue, useTransform } from 'framer-motion';
+import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
 import type { ShoppingItem } from '../../hooks/useSupabaseItems';
 
 interface ItemRowProps {
@@ -10,39 +11,99 @@ interface ItemRowProps {
 }
 
 export const ItemRow = ({ item, onToggle, onEdit, onDelete }: ItemRowProps) => {
+  const [isDeleteRevealed, setIsDeleteRevealed] = useState(false);
+  const hasDraggedRef = useRef(false);
   const x = useMotionValue(0);
   const deleteButtonOpacity = useTransform(x, [-100, -50, 0], [1, 0.5, 0]);
   const deleteButtonScale = useTransform(x, [-100, -50, 0], [1, 0.8, 0.5]);
 
   const bind = useDrag(
-    ({ movement: [mx], last }) => {
-      // Only allow swipe to left
-      if (mx > 0) {
-        x.set(0);
-        return;
+    ({ movement: [mx], offset: [ox], last, distance }) => {
+      // Mark that user started dragging
+      if (distance > 3) {
+        hasDraggedRef.current = true;
       }
 
-      x.set(mx);
+      // Get current x position
+      const currentX = x.get();
 
-      // If swiped far enough on release, trigger delete
-      if (last && mx < -100) {
-        if (confirm(`Deseja realmente excluir "${item.name}"?`)) {
-          onDelete(item.id);
+      // Only allow swipe to left (unless already swiped left)
+      if (mx > 0 && currentX >= 0) {
+        if (last) {
+          setIsDeleteRevealed(false);
+          animate(x, 0, { type: 'spring', stiffness: 400, damping: 30 });
         } else {
           x.set(0);
         }
-      } else if (last) {
-        x.set(0);
+        return;
+      }
+
+      // If delete is revealed and swiping right, allow closing
+      if (isDeleteRevealed && mx > 0) {
+        const newX = Math.min(currentX + mx, 0);
+        x.set(newX);
+
+        if (last) {
+          if (newX > -50) {
+            setIsDeleteRevealed(false);
+            animate(x, 0, { type: 'spring', stiffness: 400, damping: 30 });
+          } else {
+            animate(x, -100, { type: 'spring', stiffness: 400, damping: 30 });
+          }
+        }
+        return;
+      }
+
+      // Update position during drag
+      if (!last) {
+        const targetX = isDeleteRevealed ? -100 + mx : mx;
+        x.set(Math.max(targetX, -120));
+      }
+
+      // When drag ends
+      if (last) {
+        const finalX = isDeleteRevealed ? currentX : mx;
+
+        // If swiped far enough, lock at delete position
+        if (finalX < -60) {
+          setIsDeleteRevealed(true);
+          animate(x, -100, { type: 'spring', stiffness: 400, damping: 30 });
+        } else {
+          // Otherwise, snap back
+          setIsDeleteRevealed(false);
+          animate(x, 0, { type: 'spring', stiffness: 400, damping: 30 });
+        }
+
+        // Reset drag flag after animation completes
+        setTimeout(() => {
+          hasDraggedRef.current = false;
+        }, 250);
       }
     },
     {
+      from: () => [isDeleteRevealed ? 0 : 0, 0],
       axis: 'x',
       bounds: { left: -120, right: 0 },
       rubberband: true,
+      pointer: { touch: true }
     }
   );
 
-  const handleToggle = () => {
+  const handleDeleteClick = () => {
+    if (confirm(`Deseja realmente excluir "${item.name}"?`)) {
+      onDelete(item.id);
+    } else {
+      setIsDeleteRevealed(false);
+      animate(x, 0, { type: 'spring', stiffness: 400, damping: 30 });
+    }
+  };
+
+  const handleToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    // Don't toggle if user was dragging
+    if (hasDraggedRef.current) {
+      return;
+    }
     // Haptic feedback
     if ('vibrate' in navigator) {
       navigator.vibrate(10);
@@ -50,12 +111,34 @@ export const ItemRow = ({ item, onToggle, onEdit, onDelete }: ItemRowProps) => {
     onToggle(item.id);
   };
 
+  const handleEditClick = (e: React.MouseEvent) => {
+    // If delete is revealed, close it first
+    if (isDeleteRevealed) {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDeleteRevealed(false);
+      animate(x, 0, { type: 'spring', stiffness: 400, damping: 30 });
+      return;
+    }
+
+    // Don't open edit modal if user was dragging
+    if (hasDraggedRef.current) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+
+    onEdit(item);
+  };
+
   return (
     <div className="relative bg-white overflow-hidden border-b border-gray-150">
       {/* Delete button background */}
-      <motion.div
+      <motion.button
+        onClick={handleDeleteClick}
         style={{ opacity: deleteButtonOpacity, scale: deleteButtonScale }}
-        className="absolute right-0 top-0 bottom-0 w-20 bg-error flex items-center justify-center"
+        className="absolute right-0 top-0 bottom-0 w-20 bg-error flex items-center justify-center cursor-pointer"
+        disabled={!isDeleteRevealed}
       >
         <svg
           className="w-6 h-6 text-white"
@@ -70,7 +153,7 @@ export const ItemRow = ({ item, onToggle, onEdit, onDelete }: ItemRowProps) => {
             d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
           />
         </svg>
-      </motion.div>
+      </motion.button>
 
       {/* Swipeable content */}
       <motion.div
@@ -104,7 +187,7 @@ export const ItemRow = ({ item, onToggle, onEdit, onDelete }: ItemRowProps) => {
           )}
         </button>
 
-        <div onClick={() => onEdit(item)} className="flex-1 cursor-pointer min-w-0">
+        <div onClick={handleEditClick} className="flex-1 cursor-pointer min-w-0">
           <h4
             className={`text-[17px] truncate ${
               item.checked ? 'line-through text-gray-400' : 'text-gray-900'
