@@ -131,21 +131,66 @@ ${prompt ? `**Contexto adicional**: ${prompt}` : ''}
 - Pet (Ração, Produtos para animais)
 - Mercearia (Temperos, Condimentos, Enlatados)
 
-**Exemplos de listas típicas brasileiras**:
-- "Churrasco": Picanha, Fraldinha, Linguiça, Pão de alho, Farofa, Vinagrete, Cerveja, Refrigerante, Carvão
-- "Feijoada": Feijão preto, Costelinha de porco, Linguiça calabresa, Laranja, Couve, Arroz branco, Farofa
-- "Café da manhã": Pão francês, Manteiga, Café em pó, Leite, Queijo minas, Presunto, Frutas, Suco
-- "Lanche da tarde": Biscoito, Achocolatado, Leite, Pão de forma, Requeijão, Bolo pronto
-- "Feira/Hortifruti": Tomate, Cebola, Alho, Batata, Cenoura, Alface, Banana, Maçã, Laranja, Limão
+**Exemplos DETALHADOS de listas típicas brasileiras**:
 
-**Instruções**:
-1. Baseie as sugestões no histórico do usuário sempre que possível
-2. Para tipos específicos de lista, sugira itens apropriados ao contexto brasileiro
-3. Use quantidades REALISTAS para consumo familiar brasileiro (ex: 1-2kg de arroz, 1kg de feijão, 1L de óleo)
-4. Evite quantidades industriais ou muito pequenas (não sugira 10kg de arroz nem 50g de feijão)
-5. Priorize itens que o usuário já comprou no passado
-6. Use nomes comuns no Brasil (ex: "Pão Francês" ao invés de "Pão", "Leite Longa Vida" ao invés de apenas "Leite")
-7. Para itens frescos (hortifruti), considere sazonalidade brasileira quando possível
+📌 **CHURRASCO** (na churrasqueira):
+   ✅ SUGIRA: Picanha, Fraldinha, Costela, Maminha, Cupim, Linguiça toscana/calabresa, Coração de frango, Pão de alho, Farofa pronta, Vinagrete, Carvão, Cerveja, Refrigerante, Gelo, Sal grosso
+   ❌ NÃO SUGIRA: Carne moída, Peito de frango, Filé de frango (essas são para frigideira/forno, não churrasqueira!)
+
+📌 **FEIJOADA** (refeição tradicional):
+   ✅ SUGIRA: Feijão preto, Costelinha de porco, Paio, Linguiça calabresa, Bacon, Orelha de porco, Laranja, Couve-manteiga, Arroz branco, Farofa, Torresmo
+   ❌ NÃO SUGIRA: Feijão carioca, Alface, Frango
+
+📌 **CAFÉ DA MANHÃ**:
+   ✅ SUGIRA: Pão francês, Pão de forma, Manteiga, Margarina, Café em pó, Leite integral, Queijo minas, Presunto, Requeijão, Frutas (banana, maçã, mamão), Suco de laranja, Achocolatado
+   ❌ NÃO SUGIRA: Arroz, Feijão, Carnes
+
+📌 **LANCHE DA TARDE**:
+   ✅ SUGIRA: Biscoito (água e sal, maisena, recheado), Achocolatado em pó, Leite, Pão de forma, Requeijão, Bolo pronto, Iogurte, Frutas
+   ❌ NÃO SUGIRA: Almoço completo, Carnes pesadas
+
+📌 **FEIRA / HORTIFRUTI**:
+   ✅ SUGIRA: Tomate, Cebola, Alho, Batata, Cenoura, Alface, Rúcula, Couve, Banana, Maçã, Laranja, Limão, Mamão, Melancia
+   ❌ NÃO SUGIRA: Produtos industrializados, Carnes, Laticínios
+
+📌 **ALMOÇO DE DOMINGO** (refeição familiar):
+   ✅ SUGIRA: Arroz branco, Feijão carioca, Carne (alcatra, patinho, frango), Batata, Cenoura, Alface, Tomate, Refrigerante, Sobremesa
+   ❌ NÃO SUGIRA: Apenas lanches rápidos
+
+📌 **FESTA INFANTIL**:
+   ✅ SUGIRA: Salgadinhos, Refrigerante, Suco, Bolo, Doces, Guardanapo, Copinho descartável, Pratinho descartável
+   ❌ NÃO SUGIRA: Bebidas alcoólicas, Carnes cruas
+
+📌 **COMPRAS DO MÊS** (estoque):
+   ✅ SUGIRA: Arroz (5kg), Feijão (2-3kg), Óleo de soja, Açúcar, Sal, Café (500g), Macarrão, Molho de tomate, Papel higiênico, Sabão em pó, Detergente
+   ❌ NÃO SUGIRA: Apenas produtos perecíveis
+
+**INSTRUÇÕES CRÍTICAS**:
+1. **LEIA COM ATENÇÃO o tipo de lista e contexto** - "churrasco" significa CHURRASQUEIRA, não qualquer carne!
+2. **Baseie-se no histórico do usuário** quando disponível
+3. **Seja ESPECÍFICO ao contexto** - não misture itens de café da manhã em lista de churrasco
+4. **Use quantidades REALISTAS**:
+   - Churrasco para 6-8 pessoas: 1,5-2kg de carne no total
+   - Feira semanal: 2-3kg de cada verdura/legume
+   - Compras do mês: 5kg arroz, 2kg feijão, 1L óleo
+5. **Evite quantidades absurdas**: não sugira 10kg de picanha nem 50g de arroz
+6. **Use nomes brasileiros**: "Pão Francês" (não "baguette"), "Requeijão" (não "cream cheese"), "Linguiça toscana" (não "sausage")
+7. **Considere o clima/região**: Produtos sazonais brasileiros (ex: manga no verão, morango no inverno)
+8. **Pense como um brasileiro fazendo compras**: O que você REALMENTE compraria para essa ocasião?
+
+**⚠️ ERROS COMUNS A EVITAR**:
+- ❌ Sugerir "carne moída" para churrasco (é para frigideira, não churrasqueira!)
+- ❌ Sugerir "peito de frango" para churrasco (prefira coração de frango, linguiça)
+- ❌ Misturar contextos (ex: arroz e feijão em lista de café da manhã)
+- ❌ Ignorar a ocasião (ex: sugerir apenas 200g de carne para churrasco de 8 pessoas)
+- ❌ Usar nomes estrangeiros quando existe nome brasileiro comum
+- ❌ Sugerir produtos que não existem ou são raros no Brasil
+
+**ANTES DE RESPONDER, PERGUNTE-SE**:
+1. Os itens fazem sentido para a ocasião/contexto pedido?
+2. As quantidades são realistas para uma família/grupo brasileiro?
+3. Esses produtos são fáceis de encontrar em supermercados brasileiros?
+4. Estou usando os nomes que os brasileiros usam no dia a dia?
 
 **IMPORTANTE**: Retorne APENAS um JSON válido, sem markdown, sem explicações:
 
