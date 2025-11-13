@@ -37,15 +37,15 @@ export const useDeviceId = (): string => {
         const devices = await db.userDevice.toArray();
 
         if (devices.length > 0) {
-          console.log('[useDeviceId] Found existing device ID:', devices[0].deviceId);
-          setDeviceId(devices[0].deviceId);
+          console.log('[useDeviceId] Found existing device ID:', devices[0].userId);
+          setDeviceId(devices[0].userId);
         } else {
           // Create new device ID
           const newDeviceId = crypto.randomUUID();
           console.log('[useDeviceId] Creating new device ID:', newDeviceId);
 
           await db.userDevice.add({
-            deviceId: newDeviceId,
+            userId: newDeviceId,
             nickname: `Dispositivo ${new Date().toLocaleDateString()}`,
             lastSyncAt: new Date()
           });
