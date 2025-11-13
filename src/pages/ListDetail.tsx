@@ -1,21 +1,21 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useLocalLists } from '../hooks/useLocalLists';
-import { useLocalItems } from '../hooks/useLocalItems';
-import { useDeviceId } from '../hooks/useDeviceId';
+import { useSupabaseLists } from '../hooks/useSupabaseLists';
+import { useSupabaseItems } from '../hooks/useSupabaseItems';
+import { useAuth } from '../contexts/AuthContext';
 import { Layout } from '../components/layout/Layout';
 import { ItemRow } from '../components/items/ItemRow';
 import { ItemModal } from '../components/items/ItemModal';
 import { ShareListModal } from '../components/lists/ShareListModal';
 import toast, { Toaster } from 'react-hot-toast';
-import type { ShoppingItem } from '../lib/db';
+import type { ShoppingItem } from '../hooks/useSupabaseItems';
 
 export const ListDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getListById } = useLocalLists();
-  const { items, stats, createItem, updateItem, toggleItem, deleteItem } = useLocalItems(id || '');
-  const deviceId = useDeviceId();
+  const { user } = useAuth();
+  const { getListById } = useSupabaseLists();
+  const { items, stats, createItem, updateItem, toggleItem, deleteItem } = useSupabaseItems(id || '');
 
   const [list, setList] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -216,7 +216,7 @@ export const ListDetail = () => {
       <ShareListModal
         listId={id || ''}
         listName={list.name}
-        deviceId={deviceId}
+        deviceId={user?.id || ''}
         isOpen={isShareModalOpen}
         onClose={() => setIsShareModalOpen(false)}
       />

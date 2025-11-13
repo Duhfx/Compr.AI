@@ -1,9 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useLocalLists } from '../hooks/useLocalLists';
-import { useDeviceId } from '../hooks/useDeviceId';
-import { useSync } from '../hooks/useSync';
+import { useSupabaseLists } from '../hooks/useSupabaseLists';
 import { Layout } from '../components/layout/Layout';
 import { ListCard } from '../components/lists/ListCard';
 import { CreateListWithAIModal } from '../components/lists/CreateListWithAIModal';
@@ -12,34 +10,10 @@ import { Sparkles } from 'lucide-react';
 
 export const Home = () => {
   const navigate = useNavigate();
-  const { lists, loading, createList, deleteList, refreshLists } = useLocalLists();
-  const deviceId = useDeviceId();
-  const { sync, syncing } = useSync();
+  const { lists, loading, createList, deleteList } = useSupabaseLists();
   const [isCreating, setIsCreating] = useState(false);
   const [newListName, setNewListName] = useState('');
   const [showAIModal, setShowAIModal] = useState(false);
-  const hasSynced = useRef(false);
-
-  // Sincronizar automaticamente quando o deviceId estiver disponível
-  useEffect(() => {
-    const autoSync = async () => {
-      if (deviceId && !hasSynced.current && !syncing && !loading) {
-        hasSynced.current = true;
-        console.log('Auto-syncing with deviceId:', deviceId);
-
-        const result = await sync(deviceId);
-
-        if (result.success && (result.listsDownloaded > 0 || result.itemsDownloaded > 0)) {
-          console.log('Sync successful:', result);
-          // Recarregar as listas após sincronização
-          await refreshLists();
-          toast.success(`Sincronizado! ${result.listsDownloaded} listas e ${result.itemsDownloaded} itens baixados.`);
-        }
-      }
-    };
-
-    autoSync();
-  }, [deviceId, syncing, loading, sync, refreshLists]);
 
   const handleCreateList = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,15 +30,6 @@ export const Home = () => {
       }
 
       toast.success('Lista criada!');
-
-      // Sincronizar automaticamente se o usuário está autenticado
-      if (deviceId) {
-        console.log('[Home] Auto-syncing after list creation with deviceId:', deviceId);
-        sync(deviceId).catch(err => {
-          console.error('[Home] Error syncing after list creation:', err);
-        });
-      }
-
       navigate(`/list/${newList.id}`);
     } catch (error) {
       console.error('Erro ao criar lista:', error);
@@ -82,11 +47,11 @@ export const Home = () => {
     }
   };
 
-  if (loading || syncing) {
+  if (loading) {
     return (
       <Layout>
         <div className="flex items-center justify-center h-64">
-          <div className="text-gray-500">{syncing ? 'Sincronizando...' : 'Carregando...'}</div>
+          <div className="text-gray-500">Carregando...</div>
         </div>
       </Layout>
     );
