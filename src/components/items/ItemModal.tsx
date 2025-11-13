@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDrag } from '@use-gesture/react';
-import type { ShoppingItem } from '../../lib/db';
+import type { ShoppingItem } from '../../hooks/useSupabaseItems';
 
 interface ItemModalProps {
   isOpen: boolean;

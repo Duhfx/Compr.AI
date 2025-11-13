@@ -1,6 +1,6 @@
-import type { ShoppingList } from '../../lib/db';
+import type { ShoppingList } from '../../hooks/useSupabaseLists';
 import { formatRelativeDate } from '../../lib/utils';
-import { useLocalItems } from '../../hooks/useLocalItems';
+import { useSupabaseItems } from '../../hooks/useSupabaseItems';
 
 interface ListCardProps {
   list: ShoppingList;
@@ -9,7 +9,7 @@ interface ListCardProps {
 }
 
 export const ListCard = ({ list, onClick }: ListCardProps) => {
-  const { stats } = useLocalItems(list.id);
+  const { stats } = useSupabaseItems(list.id);
 
   return (
     <div

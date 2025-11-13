@@ -1,6 +1,6 @@
 import { useDrag } from '@use-gesture/react';
 import { motion, useMotionValue, useTransform } from 'framer-motion';
-import type { ShoppingItem } from '../../lib/db';
+import type { ShoppingItem } from '../../hooks/useSupabaseItems';
 
 interface ItemRowProps {
   item: ShoppingItem;
