@@ -27,7 +27,10 @@
       "Bash(vercel dev:*)",
       "Bash(netstat:*)",
       "Bash(findstr:*)",
-      "Bash(taskkill:*)"
+      "Bash(taskkill:*)",
+      "Bash(npx vitest:*)",
+      "Bash(npx tsc:*)",
+      "Bash(supabase --version:*)"
     ],
     "deny": [],
     "ask": []

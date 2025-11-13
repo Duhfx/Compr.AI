@@ -190,15 +190,79 @@ export const joinSharedList = async (code: string, userId: string) => {
   }
 
   // Buscar dados completos da lista
+  // Nota: Precisamos usar maybeSingle() ao invés de single() porque o RLS pode bloquear
+  // Mas primeiro vamos verificar se o membro foi adicionado com sucesso
+  console.log('[joinSharedList] Fetching list data for:', listId);
+
   const { data: list, error: listError } = await supabase
     .from('shopping_lists')
     .select('*')
     .eq('id', listId)
-    .single();
+    .maybeSingle();
+
+  console.log('[joinSharedList] List fetch result:', { list, error: listError });
 
   if (listError) {
     console.error('Error fetching list:', listError);
-    throw listError;
+    throw new Error(`Erro ao buscar lista: ${listError.message}`);
+  }
+
+  if (!list) {
+    // Se não conseguiu buscar pelo Supabase (RLS), vamos buscar via shared_lists
+    console.log('[joinSharedList] Direct fetch blocked by RLS, fetching via shared_lists');
+    const { data: sharedData } = await supabase
+      .from('shared_lists')
+      .select(`
+        *,
+        shopping_lists (*)
+      `)
+      .eq('share_code', code.toUpperCase())
+      .single();
+
+    if (!sharedData || !sharedData.shopping_lists) {
+      throw new Error('Lista não encontrada ou não acessível');
+    }
+
+    const listData = sharedData.shopping_lists as any;
+
+    // Salvar lista localmente
+    await db.shoppingLists.add({
+      id: listData.id,
+      name: listData.name,
+      createdAt: new Date(listData.created_at),
+      updatedAt: new Date(listData.updated_at),
+      syncedAt: new Date(),
+      isLocal: false,
+    });
+
+    // Buscar itens via query pública
+    const { data: items } = await supabase
+      .from('shopping_items')
+      .select('*')
+      .eq('list_id', listData.id);
+
+    if (items) {
+      for (const item of items) {
+        await db.shoppingItems.add({
+          id: item.id,
+          listId: item.list_id,
+          name: item.name,
+          quantity: item.quantity,
+          unit: item.unit,
+          category: item.category || undefined,
+          checked: item.checked,
+          createdAt: new Date(item.created_at),
+          updatedAt: new Date(item.updated_at),
+        });
+      }
+    }
+
+    return {
+      listId: listData.id,
+      listName: listData.name,
+      permission,
+      itemCount: items?.length || 0,
+    };
   }
 
   // Salvar lista localmente
