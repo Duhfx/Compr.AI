@@ -6,8 +6,7 @@ import { getListMembers } from '../../lib/sharing';
 
 interface Member {
   id: string;
-  deviceId: string;
-  nickname: string;
+  userId: string;
   joinedAt: Date;
   lastSeenAt?: Date;
 }
@@ -57,7 +56,7 @@ export const MemberAvatars: React.FC<MemberAvatarsProps> = ({
   const visibleMembers = members.slice(0, maxVisible);
   const hiddenCount = members.length - maxVisible;
 
-  // Gera cor consistente baseada no deviceId
+  // Gera cor consistente baseada no userId
   const getColorFromId = (id: string) => {
     const colors = [
       'bg-red-500',
@@ -73,14 +72,9 @@ export const MemberAvatars: React.FC<MemberAvatarsProps> = ({
     return colors[index % colors.length];
   };
 
-  // Pega as iniciais do nickname
-  const getInitials = (nickname: string) => {
-    return nickname
-      .split(' ')
-      .map((word) => word[0])
-      .join('')
-      .toUpperCase()
-      .substring(0, 2);
+  // Pega as iniciais do userId (primeiros 2 caracteres)
+  const getInitials = (userId: string) => {
+    return userId.substring(0, 2).toUpperCase();
   };
 
   return (
@@ -92,11 +86,11 @@ export const MemberAvatars: React.FC<MemberAvatarsProps> = ({
             className={`
               w-8 h-8 rounded-full border-2 border-white flex items-center justify-center
               text-white text-xs font-semibold
-              ${getColorFromId(member.deviceId)}
+              ${getColorFromId(member.userId)}
             `}
-            title={`${member.nickname} (${member.lastSeenAt ? 'Online' : 'Offline'})`}
+            title={`Membro ${member.userId.substring(0, 8)}... (${member.lastSeenAt ? 'Visto recentemente' : 'Offline'})`}
           >
-            {getInitials(member.nickname)}
+            {getInitials(member.userId)}
           </div>
         ))}
         {hiddenCount > 0 && (

@@ -7,6 +7,7 @@ import { Layout } from '../components/layout/Layout';
 import { ItemRow } from '../components/items/ItemRow';
 import { ItemModal } from '../components/items/ItemModal';
 import { ShareListModal } from '../components/lists/ShareListModal';
+import { MembersModal } from '../components/lists/MembersModal';
 import toast, { Toaster } from 'react-hot-toast';
 import type { ShoppingItem } from '../hooks/useSupabaseItems';
 
@@ -21,6 +22,7 @@ export const ListDetail = () => {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isMembersModalOpen, setIsMembersModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<ShoppingItem | undefined>(undefined);
 
   useEffect(() => {
@@ -146,18 +148,32 @@ export const ListDetail = () => {
           <span className="text-[17px] font-medium">Listas</span>
         </button>
 
-        {/* List Title and Share Button */}
+        {/* List Title and Action Buttons */}
         <div className="flex items-center justify-between mb-2">
           <h1 className="text-[28px] font-bold text-gray-900">{list.name}</h1>
-          <button
-            onClick={() => setIsShareModalOpen(true)}
-            className="p-2 text-primary hover:bg-gray-100 rounded-lg active:opacity-70 transition-colors"
-            title="Compartilhar lista"
-          >
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-            </svg>
-          </button>
+          <div className="flex gap-2">
+            {/* Members Button */}
+            <button
+              onClick={() => setIsMembersModalOpen(true)}
+              className="p-2 text-primary hover:bg-gray-100 rounded-lg active:opacity-70 transition-colors"
+              title="Ver membros"
+            >
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+            </button>
+
+            {/* Share Button */}
+            <button
+              onClick={() => setIsShareModalOpen(true)}
+              className="p-2 text-primary hover:bg-gray-100 rounded-lg active:opacity-70 transition-colors"
+              title="Compartilhar lista"
+            >
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         {/* Stats */}
@@ -249,6 +265,15 @@ export const ListDetail = () => {
         deviceId={user?.id || ''}
         isOpen={isShareModalOpen}
         onClose={() => setIsShareModalOpen(false)}
+      />
+
+      {/* Members Modal */}
+      <MembersModal
+        listId={id || ''}
+        listName={list.name}
+        currentUserId={user?.id || ''}
+        isOpen={isMembersModalOpen}
+        onClose={() => setIsMembersModalOpen(false)}
       />
     </Layout>
   );

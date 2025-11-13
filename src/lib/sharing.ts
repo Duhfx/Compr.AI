@@ -250,33 +250,88 @@ export const leaveSharedList = async (listId: string, deviceId: string) => {
 };
 
 /**
- * Busca membros ativos de uma lista
+ * Busca informações do dono da lista
+ */
+export const getListOwner = async (listId: string) => {
+  // Buscar o dono através da tabela shared_lists
+  const { data: sharedList } = await supabase
+    .from('shared_lists')
+    .select('owner_user_id')
+    .eq('list_id', listId)
+    .maybeSingle();
+
+  if (sharedList?.owner_user_id) {
+    return sharedList.owner_user_id;
+  }
+
+  // Se não for compartilhada, buscar o user_id da própria lista
+  const { data: list } = await supabase
+    .from('shopping_lists')
+    .select('user_id')
+    .eq('id', listId)
+    .single();
+
+  return list?.user_id || null;
+};
+
+/**
+ * Busca membros ativos de uma lista com informações do usuário
  */
 export const getListMembers = async (listId: string) => {
-  const { data, error } = await supabase
+  const { data: members, error } = await supabase
     .from('list_members')
-    .select(`
-      *,
-      devices (
-        id,
-        nickname
-      )
-    `)
+    .select('*')
     .eq('list_id', listId)
-    .eq('is_active', true);
+    .eq('is_active', true)
+    .order('joined_at', { ascending: true });
 
   if (error) {
     console.error('Error fetching members:', error);
     throw error;
   }
 
-  return data.map((member) => ({
+  if (!members || members.length === 0) {
+    return [];
+  }
+
+  // Retornar apenas os IDs e datas
+  // Nota: Como usamos Supabase Auth no client, não temos acesso às informações
+  // completas dos usuários. Apenas retornamos o user_id.
+  return members.map((member) => ({
     id: member.id,
-    deviceId: member.user_id, // Changed from device_id
-    nickname: (member.devices as any).nickname,
+    userId: member.user_id,
     joinedAt: new Date(member.joined_at),
     lastSeenAt: member.last_seen_at ? new Date(member.last_seen_at) : undefined,
   }));
+};
+
+/**
+ * Remove um membro de uma lista compartilhada (apenas o dono pode fazer isso)
+ */
+export const removeMember = async (listId: string, memberUserId: string, currentUserId: string) => {
+  // Verificar se o usuário atual é o dono
+  const ownerId = await getListOwner(listId);
+
+  if (ownerId !== currentUserId) {
+    throw new Error('Apenas o dono da lista pode remover membros');
+  }
+
+  // Não permitir que o dono se remova
+  if (memberUserId === currentUserId) {
+    throw new Error('Você não pode se remover da própria lista');
+  }
+
+  // Marcar como inativo
+  const { error } = await supabase
+    .from('list_members')
+    .update({ is_active: false })
+    .eq('list_id', listId)
+    .eq('user_id', memberUserId);
+
+  if (error) {
+    console.error('Error removing member:', error);
+    throw error;
+  }
 };
 
 /**
