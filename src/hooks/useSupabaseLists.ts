@@ -226,7 +226,7 @@ export const useSupabaseLists = () => {
 
     try {
       // Primeiro tenta buscar como lista própria
-      const { data: ownList, error: ownError } = await supabase
+      const { data: ownList } = await supabase
         .from('shopping_lists')
         .select('*')
         .eq('id', id)
@@ -244,7 +244,7 @@ export const useSupabaseLists = () => {
       }
 
       // Se não encontrou, tenta buscar como lista compartilhada
-      const { data: membership, error: memberError } = await supabase
+      const { data: membership } = await supabase
         .from('list_members')
         .select(`
           list_id,

@@ -15,9 +15,9 @@ const mockUser = {
   created_at: new Date().toISOString(),
 };
 
-const wrapper = ({ children }: { children: ReactNode }) => (
-  <AuthProvider>{children}</AuthProvider>
-);
+const wrapper = ({ children }: { children: ReactNode }) => {
+  return <AuthProvider>{children}</AuthProvider>;
+};
 
 describe('useSupabaseLists - CRUD Operations', () => {
   beforeEach(() => {
