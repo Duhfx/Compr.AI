@@ -57,7 +57,7 @@ export const useListSuggestions = (
   const [error, setError] = useState<Error | null>(null);
 
   // Refs para evitar re-renders desnecessários
-  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastItemCount = useRef(0);
   const isFetchingRef = useRef(false);
 

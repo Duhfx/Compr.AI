@@ -2,7 +2,6 @@
 // Banner discreto para mostrar sugestões de IA na visualização da lista
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState } from 'react';
 
 interface SuggestedItem {
   name: string;
@@ -26,8 +25,6 @@ export const SuggestionsBanner = ({
   onDismiss,
   onRefresh
 }: SuggestionsBannerProps) => {
-  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
-
   // Não mostrar nada se não houver sugestões e não estiver carregando
   if (!loading && suggestions.length === 0) {
     return null;
