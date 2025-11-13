@@ -101,6 +101,7 @@ export const useListSuggestions = (
       return true;
     } catch (err) {
       console.error('[useListSuggestions] Error checking cache:', err);
+      // Se o cache falhar, simplesmente ignora e busca da API
       return false;
     }
   }, [listId, items]);
@@ -173,14 +174,19 @@ export const useListSuggestions = (
 
       console.log('[useListSuggestions] Filtered to', filteredSuggestions.length, 'new suggestions');
 
-      // Salvar no cache
-      await db.listSuggestionCache.put({
-        listId,
-        suggestions: filteredSuggestions,
-        createdAt: new Date(),
-        itemsCountWhenGenerated: items.length,
-        lastItemNamesHash: createItemsHash(items)
-      });
+      // Salvar no cache (com fallback se falhar)
+      try {
+        await db.listSuggestionCache.put({
+          listId,
+          suggestions: filteredSuggestions,
+          createdAt: new Date(),
+          itemsCountWhenGenerated: items.length,
+          lastItemNamesHash: createItemsHash(items)
+        });
+      } catch (cacheError) {
+        console.warn('[useListSuggestions] Failed to save to cache, continuing without cache:', cacheError);
+        // Não propagar o erro - as sugestões já foram buscadas
+      }
 
       return filteredSuggestions;
     } catch (err) {
@@ -206,10 +212,15 @@ export const useListSuggestions = (
     const cacheIsValid = await isCacheValid();
 
     if (cacheIsValid) {
-      const cached = await db.listSuggestionCache.get(listId);
-      if (cached) {
-        setSuggestions(cached.suggestions);
-        return;
+      try {
+        const cached = await db.listSuggestionCache.get(listId);
+        if (cached) {
+          setSuggestions(cached.suggestions);
+          return;
+        }
+      } catch (cacheError) {
+        console.warn('[useListSuggestions] Failed to read from cache, fetching from API:', cacheError);
+        // Continua para buscar da API
       }
     }
 
@@ -224,8 +235,12 @@ export const useListSuggestions = (
   const refreshSuggestions = useCallback(async () => {
     if (!listId) return;
 
-    // Limpar cache
-    await db.listSuggestionCache.delete(listId);
+    // Limpar cache (com fallback se falhar)
+    try {
+      await db.listSuggestionCache.delete(listId);
+    } catch (cacheError) {
+      console.warn('[useListSuggestions] Failed to clear cache, continuing:', cacheError);
+    }
 
     // Buscar novamente
     const newSuggestions = await fetchSuggestions();

@@ -31,12 +31,13 @@ export const SuggestionsBanner = ({
   }
 
   return (
-    <AnimatePresence>
+    <AnimatePresence mode="wait">
       <motion.div
-        initial={{ opacity: 0, y: -20 }}
+        key={loading ? 'loading' : 'suggestions'}
+        initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -20 }}
-        transition={{ duration: 0.3 }}
+        exit={{ opacity: 0, y: -10 }}
+        transition={{ duration: 0.2 }}
         className="mb-4"
       >
         <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-ios p-4 shadow-sm border border-indigo-100">

@@ -37,7 +37,11 @@
       "Bash(vercel login)",
       "Bash(vercel link:*)",
       "Bash(vercel --prod)",
-      "Bash(vercel inspect:*)"
+      "Bash(vercel inspect:*)",
+      "Bash(git fetch:*)",
+      "Bash(git merge:*)",
+      "Bash(git checkout:*)",
+      "Bash(vercel logs:*)"
     ],
     "deny": [],
     "ask": []

@@ -114,8 +114,38 @@ export class CompraiDB extends Dexie {
       listMembers: 'id, listId, userId, isActive'
     });
 
-    // Version 3: Adiciona cache de sugestões de IA
+    // Version 3: Adiciona cache de sugestões de IA (DEPRECATED - tinha primary key errada)
     this.version(3).stores({
+      shoppingLists: 'id, isLocal, syncedAt, updatedAt',
+      shoppingItems: 'id, listId, checked, createdAt',
+      userDevice: 'userId',
+      purchaseHistory: 'id, userId, itemName, purchasedAt',
+      priceHistory: 'id, userId, itemName, purchasedAt',
+      sharedLists: 'id, listId, shareCode',
+      listMembers: 'id, listId, userId, isActive',
+      listSuggestionCache: 'listId, createdAt'
+    });
+
+    // Version 4: Recria cache de sugestões com primary key correta
+    this.version(4).stores({
+      shoppingLists: 'id, isLocal, syncedAt, updatedAt',
+      shoppingItems: 'id, listId, checked, createdAt',
+      userDevice: 'userId',
+      purchaseHistory: 'id, userId, itemName, purchasedAt',
+      priceHistory: 'id, userId, itemName, purchasedAt',
+      sharedLists: 'id, listId, shareCode',
+      listMembers: 'id, listId, userId, isActive',
+      listSuggestionCache: null // Remove a tabela antiga
+    }).upgrade(tx => {
+      // Limpar dados antigos se existirem
+      console.log('[DB] Upgrading to version 4: removing old suggestion cache');
+      return tx.table('listSuggestionCache').clear().catch(() => {
+        // Ignorar erros se a tabela não existir
+      });
+    });
+
+    // Version 5: Recria cache de sugestões com schema correto
+    this.version(5).stores({
       shoppingLists: 'id, isLocal, syncedAt, updatedAt',
       shoppingItems: 'id, listId, checked, createdAt',
       userDevice: 'userId',
