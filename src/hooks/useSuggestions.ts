@@ -156,9 +156,13 @@ export const useCreateListWithAI = () => {
   const [error, setError] = useState<Error | null>(null);
   const { user } = useAuth();
 
-  const createListFromPrompt = useCallback(async (prompt: string) => {
+  // Não usar useCallback para garantir que sempre pegue o user mais recente
+  const createListFromPrompt = async (prompt: string) => {
+    console.log('[useCreateListWithAI] Hook called with user:', user?.id, 'prompt:', prompt);
+
     if (!user) {
       const error = new Error('Usuário não autenticado. Por favor, faça login.');
+      console.error('[useCreateListWithAI] User is undefined:', { user });
       setError(error);
       throw error;
     }
@@ -169,13 +173,19 @@ export const useCreateListWithAI = () => {
     try {
       console.log('[useCreateListWithAI] Creating list for user:', user.id, 'Prompt:', prompt);
 
+      // Melhorar o prompt para a IA com contexto
+      const enhancedPrompt = `Me retorne uma lista de compras para: ${prompt}.
+Considere quantidades realistas e apropriadas para o contexto descrito.`;
+
+      console.log('[useCreateListWithAI] Enhanced prompt:', enhancedPrompt);
+
       // Chamar API para obter sugestões
       const response = await fetch('/api/suggest-items', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: user.id, // Usar userId ao invés de deviceId
-          prompt,
+          prompt: enhancedPrompt, // Usar prompt melhorado
           listType: 'interpretação livre',
           maxResults: 15
         })
@@ -242,7 +252,7 @@ export const useCreateListWithAI = () => {
       setLoading(false);
       throw err;
     }
-  }, [user]);
+  };
 
   return {
     createListFromPrompt,
