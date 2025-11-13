@@ -41,7 +41,9 @@
       "Bash(git fetch:*)",
       "Bash(git merge:*)",
       "Bash(git checkout:*)",
-      "Bash(vercel logs:*)"
+      "Bash(vercel logs:*)",
+      "Bash(git rm:*)",
+      "Bash(.gitignore)"
     ],
     "deny": [],
     "ask": []

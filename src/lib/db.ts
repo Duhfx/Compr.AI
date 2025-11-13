@@ -159,3 +159,26 @@ export class CompraiDB extends Dexie {
 }
 
 export const db = new CompraiDB();
+
+// Handler para erros de migração - deleta e recria o banco se necessário
+db.on('versionchange', () => {
+  console.log('[DB] Version change detected, reloading...');
+  db.close();
+  window.location.reload();
+});
+
+// Detectar erro de upgrade e recriar banco
+db.open().catch(async (err) => {
+  if (err.name === 'UpgradeError' || err.message?.includes('primary key')) {
+    console.warn('[DB] Migration error detected, deleting and recreating database:', err.message);
+
+    // Deletar o banco antigo
+    await db.delete();
+
+    // Recarregar a página para recriar o banco
+    console.log('[DB] Database deleted, reloading page...');
+    window.location.reload();
+  } else {
+    console.error('[DB] Failed to open database:', err);
+  }
+});
