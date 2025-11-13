@@ -23,14 +23,14 @@ export interface ShoppingItem {
 }
 
 export interface UserDevice {
-  deviceId: string;
+  userId: string;
   nickname: string;
   lastSyncAt?: Date;
 }
 
 export interface PurchaseHistory {
   id: string;
-  deviceId: string;
+  userId: string;
   itemName: string;
   category?: string;
   quantity: number;
@@ -41,7 +41,7 @@ export interface PurchaseHistory {
 
 export interface PriceHistory {
   id: string;
-  deviceId: string;
+  userId: string;
   itemName: string;
   price: number;
   store?: string;
@@ -53,7 +53,7 @@ export interface SharedList {
   id: string;
   listId: string;
   shareCode: string;
-  ownerDeviceId: string;
+  ownerUserId: string;
   permission: 'edit' | 'readonly';
   createdAt: Date;
   expiresAt?: Date;
@@ -62,7 +62,7 @@ export interface SharedList {
 export interface ListMember {
   id: string;
   listId: string;
-  deviceId: string;
+  userId: string;
   joinedAt: Date;
   lastSeenAt?: Date;
   isActive: boolean;
@@ -71,7 +71,7 @@ export interface ListMember {
 export class CompraiDB extends Dexie {
   shoppingLists!: EntityTable<ShoppingList, 'id'>;
   shoppingItems!: EntityTable<ShoppingItem, 'id'>;
-  userDevice!: EntityTable<UserDevice, 'deviceId'>;
+  userDevice!: EntityTable<UserDevice, 'userId'>;
   purchaseHistory!: EntityTable<PurchaseHistory, 'id'>;
   priceHistory!: EntityTable<PriceHistory, 'id'>;
   sharedLists!: EntityTable<SharedList, 'id'>;
@@ -84,20 +84,20 @@ export class CompraiDB extends Dexie {
     this.version(1).stores({
       shoppingLists: 'id, isLocal, syncedAt, updatedAt',
       shoppingItems: 'id, listId, checked, createdAt',
-      userDevice: 'deviceId',
-      purchaseHistory: 'id, deviceId, itemName, purchasedAt',
-      priceHistory: 'id, deviceId, itemName, purchasedAt'
+      userDevice: 'userId',
+      purchaseHistory: 'id, userId, itemName, purchasedAt',
+      priceHistory: 'id, userId, itemName, purchasedAt'
     });
 
     // Version 2: Adiciona tabelas de compartilhamento
     this.version(2).stores({
       shoppingLists: 'id, isLocal, syncedAt, updatedAt',
       shoppingItems: 'id, listId, checked, createdAt',
-      userDevice: 'deviceId',
-      purchaseHistory: 'id, deviceId, itemName, purchasedAt',
-      priceHistory: 'id, deviceId, itemName, purchasedAt',
+      userDevice: 'userId',
+      purchaseHistory: 'id, userId, itemName, purchasedAt',
+      priceHistory: 'id, userId, itemName, purchasedAt',
       sharedLists: 'id, listId, shareCode',
-      listMembers: 'id, listId, deviceId, isActive'
+      listMembers: 'id, listId, userId, isActive'
     });
   }
 }

@@ -23,7 +23,7 @@ export const generateShareCode = (): string => {
  */
 export const createShareLink = async (
   listId: string,
-  deviceId: string,
+  userId: string,
   permission: 'edit' | 'readonly' = 'edit',
   expiresInDays?: number
 ): Promise<{ shareCode: string; shareUrl: string }> => {
@@ -60,7 +60,7 @@ export const createShareLink = async (
     .insert({
       list_id: listId,
       share_code: shareCode,
-      owner_user_id: deviceId, // Changed from owner_device_id
+      owner_user_id: userId,
       permission,
       expires_at: expiresAt,
     } as SharedListInsert)
@@ -77,7 +77,7 @@ export const createShareLink = async (
     id: data.id,
     listId: data.list_id,
     shareCode: data.share_code,
-    ownerDeviceId: data.owner_user_id, // Changed from owner_device_id
+    ownerUserId: data.owner_user_id,
     permission: data.permission,
     createdAt: new Date(data.created_at),
     expiresAt: data.expires_at ? new Date(data.expires_at) : undefined,
@@ -142,15 +142,15 @@ export const validateShareCode = async (code: string) => {
       listId: data.list_id,
       listName: (data.shopping_lists as any)?.name || 'Lista Compartilhada',
       permission: data.permission,
-      ownerDeviceId: data.owner_user_id,
+      ownerUserId: data.owner_user_id,
     },
   };
 };
 
 /**
- * Adiciona um dispositivo como membro de uma lista compartilhada
+ * Adiciona um usuário como membro de uma lista compartilhada
  */
-export const joinSharedList = async (code: string, deviceId: string) => {
+export const joinSharedList = async (code: string, userId: string) => {
   // Validar código
   const validation = await validateShareCode(code);
   if (!validation.valid) {
@@ -164,7 +164,7 @@ export const joinSharedList = async (code: string, deviceId: string) => {
     .from('list_members')
     .select('id')
     .eq('list_id', listId)
-    .eq('user_id', deviceId) // Changed from device_id
+    .eq('user_id', userId)
     .single();
 
   if (existingMember) {
@@ -179,7 +179,7 @@ export const joinSharedList = async (code: string, deviceId: string) => {
       .from('list_members')
       .insert({
         list_id: listId,
-        user_id: deviceId, // Changed from device_id
+        user_id: userId,
         is_active: true,
       } as ListMemberInsert);
 
@@ -244,13 +244,13 @@ export const joinSharedList = async (code: string, deviceId: string) => {
 /**
  * Remove um membro de uma lista compartilhada
  */
-export const leaveSharedList = async (listId: string, deviceId: string) => {
+export const leaveSharedList = async (listId: string, userId: string) => {
   // Marcar como inativo ao invés de deletar (mantém histórico)
   const { error } = await supabase
     .from('list_members')
     .update({ is_active: false })
     .eq('list_id', listId)
-    .eq('user_id', deviceId) // Changed from device_id;
+    .eq('user_id', userId);
 
   if (error) {
     console.error('Error leaving list:', error);
@@ -350,12 +350,12 @@ export const removeMember = async (listId: string, memberUserId: string, current
 /**
  * Atualiza o timestamp de última visualização de um membro
  */
-export const updateLastSeen = async (listId: string, deviceId: string) => {
+export const updateLastSeen = async (listId: string, userId: string) => {
   await supabase
     .from('list_members')
     .update({ last_seen_at: new Date().toISOString() })
     .eq('list_id', listId)
-    .eq('user_id', deviceId) // Changed from device_id;
+    .eq('user_id', userId);
 };
 
 /**

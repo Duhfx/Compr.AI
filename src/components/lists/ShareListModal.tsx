@@ -7,7 +7,7 @@ import { createShareLink, getShareInfo, revokeShareLink } from '../../lib/sharin
 interface ShareListModalProps {
   listId: string;
   listName: string;
-  deviceId: string;
+  userId: string;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -15,7 +15,7 @@ interface ShareListModalProps {
 export const ShareListModal: React.FC<ShareListModalProps> = ({
   listId,
   listName,
-  deviceId,
+  userId,
   isOpen,
   onClose,
 }) => {
@@ -39,9 +39,9 @@ export const ShareListModal: React.FC<ShareListModalProps> = ({
 
   // Gerar novo link de compartilhamento
   const handleCreateLink = async () => {
-    // Validar deviceId antes de criar o link
-    if (!deviceId) {
-      setError('Aguarde o carregamento do dispositivo...');
+    // Validar userId antes de criar o link
+    if (!userId) {
+      setError('Aguarde o carregamento do usuário...');
       return;
     }
 
@@ -51,7 +51,7 @@ export const ShareListModal: React.FC<ShareListModalProps> = ({
 
       const { shareCode: code, shareUrl: url } = await createShareLink(
         listId,
-        deviceId,
+        userId,
         permission,
         expiresInDays
       );
@@ -167,10 +167,10 @@ export const ShareListModal: React.FC<ShareListModalProps> = ({
 
             <button
               onClick={handleCreateLink}
-              disabled={loading || !deviceId}
+              disabled={loading || !userId}
               className="w-full bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
             >
-              {loading ? 'Gerando...' : !deviceId ? 'Carregando...' : 'Gerar Código de Compartilhamento'}
+              {loading ? 'Gerando...' : !userId ? 'Carregando...' : 'Gerar Código de Compartilhamento'}
             </button>
           </div>
         )}

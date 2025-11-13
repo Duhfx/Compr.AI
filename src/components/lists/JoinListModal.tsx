@@ -5,14 +5,14 @@ import { useState } from 'react';
 import { joinSharedList, validateShareCode } from '../../lib/sharing';
 
 interface JoinListModalProps {
-  deviceId: string;
+  userId: string;
   isOpen: boolean;
   onClose: () => void;
   onSuccess: (listId: string) => void;
 }
 
 export const JoinListModal: React.FC<JoinListModalProps> = ({
-  deviceId,
+  userId,
   isOpen,
   onClose,
   onSuccess,
@@ -65,7 +65,7 @@ export const JoinListModal: React.FC<JoinListModalProps> = ({
       setLoading(true);
       setError(null);
 
-      const result = await joinSharedList(code, deviceId);
+      const result = await joinSharedList(code, userId);
 
       // Sucesso
       onSuccess(result.listId);

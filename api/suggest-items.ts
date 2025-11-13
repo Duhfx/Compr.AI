@@ -6,7 +6,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { createClient } from '@supabase/supabase-js';
 
 interface SuggestionRequest {
-  deviceId: string;
+  userId: string;
   prompt?: string;
   listType?: string;
   maxResults?: number;
@@ -40,12 +40,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const { deviceId, prompt, listType, maxResults = 10 } = req.body as SuggestionRequest;
-    console.log('[suggest-items] Request params:', { deviceId, prompt, listType, maxResults });
+    const { userId, prompt, listType, maxResults = 10 } = req.body as SuggestionRequest;
+    console.log('[suggest-items] Request params:', { userId, prompt, listType, maxResults });
 
     // Validação básica
-    if (!deviceId) {
-      return res.status(400).json({ error: 'deviceId is required' });
+    if (!userId) {
+      return res.status(400).json({ error: 'userId is required' });
     }
 
     // Cliente Supabase (com service key para acesso admin)
@@ -56,11 +56,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     );
 
     // Buscar histórico do usuário (últimos 50 itens únicos)
-    console.log('[suggest-items] Fetching purchase history for device:', deviceId);
+    console.log('[suggest-items] Fetching purchase history for user:', userId);
     const { data: history, error: historyError } = await supabase
       .from('purchase_history')
       .select('item_name, category, quantity, unit')
-      .eq('device_id', deviceId)
+      .eq('user_id', userId)
       .order('purchased_at', { ascending: false })
       .limit(50);
 

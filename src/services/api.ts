@@ -22,7 +22,7 @@ interface NormalizeResponse {
  * Get AI-powered item suggestions based on user prompt and history
  */
 export const suggestItems = async (
-  deviceId: string,
+  userId: string,
   prompt?: string,
   listType?: string,
   maxResults = 10
@@ -30,7 +30,7 @@ export const suggestItems = async (
   const response = await fetch('/api/suggest-items', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ deviceId, prompt, listType, maxResults })
+    body: JSON.stringify({ userId, prompt, listType, maxResults })
   });
 
   if (!response.ok) {

@@ -262,7 +262,7 @@ export const ListDetail = () => {
       <ShareListModal
         listId={id || ''}
         listName={list.name}
-        deviceId={user?.id || ''}
+        userId={user?.id || ''}
         isOpen={isShareModalOpen}
         onClose={() => setIsShareModalOpen(false)}
       />

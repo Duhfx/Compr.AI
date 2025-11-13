@@ -127,7 +127,7 @@ export const Home = () => {
 
         {/* Join List Modal */}
         <JoinListModal
-          deviceId={user?.id || ''}
+          userId={user?.id || ''}
           isOpen={showJoinModal}
           onClose={() => setShowJoinModal(false)}
           onSuccess={handleJoinSuccess}
