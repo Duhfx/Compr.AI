@@ -219,30 +219,60 @@ export const useSupabaseLists = () => {
 
   // Buscar lista por ID
   const getListById = async (id: string): Promise<ShoppingList | undefined> => {
+    if (!user) {
+      console.warn('[useSupabaseLists] User not authenticated for getListById');
+      return undefined;
+    }
+
     try {
-      const { data, error } = await supabase
+      // Primeiro tenta buscar como lista própria
+      const { data: ownList, error: ownError } = await supabase
         .from('shopping_lists')
         .select('*')
         .eq('id', id)
-        .single();
+        .eq('user_id', user.id)
+        .maybeSingle();
 
-      if (error) {
-        console.error('[useSupabaseLists] Error fetching list:', error);
-        throw error;
+      // Se encontrou a lista própria, retornar
+      if (ownList) {
+        return {
+          id: ownList.id,
+          name: ownList.name,
+          createdAt: new Date(ownList.created_at),
+          updatedAt: new Date(ownList.updated_at),
+        };
       }
 
-      if (!data) return undefined;
+      // Se não encontrou, tenta buscar como lista compartilhada
+      const { data: membership, error: memberError } = await supabase
+        .from('list_members')
+        .select(`
+          list_id,
+          shopping_lists (*)
+        `)
+        .eq('list_id', id)
+        .eq('user_id', user.id)
+        .eq('is_active', true)
+        .maybeSingle();
 
-      return {
-        id: data.id,
-        name: data.name,
-        createdAt: new Date(data.created_at),
-        updatedAt: new Date(data.updated_at),
-      };
+      if (membership && membership.shopping_lists) {
+        const sharedList = membership.shopping_lists as any;
+        return {
+          id: sharedList.id,
+          name: sharedList.name,
+          createdAt: new Date(sharedList.created_at),
+          updatedAt: new Date(sharedList.updated_at),
+        };
+      }
+
+      // Não encontrou a lista
+      console.warn('[useSupabaseLists] List not found or access denied:', id);
+      return undefined;
     } catch (err) {
       const error = err as Error;
+      console.error('[useSupabaseLists] Error fetching list:', error);
       setError(error);
-      throw error;
+      return undefined; // Retorna undefined ao invés de lançar erro
     }
   };
 

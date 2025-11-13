@@ -6,16 +6,18 @@ import { useAuth } from '../contexts/AuthContext';
 import { Layout } from '../components/layout/Layout';
 import { ListCard } from '../components/lists/ListCard';
 import { CreateListWithAIModal } from '../components/lists/CreateListWithAIModal';
+import { JoinListModal } from '../components/lists/JoinListModal';
 import toast, { Toaster } from 'react-hot-toast';
 import { Sparkles } from 'lucide-react';
 
 export const Home = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  const { lists, loading, createList, deleteList } = useSupabaseLists();
+  const { lists, loading, createList, deleteList, refreshLists } = useSupabaseLists();
   const [isCreating, setIsCreating] = useState(false);
   const [newListName, setNewListName] = useState('');
   const [showAIModal, setShowAIModal] = useState(false);
+  const [showJoinModal, setShowJoinModal] = useState(false);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -57,6 +59,12 @@ export const Home = () => {
     }
   };
 
+  const handleJoinSuccess = async (listId: string) => {
+    toast.success('Você entrou na lista compartilhada!');
+    await refreshLists();
+    navigate(`/list/${listId}`);
+  };
+
   // Show loading while checking auth
   if (authLoading || loading) {
     return (
@@ -79,22 +87,35 @@ export const Home = () => {
 
       <div className="px-4 py-4">
         {/* Add List Buttons */}
-        <div className="grid grid-cols-2 gap-3 mb-4">
+        <div className="space-y-3 mb-4">
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={() => setIsCreating(true)}
+              className="h-12 bg-primary text-white rounded-ios text-[17px] font-semibold active:bg-opacity-90 transition-colors flex items-center justify-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Nova Lista
+            </button>
+            <button
+              onClick={() => setShowAIModal(true)}
+              className="h-12 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-ios text-[17px] font-semibold active:opacity-90 transition-opacity flex items-center justify-center gap-2"
+            >
+              <Sparkles className="w-5 h-5" />
+              Com IA
+            </button>
+          </div>
+
+          {/* Join Shared List Button */}
           <button
-            onClick={() => setIsCreating(true)}
-            className="h-12 bg-primary text-white rounded-ios text-[17px] font-semibold active:bg-opacity-90 transition-colors flex items-center justify-center gap-2"
+            onClick={() => setShowJoinModal(true)}
+            className="w-full h-12 bg-white border-2 border-primary text-primary rounded-ios text-[17px] font-semibold active:bg-opacity-5 transition-colors flex items-center justify-center gap-2"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
-            Nova Lista
-          </button>
-          <button
-            onClick={() => setShowAIModal(true)}
-            className="h-12 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-ios text-[17px] font-semibold active:opacity-90 transition-opacity flex items-center justify-center gap-2"
-          >
-            <Sparkles className="w-5 h-5" />
-            Com IA
+            Entrar em Lista Compartilhada
           </button>
         </div>
 
@@ -102,6 +123,14 @@ export const Home = () => {
         <CreateListWithAIModal
           isOpen={showAIModal}
           onClose={() => setShowAIModal(false)}
+        />
+
+        {/* Join List Modal */}
+        <JoinListModal
+          deviceId={user?.id || ''}
+          isOpen={showJoinModal}
+          onClose={() => setShowJoinModal(false)}
+          onSuccess={handleJoinSuccess}
         />
 
         {/* Create List Input (iOS Bottom Sheet style) */}
