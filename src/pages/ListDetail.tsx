@@ -24,7 +24,8 @@ export const ListDetail = () => {
   const {
     suggestions,
     loading: suggestionsLoading,
-    refreshSuggestions,
+    error: suggestionsError,
+    fetchSuggestions,
     dismissSuggestions
   } = useListSuggestions(id, items);
 
@@ -311,9 +312,10 @@ export const ListDetail = () => {
         <SuggestionsBanner
           suggestions={suggestions}
           loading={suggestionsLoading}
+          error={suggestionsError}
           onAddSuggestion={handleAddSuggestion}
           onDismiss={dismissSuggestions}
-          onRefresh={refreshSuggestions}
+          onFetchSuggestions={fetchSuggestions}
         />
 
         {/* Items */}
