@@ -7,10 +7,11 @@ import { Layout } from '../components/layout/Layout';
 import { ListCard } from '../components/lists/ListCard';
 import { CreateListWithAIModal } from '../components/lists/CreateListWithAIModal';
 import { JoinListModal } from '../components/lists/JoinListModal';
+import { ReceiptScanner } from '../components/scanner/ReceiptScanner';
 import { ActionSheet } from '../components/ui/ActionSheet';
 import { SegmentedControl } from '../components/ui/SegmentedControl';
 import toast, { Toaster } from 'react-hot-toast';
-import { Sparkles, Edit, Users, Plus } from 'lucide-react';
+import { Sparkles, Edit, Users, Plus, Receipt } from 'lucide-react';
 
 export const Home = () => {
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ export const Home = () => {
   const [newListName, setNewListName] = useState('');
   const [showAIModal, setShowAIModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
   const [showActionSheet, setShowActionSheet] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState('Todas');
 
@@ -88,6 +90,11 @@ export const Home = () => {
       label: 'Criar com IA',
       onClick: () => setShowAIModal(true),
       gradient: true,
+    },
+    {
+      icon: <Receipt className="w-5 h-5" />,
+      label: 'Escanear Nota Fiscal',
+      onClick: () => setShowScanner(true),
     },
     {
       icon: <Users className="w-5 h-5" />,
@@ -167,6 +174,19 @@ export const Home = () => {
           onClose={() => setShowJoinModal(false)}
           onSuccess={handleJoinSuccess}
         />
+
+        {/* Receipt Scanner */}
+        {showScanner && (
+          <ReceiptScanner
+            userId={user?.id || ''}
+            onSuccess={() => {
+              setShowScanner(false);
+              toast.success('✅ Histórico atualizado!');
+              refreshLists();
+            }}
+            onCancel={() => setShowScanner(false)}
+          />
+        )}
 
         {/* Create List Input (iOS Bottom Sheet style) */}
         <AnimatePresence>
