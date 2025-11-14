@@ -237,65 +237,67 @@ export const ListDetail = () => {
           <span className="text-[17px] font-medium">Listas</span>
         </button>
 
-        {/* List Title and Action Buttons */}
-        <div className="flex items-center justify-between mb-2">
-          <h1 className="text-[28px] font-bold text-gray-900 dark:text-white">{list.name}</h1>
-          <div className="flex gap-2">
-            {/* AI Suggestions Button */}
-            <button
-              onClick={fetchSuggestions}
-              disabled={suggestionsLoading || items.length === 0}
-              className="px-3 py-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg active:opacity-70 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md flex items-center gap-1.5"
-              title="Sugestões da IA"
-            >
-              <Sparkles className="w-4 h-4" />
-              <span className="text-[14px] font-semibold">Sugestões</span>
-            </button>
+        {/* List Title */}
+        <div className="mb-3">
+          <h1 className="text-[28px] font-bold text-gray-900 dark:text-white break-words">{list.name}</h1>
+        </div>
 
-            {/* Notify Members Button */}
-            <button
-              onClick={handleNotifyMembers}
-              className="p-2 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/30 rounded-lg active:opacity-70 transition-colors"
-              title="Notificar membros sobre atualização"
-            >
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-              </svg>
-            </button>
+        {/* Action Buttons */}
+        <div className="flex justify-end gap-2 mb-2">
+          {/* AI Suggestions Button */}
+          <button
+            onClick={fetchSuggestions}
+            disabled={suggestionsLoading || items.length === 0}
+            className="px-3 py-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg active:opacity-70 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md flex items-center gap-1.5"
+            title="Sugestões da IA"
+          >
+            <Sparkles className="w-4 h-4" />
+            <span className="text-[14px] font-semibold">Sugestões</span>
+          </button>
 
-            {/* Members Button */}
-            <button
-              onClick={() => setIsMembersModalOpen(true)}
-              className="p-2 text-primary hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg active:opacity-70 transition-colors"
-              title="Ver membros"
-            >
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-              </svg>
-            </button>
+          {/* Notify Members Button */}
+          <button
+            onClick={handleNotifyMembers}
+            className="p-2 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/30 rounded-lg active:opacity-70 transition-colors"
+            title="Notificar membros sobre atualização"
+          >
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            </svg>
+          </button>
 
-            {/* Share Button */}
-            <button
-              onClick={() => setIsShareModalOpen(true)}
-              className="p-2 text-primary hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg active:opacity-70 transition-colors"
-              title="Compartilhar lista"
-            >
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-              </svg>
-            </button>
+          {/* Members Button */}
+          <button
+            onClick={() => setIsMembersModalOpen(true)}
+            className="p-2 text-primary hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg active:opacity-70 transition-colors"
+            title="Ver membros"
+          >
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+          </button>
 
-            {/* Delete Button */}
-            <button
-              onClick={handleDeleteList}
-              className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg active:opacity-70 transition-colors"
-              title="Excluir lista"
-            >
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-            </button>
-          </div>
+          {/* Share Button */}
+          <button
+            onClick={() => setIsShareModalOpen(true)}
+            className="p-2 text-primary hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg active:opacity-70 transition-colors"
+            title="Compartilhar lista"
+          >
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+            </svg>
+          </button>
+
+          {/* Delete Button */}
+          <button
+            onClick={handleDeleteList}
+            className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg active:opacity-70 transition-colors"
+            title="Excluir lista"
+          >
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
         </div>
 
         {/* Stats */}
