@@ -115,7 +115,7 @@ export const Home = () => {
   }
 
   return (
-    <Layout onScanClick={() => setShowScanner(true)}>
+    <Layout onScanClick={() => setShowScanner(true)} showTabBar={!isCreating && !showAIModal && !showJoinModal && !showActionSheet}>
       <Toaster position="top-center" />
 
       <div className="px-4 py-4 pb-24">

@@ -71,12 +71,12 @@ export const BottomTabBar = ({ onScanClick }: BottomTabBarProps) => {
   return (
     <div className="fixed bottom-4 left-4 right-4 z-50 flex justify-center">
       <div
-        className="backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 border border-gray-200/20 rounded-2xl shadow-lg max-w-md w-full overflow-hidden"
+        className="backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 border border-gray-200/20 rounded-2xl shadow-lg max-w-sm w-full overflow-hidden"
         style={{
           boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04)',
         }}
       >
-        <div className="flex items-center justify-around h-16">
+        <div className="flex items-center justify-around h-14">
           {tabs.map((tab) => {
             const isActive = tab.path ? location.pathname === tab.path : false;
 
