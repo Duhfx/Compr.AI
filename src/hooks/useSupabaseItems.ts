@@ -58,12 +58,10 @@ export const useSupabaseItems = (listId: string) => {
       setLoading(true);
       console.log('[useSupabaseItems] Loading items for list:', listId);
 
+      // Carregar itens
       const { data, error } = await supabase
         .from('shopping_items')
-        .select(`
-          *,
-          checked_by_profile:user_profiles!shopping_items_checked_by_user_id_fkey(nickname)
-        `)
+        .select('*')
         .eq('list_id', listId)
         .eq('deleted', false) // Only load non-deleted items
         .order('created_at', { ascending: true });
@@ -75,23 +73,40 @@ export const useSupabaseItems = (listId: string) => {
 
       console.log('[useSupabaseItems] Loaded items:', data?.length || 0);
 
-      // Converter para formato do frontend
-      const formattedItems: ShoppingItem[] = (data || []).map((item: any) => ({
-        id: item.id,
-        listId: item.list_id,
-        name: item.name,
-        quantity: item.quantity,
-        unit: item.unit,
-        category: item.category || undefined,
-        checked: item.checked,
-        checkedByUserNickname: item.checked_by_profile?.nickname,
-        deleted: item.deleted || false,
-        deletedAt: item.deleted_at ? new Date(item.deleted_at) : undefined,
-        createdAt: new Date(item.created_at),
-        updatedAt: new Date(item.updated_at),
-      }));
+      // Buscar nicknames para itens marcados como comprados
+      const itemsWithNicknames: ShoppingItem[] = await Promise.all(
+        (data || []).map(async (item: ShoppingItemRow) => {
+          let checkedByUserNickname: string | undefined = undefined;
 
-      setItems(formattedItems);
+          // Se o item está marcado e tem um user_id, buscar o nickname
+          if (item.checked && item.checked_by_user_id) {
+            const { data: profileData } = await supabase
+              .from('user_profiles')
+              .select('nickname')
+              .eq('user_id', item.checked_by_user_id)
+              .single();
+
+            checkedByUserNickname = profileData?.nickname;
+          }
+
+          return {
+            id: item.id,
+            listId: item.list_id,
+            name: item.name,
+            quantity: item.quantity,
+            unit: item.unit,
+            category: item.category || undefined,
+            checked: item.checked,
+            checkedByUserNickname,
+            deleted: item.deleted || false,
+            deletedAt: item.deleted_at ? new Date(item.deleted_at) : undefined,
+            createdAt: new Date(item.created_at),
+            updatedAt: new Date(item.updated_at),
+          };
+        })
+      );
+
+      setItems(itemsWithNicknames);
       setError(null);
     } catch (err) {
       const error = err as Error;
