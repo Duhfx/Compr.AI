@@ -18,6 +18,7 @@ interface UseListSuggestionsReturn {
   error: Error | null;
   fetchSuggestions: () => Promise<void>;
   dismissSuggestions: () => void;
+  removeSuggestion: (suggestionName: string) => void;
 }
 
 const MIN_ITEMS_FOR_CONTEXT = 1; // Mínimo de itens para gerar sugestões
@@ -128,11 +129,21 @@ export const useListSuggestions = (
     setError(null);
   }, []);
 
+  /**
+   * Remove uma sugestão específica do array (quando usuário a adiciona)
+   */
+  const removeSuggestion = useCallback((suggestionName: string) => {
+    setSuggestions(prev =>
+      prev.filter(s => s.name.toLowerCase().trim() !== suggestionName.toLowerCase().trim())
+    );
+  }, []);
+
   return {
     suggestions,
     loading,
     error,
     fetchSuggestions,
-    dismissSuggestions
+    dismissSuggestions,
+    removeSuggestion
   };
 };

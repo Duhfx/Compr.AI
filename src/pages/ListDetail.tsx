@@ -27,7 +27,8 @@ export const ListDetail = () => {
     loading: suggestionsLoading,
     error: suggestionsError,
     fetchSuggestions,
-    dismissSuggestions
+    dismissSuggestions,
+    removeSuggestion
   } = useListSuggestions(id, items);
 
   const [list, setList] = useState<any>(null);
@@ -197,6 +198,8 @@ export const ListDetail = () => {
     try {
       await createItem(suggestion.name, suggestion.quantity, suggestion.unit, suggestion.category);
       toast.success(`${suggestion.name} adicionado!`);
+      // Remove a sugestão da lista após adicionar com sucesso
+      removeSuggestion(suggestion.name);
     } catch (error) {
       console.error('Erro ao adicionar sugestão:', error);
       toast.error('Erro ao adicionar item');
