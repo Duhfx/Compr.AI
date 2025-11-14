@@ -80,6 +80,10 @@ export interface Database {
           permission: 'edit' | 'readonly';
           created_at: string;
           expires_at: string | null;
+          single_use: boolean; // If TRUE, code can only be used once
+          used: boolean; // Marks if code has been used
+          used_at: string | null; // When code was used
+          used_by_user_id: string | null; // Who used the code
         };
         Insert: {
           id?: string;
@@ -89,6 +93,10 @@ export interface Database {
           permission?: 'edit' | 'readonly';
           created_at?: string;
           expires_at?: string | null;
+          single_use?: boolean;
+          used?: boolean;
+          used_at?: string | null;
+          used_by_user_id?: string | null;
         };
         Update: {
           id?: string;
@@ -98,6 +106,10 @@ export interface Database {
           permission?: 'edit' | 'readonly';
           created_at?: string;
           expires_at?: string | null;
+          single_use?: boolean;
+          used?: boolean;
+          used_at?: string | null;
+          used_by_user_id?: string | null;
         };
       };
       list_members: {

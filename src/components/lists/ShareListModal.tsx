@@ -23,6 +23,7 @@ export const ShareListModal: React.FC<ShareListModalProps> = ({
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [permission, setPermission] = useState<'edit' | 'readonly'>('edit');
   const [expiresInDays, setExpiresInDays] = useState<number | undefined>(undefined);
+  const [singleUse, setSingleUse] = useState<boolean>(true);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,6 +35,7 @@ export const ShareListModal: React.FC<ShareListModalProps> = ({
       setShareCode(info.shareCode);
       setShareUrl(info.shareUrl);
       setPermission(info.permission);
+      setSingleUse(info.singleUse);
     }
   };
 
@@ -53,7 +55,8 @@ export const ShareListModal: React.FC<ShareListModalProps> = ({
         listId,
         userId,
         permission,
-        expiresInDays
+        expiresInDays,
+        singleUse
       );
 
       setShareCode(code);
@@ -165,6 +168,27 @@ export const ShareListModal: React.FC<ShareListModalProps> = ({
               </select>
             </div>
 
+            <div className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
+              <input
+                type="checkbox"
+                id="singleUse"
+                checked={singleUse}
+                onChange={(e) => setSingleUse(e.target.checked)}
+                className="mt-0.5 h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                disabled={loading}
+              />
+              <div className="flex-1">
+                <label htmlFor="singleUse" className="block text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer">
+                  Código de uso único
+                </label>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                  {singleUse
+                    ? 'O código será invalidado após a primeira pessoa entrar'
+                    : 'O código pode ser usado várias vezes até ser revogado'}
+                </p>
+              </div>
+            </div>
+
             <button
               onClick={handleCreateLink}
               disabled={loading || !userId}
@@ -237,14 +261,14 @@ export const ShareListModal: React.FC<ShareListModalProps> = ({
               <p className="text-sm text-blue-800 dark:text-blue-300">
                 <strong>Permissão:</strong> {permission === 'edit' ? 'Edição' : 'Somente Leitura'}
               </p>
+              <p className="text-sm text-blue-800 dark:text-blue-300 mt-1">
+                <strong>Tipo:</strong> {singleUse ? 'Uso único' : 'Reutilizável'}
+              </p>
               {expiresInDays && (
                 <p className="text-sm text-blue-800 dark:text-blue-300 mt-1">
                   <strong>Expira em:</strong> {expiresInDays} {expiresInDays === 1 ? 'dia' : 'dias'}
                 </p>
               )}
-              <p className="text-sm text-blue-800 dark:text-blue-300 mt-2 font-semibold">
-                ⚠️ Código de uso único: será invalidado após a primeira pessoa entrar
-              </p>
             </div>
 
             {/* Botão de revogar */}
@@ -261,7 +285,7 @@ export const ShareListModal: React.FC<ShareListModalProps> = ({
         {/* Footer */}
         <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
           <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
-            🔒 Por segurança, cada código pode ser usado apenas uma vez. Gere um novo código para cada pessoa que desejar convidar.
+            💡 Dica: Use códigos de uso único para mais segurança, ou códigos reutilizáveis para facilitar o compartilhamento com várias pessoas.
           </p>
         </div>
       </div>

@@ -25,7 +25,8 @@ export const createShareLink = async (
   listId: string,
   userId: string,
   permission: 'edit' | 'readonly' = 'edit',
-  expiresInDays?: number
+  expiresInDays?: number,
+  singleUse: boolean = true
 ): Promise<{ shareCode: string; shareUrl: string }> => {
   let shareCode = generateShareCode();
   let attempts = 0;
@@ -63,6 +64,8 @@ export const createShareLink = async (
       owner_user_id: userId,
       permission,
       expires_at: expiresAt,
+      single_use: singleUse,
+      used: false,
     } as SharedListInsert)
     .select()
     .single();
@@ -122,9 +125,9 @@ export const validateShareCode = async (code: string) => {
     return { valid: false, error: 'Código inválido ou não encontrado' };
   }
 
-  // Verificar se já foi usado (single-use security)
-  if (data.used === true) {
-    console.warn('[validateShareCode] Code already used:', code);
+  // Verificar se já foi usado (apenas se for single-use)
+  if (data.single_use === true && data.used === true) {
+    console.warn('[validateShareCode] Single-use code already used:', code);
     return { valid: false, error: 'Este código já foi utilizado. Peça ao dono da lista para gerar um novo código.' };
   }
 
@@ -194,16 +197,26 @@ export const joinSharedList = async (code: string, userId: string) => {
       throw memberError;
     }
 
-    // Marcar código como usado (single-use security)
-    console.log('[joinSharedList] Marking code as used:', code);
-    await supabase
+    // Marcar código como usado (apenas se for single-use)
+    const { data: shareData } = await supabase
       .from('shared_lists')
-      .update({
-        used: true,
-        used_at: new Date().toISOString(),
-        used_by_user_id: userId,
-      })
-      .eq('share_code', code.toUpperCase());
+      .select('single_use')
+      .eq('share_code', code.toUpperCase())
+      .single();
+
+    if (shareData?.single_use === true) {
+      console.log('[joinSharedList] Marking single-use code as used:', code);
+      await supabase
+        .from('shared_lists')
+        .update({
+          used: true,
+          used_at: new Date().toISOString(),
+          used_by_user_id: userId,
+        })
+        .eq('share_code', code.toUpperCase());
+    } else {
+      console.log('[joinSharedList] Reusable code, not marking as used:', code);
+    }
   }
 
   // Buscar dados completos da lista
@@ -423,6 +436,7 @@ export const getShareInfo = async (listId: string) => {
     permission: data.permission,
     createdAt: new Date(data.created_at),
     expiresAt: data.expires_at ? new Date(data.expires_at) : undefined,
+    singleUse: data.single_use ?? true, // Default to true for backward compatibility
     shareUrl: `${window.location.origin}/join/${data.share_code}`,
   };
 };

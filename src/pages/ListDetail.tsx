@@ -11,14 +11,14 @@ import { ShareListModal } from '../components/lists/ShareListModal';
 import { MembersModal } from '../components/lists/MembersModal';
 import { SuggestionsBanner } from '../components/suggestions/SuggestionsBanner';
 import toast, { Toaster } from 'react-hot-toast';
-import { Sparkles, MoreVertical, Bell, Users, Share2, Trash2 } from 'lucide-react';
+import { Sparkles, MoreVertical, Bell, Users, Share2, Trash2, Edit2 } from 'lucide-react';
 import type { ShoppingItem } from '../hooks/useSupabaseItems';
 
 export const ListDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  const { getListById, deleteList } = useSupabaseLists();
+  const { getListById, deleteList, updateList } = useSupabaseLists();
   const { items, stats, createItem, updateItem, toggleItem, deleteItem, restoreItem, loadDeletedItems } = useSupabaseItems(id || '');
 
   // Sugestões de IA
@@ -41,6 +41,8 @@ export const ListDetail = () => {
   const [showDeletedSection, setShowDeletedSection] = useState(false);
   const [loadingDeleted, setLoadingDeleted] = useState(false);
   const [showActionsMenu, setShowActionsMenu] = useState(false);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editedName, setEditedName] = useState('');
 
   useEffect(() => {
     let isCancelled = false;
@@ -152,6 +154,31 @@ export const ListDetail = () => {
     } catch (error) {
       console.error('Erro ao excluir lista:', error);
       toast.error('Erro ao excluir lista');
+    }
+  };
+
+  const handleEditName = () => {
+    setEditedName(list?.name || '');
+    setIsEditingName(true);
+    setShowActionsMenu(false);
+  };
+
+  const handleSaveEditedName = async () => {
+    if (!id || !editedName.trim()) return;
+
+    if (editedName.trim() === list?.name) {
+      setIsEditingName(false);
+      return;
+    }
+
+    try {
+      await updateList(id, { name: editedName.trim() });
+      setList({ ...list, name: editedName.trim() });
+      toast.success('Nome da lista atualizado!');
+      setIsEditingName(false);
+    } catch (error) {
+      console.error('Erro ao atualizar nome:', error);
+      toast.error('Erro ao atualizar nome da lista');
     }
   };
 
@@ -312,6 +339,13 @@ export const ListDetail = () => {
                       onClick={() => setShowActionsMenu(false)}
                     />
                     <div className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 z-20 overflow-hidden">
+                      <button
+                        onClick={handleEditName}
+                        className="w-full px-4 py-3 text-left text-[15px] font-medium text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600 flex items-center gap-3 transition-colors"
+                      >
+                        <Edit2 className="w-5 h-5 text-primary dark:text-indigo-400" />
+                        Editar nome
+                      </button>
                       <button
                         onClick={() => {
                           handleNotifyMembers();
@@ -530,6 +564,67 @@ export const ListDetail = () => {
         isOpen={isMembersModalOpen}
         onClose={() => setIsMembersModalOpen(false)}
       />
+
+      {/* Edit Name Modal */}
+      {isEditingName && (
+        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                Editar nome da lista
+              </h2>
+              <button
+                onClick={() => setIsEditingName(false)}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+              >
+                <svg className="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-6">
+              <input
+                type="text"
+                value={editedName}
+                onChange={(e) => setEditedName(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    handleSaveEditedName();
+                  }
+                }}
+                placeholder="Nome da lista"
+                maxLength={100}
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary dark:focus:ring-indigo-400 focus:border-transparent outline-none transition-all bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                autoFocus
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck="false"
+              />
+            </div>
+
+            {/* Footer */}
+            <div className="flex items-center justify-end gap-3 p-6 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
+              <button
+                onClick={() => setIsEditingName(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSaveEditedName}
+                disabled={!editedName.trim()}
+                className="px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary/90 dark:bg-indigo-500 dark:hover:bg-indigo-600 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Salvar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 };
