@@ -1,10 +1,12 @@
 // src/hooks/useSupabaseItems.ts
 // Hook para gerenciar itens usando APENAS Supabase (sem IndexedDB)
+// Inclui sincronização em tempo real via Supabase Realtime
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import type { Database } from '../types/database';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 
 type ShoppingItemRow = Database['public']['Tables']['shopping_items']['Row'];
 type ShoppingItemInsert = Database['public']['Tables']['shopping_items']['Insert'];
@@ -34,6 +36,7 @@ export const useSupabaseItems = (listId: string) => {
   const [items, setItems] = useState<ShoppingItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const channelRef = useRef<RealtimeChannel | null>(null);
 
   // Calcular estatísticas
   const stats: ItemStats = {
@@ -97,6 +100,134 @@ export const useSupabaseItems = (listId: string) => {
   // Recarregar quando o usuário ou listId mudar
   useEffect(() => {
     loadItems();
+  }, [user?.id, listId]);
+
+  // Configurar sincronização em tempo real
+  useEffect(() => {
+    if (!user || !listId) {
+      return;
+    }
+
+    console.log('[useSupabaseItems] Setting up realtime subscription for list:', listId);
+
+    // Criar canal de realtime para a lista específica
+    const channel = supabase
+      .channel(`shopping_items:${listId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'shopping_items',
+          filter: `list_id=eq.${listId}`,
+        },
+        (payload) => {
+          const newItem = payload.new as ShoppingItemRow;
+
+          // Só adicionar se não estiver deletado
+          if (!newItem.deleted) {
+            console.log('[useSupabaseItems] Realtime INSERT:', newItem.name);
+
+            const formattedItem: ShoppingItem = {
+              id: newItem.id,
+              listId: newItem.list_id,
+              name: newItem.name,
+              quantity: newItem.quantity,
+              unit: newItem.unit,
+              category: newItem.category || undefined,
+              checked: newItem.checked,
+              deleted: newItem.deleted || false,
+              deletedAt: newItem.deleted_at ? new Date(newItem.deleted_at) : undefined,
+              createdAt: new Date(newItem.created_at),
+              updatedAt: new Date(newItem.updated_at),
+            };
+
+            setItems(currentItems => {
+              // Evitar duplicatas
+              if (currentItems.some(item => item.id === formattedItem.id)) {
+                return currentItems;
+              }
+              return [...currentItems, formattedItem];
+            });
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'shopping_items',
+          filter: `list_id=eq.${listId}`,
+        },
+        (payload) => {
+          const updatedItem = payload.new as ShoppingItemRow;
+
+          console.log('[useSupabaseItems] Realtime UPDATE:', updatedItem.name, 'deleted:', updatedItem.deleted);
+
+          setItems(currentItems => {
+            // Se foi marcado como deletado, remover da lista
+            if (updatedItem.deleted) {
+              return currentItems.filter(item => item.id !== updatedItem.id);
+            }
+
+            // Caso contrário, atualizar o item
+            return currentItems.map(item =>
+              item.id === updatedItem.id
+                ? {
+                    ...item,
+                    name: updatedItem.name,
+                    quantity: updatedItem.quantity,
+                    unit: updatedItem.unit,
+                    category: updatedItem.category || undefined,
+                    checked: updatedItem.checked,
+                    deleted: updatedItem.deleted || false,
+                    deletedAt: updatedItem.deleted_at ? new Date(updatedItem.deleted_at) : undefined,
+                    updatedAt: new Date(updatedItem.updated_at),
+                  }
+                : item
+            );
+          });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'shopping_items',
+          filter: `list_id=eq.${listId}`,
+        },
+        (payload) => {
+          const deletedItem = payload.old as ShoppingItemRow;
+
+          console.log('[useSupabaseItems] Realtime DELETE:', deletedItem.id);
+
+          setItems(currentItems =>
+            currentItems.filter(item => item.id !== deletedItem.id)
+          );
+        }
+      )
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('[useSupabaseItems] ✅ Realtime subscribed to list:', listId);
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('[useSupabaseItems] ❌ Realtime subscription error for list:', listId);
+        } else if (status === 'TIMED_OUT') {
+          console.warn('[useSupabaseItems] ⏱️ Realtime subscription timed out for list:', listId);
+        }
+      });
+
+    channelRef.current = channel;
+
+    // Cleanup: unsubscribe ao desmontar
+    return () => {
+      if (channelRef.current) {
+        console.log('[useSupabaseItems] Unsubscribing from realtime for list:', listId);
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+    };
   }, [user?.id, listId]);
 
   // Criar novo item
