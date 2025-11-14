@@ -141,6 +141,9 @@ export const useListSuggestions = (
 
       const prompt = `Últimos itens adicionados: ${recentItems}. Sugira itens complementares que o usuário pode ter esquecido.`;
 
+      // Enviar lista de todos os itens existentes para evitar duplicados
+      const existingItems = items.map(item => item.name);
+
       const response = await fetch('/api/suggest-items', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -148,7 +151,8 @@ export const useListSuggestions = (
           userId: user.id,
           prompt,
           listType: 'sugestões complementares',
-          maxResults: 5
+          maxResults: 5,
+          existingItems  // Nova propriedade
         })
       });
 

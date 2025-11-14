@@ -20,13 +20,15 @@ interface UseSuggestionsOptions {
   minChars?: number;
   maxSuggestions?: number;
   debounceMs?: number;
+  existingItems?: string[];  // Itens já adicionados na lista (para evitar duplicados)
 }
 
 export const useSuggestions = (options: UseSuggestionsOptions = {}) => {
   const {
     minChars = 2,
     maxSuggestions = 5,
-    debounceMs = 300
+    debounceMs = 300,
+    existingItems = []
   } = options;
 
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -87,7 +89,8 @@ export const useSuggestions = (options: UseSuggestionsOptions = {}) => {
               body: JSON.stringify({
                 deviceId,
                 prompt: input,
-                maxResults: maxSuggestions - historySuggestions.length
+                maxResults: maxSuggestions - historySuggestions.length,
+                existingItems: existingItems.length > 0 ? existingItems : undefined
               })
             });
 
@@ -105,7 +108,16 @@ export const useSuggestions = (options: UseSuggestionsOptions = {}) => {
             }));
 
             // Combinar histórico + IA (histórico tem prioridade)
-            const combined = [...historySuggestions, ...aiSuggestions];
+            let combined = [...historySuggestions, ...aiSuggestions];
+
+            // Filtrar itens que já existem na lista (camada extra de segurança)
+            if (existingItems.length > 0) {
+              const existingItemsSet = new Set(existingItems.map(item => item.toLowerCase().trim()));
+              combined = combined.filter(suggestion =>
+                !existingItemsSet.has(suggestion.name.toLowerCase().trim())
+              );
+            }
+
             setSuggestions(combined.slice(0, maxSuggestions));
           } catch (aiError) {
             console.error('AI suggestions failed, using only history:', aiError);
@@ -125,7 +137,7 @@ export const useSuggestions = (options: UseSuggestionsOptions = {}) => {
     }, debounceMs);
 
     setDebounceTimeout(timeout);
-  }, [deviceId, minChars, maxSuggestions, debounceMs, debounceTimeout]);
+  }, [deviceId, minChars, maxSuggestions, debounceMs, debounceTimeout, existingItems]);
 
   // Limpar timeout ao desmontar
   useEffect(() => {
