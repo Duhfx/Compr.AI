@@ -114,9 +114,13 @@ export const CreateListWithAIModal: React.FC<CreateListWithAIModalProps> = ({
             {/* Error */}
             {error && (
               <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-sm text-red-800">
-                  Erro ao criar lista: {error.message}
-                </p>
+                <div className="text-sm text-red-800">
+                  {error.message.split('\n\n').map((line, index) => (
+                    <p key={index} className={index > 0 ? 'mt-2' : ''}>
+                      {line}
+                    </p>
+                  ))}
+                </div>
               </div>
             )}
 

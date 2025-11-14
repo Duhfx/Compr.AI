@@ -192,6 +192,72 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
 
+    // VALIDAÇÃO PRÉVIA: Verificar se o prompt faz sentido para lista de compras
+    if (prompt && prompt.trim().length > 0) {
+      console.log('[suggest-items] Validating if prompt is suitable for shopping list...');
+
+      const validationPrompt = `
+Você é um validador de solicitações para listas de compras.
+
+SOLICITAÇÃO DO USUÁRIO: "${prompt}"
+
+TAREFA: Determinar se a solicitação acima faz sentido para criar uma lista de compras de supermercado.
+
+CRITÉRIOS PARA ACEITAR:
+✅ Menciona tipos de refeições (café da manhã, almoço, jantar, churrasco, lanche, etc.)
+✅ Menciona categorias de produtos (feira, frutas, verduras, carnes, laticínios, etc.)
+✅ Menciona ocasiões que envolvem comida (festa, viagem, semana, mês, etc.)
+✅ Menciona ingredientes ou pratos específicos (feijoada, pizza, salada, etc.)
+✅ É uma palavra/frase vaga mas que pode ter contexto de compras (ex: "básico", "urgente")
+
+CRITÉRIOS PARA REJEITAR:
+❌ Palavras isoladas SEM relação com comida/compras (ex: "filho", "parede", "porta", "carro", "computador")
+❌ Nomes próprios de pessoas sem contexto (ex: "João", "Maria")
+❌ Objetos/coisas que NÃO são vendidas em supermercado (ex: "casa", "celular", "roupa")
+❌ Solicitações completamente abstratas ou sem sentido (ex: "xyz", "123", "teste")
+
+IMPORTANTE: Seja tolerante com solicitações criativas, mas rejeite solicitações claramente inadequadas.
+
+Retorne APENAS um JSON válido:
+{
+  "isValid": true/false,
+  "reason": "explicação breve",
+  "suggestedCorrection": "sugestão de como reformular (se aplicável)"
+}
+
+Exemplos:
+- "churrasco" → {"isValid": true, "reason": "Contexto claro de refeição"}
+- "café da manhã" → {"isValid": true, "reason": "Tipo de refeição específico"}
+- "feira" → {"isValid": true, "reason": "Categoria de compras"}
+- "filho" → {"isValid": false, "reason": "Palavra isolada sem relação com compras", "suggestedCorrection": "Tente descrever o que você precisa comprar, como 'almoço', 'churrasco' ou 'feira'"}
+- "parede" → {"isValid": false, "reason": "Objeto não vendido em supermercado", "suggestedCorrection": "Para listas de compras de supermercado, tente palavras como 'almoço', 'jantar' ou tipos de produtos"}
+- "porta" → {"isValid": false, "reason": "Objeto não relacionado a compras de supermercado"}
+`.trim();
+
+      const validationResult = await model.generateContent(validationPrompt);
+      const validationText = validationResult.response.text().replace(/```json|```/g, '').trim();
+
+      try {
+        const validation = JSON.parse(validationText);
+        console.log('[suggest-items] Validation result:', validation);
+
+        if (!validation.isValid) {
+          console.log('[suggest-items] Prompt rejected as unsuitable for shopping list');
+          return res.status(400).json({
+            error: 'Solicitação inadequada para lista de compras',
+            message: validation.reason || 'Não foi possível interpretar sua solicitação como uma lista de compras.',
+            suggestedCorrection: validation.suggestedCorrection,
+            isValidationError: true
+          });
+        }
+
+        console.log('[suggest-items] Prompt validated successfully, proceeding with suggestions...');
+      } catch (parseError) {
+        console.warn('[suggest-items] Failed to parse validation response, proceeding anyway:', parseError);
+        // Em caso de erro no parse, continuar (fail-safe)
+      }
+    }
+
     const systemPrompt = `
 Você é um assistente brasileiro especializado em listas de compras para supermercados do Brasil.
 

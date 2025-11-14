@@ -1,7 +1,7 @@
 // src/hooks/usePullToRefresh.ts
 // Hook para implementar pull-to-refresh mobile-friendly
 
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface UsePullToRefreshOptions {
   onRefresh: () => Promise<void>;
@@ -17,7 +17,6 @@ export const usePullToRefresh = ({
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [pullDistance, setPullDistance] = useState(0);
   const touchStartY = useRef(0);
-  const scrollElement = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     const handleTouchStart = (e: TouchEvent) => {

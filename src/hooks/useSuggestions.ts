@@ -207,6 +207,15 @@ Considere quantidades realistas e apropriadas para o contexto descrito.`;
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         console.error('[useCreateListWithAI] API error:', response.status, errorData);
+
+        // Se for erro de validação (prompt inadequado), mostrar mensagem específica
+        if (errorData.isValidationError) {
+          const errorMessage = errorData.suggestedCorrection
+            ? `${errorData.message}\n\n💡 ${errorData.suggestedCorrection}`
+            : errorData.message || 'Não foi possível criar uma lista de compras com esta descrição.';
+          throw new Error(errorMessage);
+        }
+
         throw new Error(`Failed to create list with AI: ${errorData.error || errorData.message || response.statusText}`);
       }
 

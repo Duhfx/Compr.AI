@@ -11,7 +11,6 @@ import { CreateListWithAIModal } from '../components/lists/CreateListWithAIModal
 import { JoinListModal } from '../components/lists/JoinListModal';
 import { ReceiptScanner } from '../components/scanner/ReceiptScanner';
 import { ActionSheet } from '../components/ui/ActionSheet';
-import { SegmentedControl } from '../components/ui/SegmentedControl';
 import toast, { Toaster } from 'react-hot-toast';
 import { Sparkles, Edit, Users, Plus } from 'lucide-react';
 
@@ -31,7 +30,7 @@ export const Home = () => {
   const loading = statsLoading;
 
   // Pull-to-refresh
-  const { isRefreshing, PullIndicator } = usePullToRefresh({
+  const { PullIndicator } = usePullToRefresh({
     onRefresh: async () => {
       await refreshStats();
       toast.success('Listas atualizadas!');

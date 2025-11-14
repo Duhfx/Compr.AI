@@ -4,7 +4,7 @@ import { useSupabaseLists } from '../hooks/useSupabaseLists';
 import { useSupabaseItems } from '../hooks/useSupabaseItems';
 import { useAuth } from '../contexts/AuthContext';
 import { useListSuggestions } from '../hooks/useListSuggestions';
-import { getUserPermission, isListOwner } from '../lib/sharing';
+import { getUserPermission } from '../lib/sharing';
 import { supabase } from '../lib/supabase';
 import { Layout } from '../components/layout/Layout';
 import { ItemRow } from '../components/items/ItemRow';

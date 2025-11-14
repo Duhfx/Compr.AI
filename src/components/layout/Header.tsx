@@ -39,7 +39,7 @@ export const Header = () => {
   };
 
   return (
-    <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-b border-primary/10 dark:border-indigo-500/20 sticky top-0 z-10 safe-top transition-all shadow-sm">
+    <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-b border-primary/10 dark:border-indigo-500/20 sticky top-0 z-30 safe-top transition-all shadow-sm">
       <div className="flex items-center justify-between h-14 px-5">
         <div className="flex-1" />
 
@@ -81,10 +81,10 @@ export const Header = () => {
               {showMenu && (
                 <>
                   <div
-                    className="fixed inset-0 z-10"
+                    className="fixed inset-0 z-40"
                     onClick={() => setShowMenu(false)}
                   />
-                  <div className="absolute right-0 top-full mt-2 w-56 bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-2xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 z-20 overflow-hidden">
+                  <div className="absolute right-0 top-full mt-2 w-56 bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-2xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 z-50 overflow-hidden">
                     <div className="p-4 border-b border-gray-100/50 dark:border-gray-700/50 bg-gradient-to-br from-primary/5 to-purple-500/5 dark:from-primary/10 dark:to-purple-500/10">
                       <p className="text-[13px] text-gray-500 dark:text-gray-400 font-medium">Conectado como</p>
                       <p className="text-[15px] font-semibold text-gray-900 dark:text-white truncate mt-0.5">{user.email}</p>
