@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { Landing } from './pages/Landing';
 import { Home } from './pages/Home';
 import { ListDetail } from './pages/ListDetail';
@@ -15,13 +16,44 @@ function App() {
       <ThemeProvider>
         <AuthProvider>
           <Routes>
+            {/* Public routes */}
             <Route path="/" element={<Landing />} />
-            <Route path="/home" element={<Home />} />
-            <Route path="/list/:id" element={<ListDetail />} />
-            <Route path="/join/:code" element={<JoinList />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/history" element={<History />} />
+
+            {/* Protected routes - require authentication */}
+            <Route
+              path="/home"
+              element={
+                <ProtectedRoute>
+                  <Home />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/list/:id"
+              element={
+                <ProtectedRoute>
+                  <ListDetail />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/join/:code"
+              element={
+                <ProtectedRoute>
+                  <JoinList />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/history"
+              element={
+                <ProtectedRoute>
+                  <History />
+                </ProtectedRoute>
+              }
+            />
           </Routes>
         </AuthProvider>
       </ThemeProvider>
