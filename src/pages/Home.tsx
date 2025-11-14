@@ -11,7 +11,7 @@ import { ReceiptScanner } from '../components/scanner/ReceiptScanner';
 import { ActionSheet } from '../components/ui/ActionSheet';
 import { SegmentedControl } from '../components/ui/SegmentedControl';
 import toast, { Toaster } from 'react-hot-toast';
-import { Sparkles, Edit, Users, Plus, Receipt } from 'lucide-react';
+import { Sparkles, Edit, Users, Plus } from 'lucide-react';
 
 export const Home = () => {
   const navigate = useNavigate();
@@ -92,11 +92,6 @@ export const Home = () => {
       gradient: true,
     },
     {
-      icon: <Receipt className="w-5 h-5" />,
-      label: 'Escanear Nota Fiscal',
-      onClick: () => setShowScanner(true),
-    },
-    {
       icon: <Users className="w-5 h-5" />,
       label: 'Entrar em Lista',
       onClick: () => setShowJoinModal(true),
@@ -120,7 +115,7 @@ export const Home = () => {
   }
 
   return (
-    <Layout>
+    <Layout onScanClick={() => setShowScanner(true)}>
       <Toaster position="top-center" />
 
       <div className="px-4 py-4 pb-24">

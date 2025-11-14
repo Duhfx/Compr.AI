@@ -6,6 +6,7 @@ import { ListDetail } from './pages/ListDetail';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { JoinList } from './pages/JoinList';
+import { History } from './pages/History';
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
           <Route path="/join/:code" element={<JoinList />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/history" element={<History />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
