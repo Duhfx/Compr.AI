@@ -4,6 +4,7 @@ import { useSupabaseLists } from '../hooks/useSupabaseLists';
 import { useSupabaseItems } from '../hooks/useSupabaseItems';
 import { useAuth } from '../contexts/AuthContext';
 import { useListSuggestions } from '../hooks/useListSuggestions';
+import { getUserPermission } from '../lib/sharing';
 import { Layout } from '../components/layout/Layout';
 import { ItemRow } from '../components/items/ItemRow';
 import { ItemModal } from '../components/items/ItemModal';
@@ -43,6 +44,23 @@ export const ListDetail = () => {
   const [showActionsMenu, setShowActionsMenu] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedName, setEditedName] = useState('');
+  const [userPermission, setUserPermission] = useState<'owner' | 'edit' | 'readonly' | null>(null);
+
+  // Carregar permissões do usuário
+  useEffect(() => {
+    const loadPermissions = async () => {
+      if (!id || !user?.id) return;
+
+      try {
+        const permission = await getUserPermission(id, user.id);
+        setUserPermission(permission);
+      } catch (error) {
+        console.error('[ListDetail] Error loading permissions:', error);
+      }
+    };
+
+    loadPermissions();
+  }, [id, user?.id]);
 
   useEffect(() => {
     let isCancelled = false;
@@ -339,13 +357,18 @@ export const ListDetail = () => {
                       onClick={() => setShowActionsMenu(false)}
                     />
                     <div className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 z-20 overflow-hidden">
-                      <button
-                        onClick={handleEditName}
-                        className="w-full px-4 py-3 text-left text-[15px] font-medium text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600 flex items-center gap-3 transition-colors"
-                      >
-                        <Edit2 className="w-5 h-5 text-primary dark:text-indigo-400" />
-                        Editar nome
-                      </button>
+                      {/* Editar nome - apenas owner e edit */}
+                      {(userPermission === 'owner' || userPermission === 'edit') && (
+                        <button
+                          onClick={handleEditName}
+                          className="w-full px-4 py-3 text-left text-[15px] font-medium text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600 flex items-center gap-3 transition-colors"
+                        >
+                          <Edit2 className="w-5 h-5 text-primary dark:text-indigo-400" />
+                          Editar nome
+                        </button>
+                      )}
+
+                      {/* Notificar membros - todos podem */}
                       <button
                         onClick={() => {
                           handleNotifyMembers();
@@ -356,6 +379,8 @@ export const ListDetail = () => {
                         <Bell className="w-5 h-5 text-amber-600 dark:text-amber-400" />
                         Notificar membros
                       </button>
+
+                      {/* Ver membros - todos podem */}
                       <button
                         onClick={() => {
                           setIsMembersModalOpen(true);
@@ -366,26 +391,34 @@ export const ListDetail = () => {
                         <Users className="w-5 h-5 text-primary dark:text-indigo-400" />
                         Ver membros
                       </button>
-                      <button
-                        onClick={() => {
-                          setIsShareModalOpen(true);
-                          setShowActionsMenu(false);
-                        }}
-                        className="w-full px-4 py-3 text-left text-[15px] font-medium text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600 flex items-center gap-3 transition-colors border-b border-gray-100 dark:border-gray-700"
-                      >
-                        <Share2 className="w-5 h-5 text-primary dark:text-indigo-400" />
-                        Compartilhar lista
-                      </button>
-                      <button
-                        onClick={() => {
-                          handleDeleteList();
-                          setShowActionsMenu(false);
-                        }}
-                        className="w-full px-4 py-3 text-left text-[15px] font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 active:bg-red-100 dark:active:bg-red-900/30 flex items-center gap-3 transition-colors"
-                      >
-                        <Trash2 className="w-5 h-5" />
-                        Excluir lista
-                      </button>
+
+                      {/* Compartilhar - apenas owner e edit */}
+                      {(userPermission === 'owner' || userPermission === 'edit') && (
+                        <button
+                          onClick={() => {
+                            setIsShareModalOpen(true);
+                            setShowActionsMenu(false);
+                          }}
+                          className="w-full px-4 py-3 text-left text-[15px] font-medium text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600 flex items-center gap-3 transition-colors border-b border-gray-100 dark:border-gray-700"
+                        >
+                          <Share2 className="w-5 h-5 text-primary dark:text-indigo-400" />
+                          Compartilhar lista
+                        </button>
+                      )}
+
+                      {/* Excluir - apenas owner */}
+                      {userPermission === 'owner' && (
+                        <button
+                          onClick={() => {
+                            handleDeleteList();
+                            setShowActionsMenu(false);
+                          }}
+                          className="w-full px-4 py-3 text-left text-[15px] font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 active:bg-red-100 dark:active:bg-red-900/30 flex items-center gap-3 transition-colors"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                          Excluir lista
+                        </button>
+                      )}
                     </div>
                   </>
                 )}

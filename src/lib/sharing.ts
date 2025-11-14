@@ -467,3 +467,50 @@ export const revokeShareLink = async (listId: string) => {
   // Remover localmente
   await db.sharedLists.where('listId').equals(listId).delete();
 };
+
+/**
+ * Verifica se o usuário é o dono da lista
+ */
+export const isListOwner = async (listId: string, userId: string): Promise<boolean> => {
+  const { data: list } = await supabase
+    .from('shopping_lists')
+    .select('user_id')
+    .eq('id', listId)
+    .single();
+
+  return list?.user_id === userId;
+};
+
+/**
+ * Busca a permissão do usuário na lista compartilhada
+ * Retorna 'owner', 'edit', 'readonly' ou null se não tiver acesso
+ */
+export const getUserPermission = async (listId: string, userId: string): Promise<'owner' | 'edit' | 'readonly' | null> => {
+  // Verificar se é o dono
+  const owner = await isListOwner(listId, userId);
+  if (owner) {
+    return 'owner';
+  }
+
+  // Verificar se é membro através de compartilhamento
+  const { data: member } = await supabase
+    .from('list_members')
+    .select('id')
+    .eq('list_id', listId)
+    .eq('user_id', userId)
+    .eq('is_active', true)
+    .maybeSingle();
+
+  if (!member) {
+    return null;
+  }
+
+  // Buscar a permissão na tabela shared_lists
+  const { data: sharedList } = await supabase
+    .from('shared_lists')
+    .select('permission')
+    .eq('list_id', listId)
+    .maybeSingle();
+
+  return sharedList?.permission || 'edit';
+};
