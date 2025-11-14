@@ -1,34 +1,67 @@
 # 🛒 Compr.AI - Lista de Compras Inteligente
 
-PWA inteligente de lista de compras com sincronização em tempo real e sugestões por IA.
+PWA inteligente de lista de compras com sincronização em tempo real, sugestões por IA e OCR de notas fiscais.
 
-## 🚀 Stack
+## ✨ Versão Atual: v1.8.0
+
+Landing page mobile-first redesenhada + Sistema completo de IA e OCR
+
+## 🚀 Stack Tecnológica
 
 - **Frontend:** React 18 + Vite 5 + TypeScript 5
-- **Estilização:** Tailwind CSS 3
-- **Armazenamento Local:** Dexie.js (IndexedDB)
-- **Backend/Database:** Supabase (PostgreSQL + Realtime)
-- **IA:** Google Gemini 1.5 (futuras releases)
-- **PWA:** vite-plugin-pwa
+- **UI/Styling:** Tailwind CSS 3 + Framer Motion
+- **Armazenamento:** Dexie.js (IndexedDB) - Offline-first
+- **Backend:** Vercel Functions (Serverless)
+- **Database:** Supabase (PostgreSQL + Realtime)
+- **IA:** Google Gemini 1.5 Flash
+- **OCR:** Tesseract.js (local) + Cloud Vision (fallback)
+- **Auth:** Supabase Auth (email/senha)
+- **PWA:** vite-plugin-pwa + Workbox
 - **Deploy:** Vercel
 
-## 🎯 Release Atual: Release 1 - MVP Base
+## 🎯 Funcionalidades Implementadas
 
-### Funcionalidades Implementadas
+### ✅ Autenticação
+- Login/Registro com Supabase Auth
+- Proteção de rotas
+- Gerenciamento de sessão
 
-✅ CRUD de listas de compras
-✅ CRUD de itens
-✅ Armazenamento local (offline-first)
-✅ Interface responsiva (mobile-first)
-✅ PWA instalável
-✅ Banco de dados Supabase configurado
+### ✅ Listas de Compras
+- CRUD completo de listas e itens
+- Armazenamento offline (IndexedDB)
+- Sincronização em tempo real
+- Categorização inteligente
 
-### Próximas Releases
+### ✅ Inteligência Artificial
+- **Sugestões personalizadas** com Gemini AI
+- Criação de listas automáticas
+- Análise de histórico de compras
+- Prompt contextual (ex: "churrasco", "festa")
 
-- **Release 2:** Compartilhamento e sincronização em tempo real
-- **Release 3:** Sugestões inteligentes com IA
-- **Release 4:** OCR de notas fiscais
-- **Release 5:** Chat e previsão de gastos
+### ✅ OCR de Notas Fiscais
+- Escaneamento via câmera
+- Extração de produtos e preços
+- Processamento local (Tesseract.js)
+- Estruturação com IA
+
+### ✅ Compartilhamento
+- Códigos únicos de compartilhamento
+- Sincronização em tempo real
+- Gestão de membros
+- Link de convite
+
+### ✅ Histórico e Análise
+- Histórico completo de compras
+- Análise de preços
+- Comparação ao longo do tempo
+- Exportação de dados
+
+### ✅ Interface
+- **Landing page mobile-first** (v1.8.0)
+- Design iOS-like (app nativo)
+- Animações suaves
+- PWA instalável
+- Modo offline
 
 ## 🛠️ Setup do Projeto
 
@@ -87,8 +120,21 @@ comprai/
 
 ## 📚 Documentação
 
-- [Roadmap Detalhado](../ROADMAP_DETALHADO.md)
-- [Guia de Desenvolvimento](../CLAUDE.md)
+### Guias Principais
+- [**📖 Documentação Completa**](./docs/README.md) - Índice de toda a documentação
+- [**🚀 Guia de Desenvolvimento**](./CLAUDE.md) - Instruções para desenvolvimento
+- [**📋 Changelog**](./docs/releases/CHANGELOG.md) - Histórico de versões
+
+### Features Implementadas
+- [🔐 Autenticação](./docs/features/01-autenticacao.md) - Sistema de login/registro
+- [🧠 Sugestões com IA](./docs/features/03-sugestoes-ia.md) - Gemini AI integration
+- [🎨 Interface e Landing Page](./docs/features/08-interface.md) - Design mobile-first
+
+### Documentação Técnica
+- [🏗️ Arquitetura](./docs/technical/arquitetura.md) - Visão geral do sistema (em breve)
+- [🗄️ Database Schema](./docs/technical/database.md) - Esquema do banco (em breve)
+
+> **Nota:** A documentação foi reorganizada em módulos para facilitar a navegação. O arquivo original `FUNCIONALIDADES_1311.md` permanece disponível para referência histórica.
 
 ## 🐛 Problemas Conhecidos
 
