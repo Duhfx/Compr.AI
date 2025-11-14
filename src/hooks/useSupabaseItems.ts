@@ -171,22 +171,33 @@ export const useSupabaseItems = (listId: string) => {
               return currentItems.filter(item => item.id !== updatedItem.id);
             }
 
-            // Caso contrário, atualizar o item
-            return currentItems.map(item =>
-              item.id === updatedItem.id
-                ? {
-                    ...item,
-                    name: updatedItem.name,
-                    quantity: updatedItem.quantity,
-                    unit: updatedItem.unit,
-                    category: updatedItem.category || undefined,
-                    checked: updatedItem.checked,
-                    deleted: updatedItem.deleted || false,
-                    deletedAt: updatedItem.deleted_at ? new Date(updatedItem.deleted_at) : undefined,
-                    updatedAt: new Date(updatedItem.updated_at),
-                  }
-                : item
-            );
+            // Verificar se o item já existe na lista
+            const existingItemIndex = currentItems.findIndex(item => item.id === updatedItem.id);
+
+            const formattedItem: ShoppingItem = {
+              id: updatedItem.id,
+              listId: updatedItem.list_id,
+              name: updatedItem.name,
+              quantity: updatedItem.quantity,
+              unit: updatedItem.unit,
+              category: updatedItem.category || undefined,
+              checked: updatedItem.checked,
+              deleted: updatedItem.deleted || false,
+              deletedAt: updatedItem.deleted_at ? new Date(updatedItem.deleted_at) : undefined,
+              createdAt: new Date(updatedItem.created_at),
+              updatedAt: new Date(updatedItem.updated_at),
+            };
+
+            if (existingItemIndex >= 0) {
+              // Item existe: atualizar
+              return currentItems.map(item =>
+                item.id === updatedItem.id ? formattedItem : item
+              );
+            } else {
+              // Item não existe: foi restaurado, adicionar à lista
+              console.log('[useSupabaseItems] Realtime RESTORE:', updatedItem.name);
+              return [...currentItems, formattedItem];
+            }
           });
         }
       )
