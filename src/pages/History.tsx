@@ -74,10 +74,10 @@ export const History = () => {
       <div className="px-4 py-4 pb-28">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-[34px] font-bold text-gray-900 mb-2">
+          <h1 className="text-[34px] font-bold text-gray-900 dark:text-white mb-2">
             Histórico
           </h1>
-          <p className="text-[17px] text-gray-500">
+          <p className="text-[17px] text-gray-500 dark:text-gray-400">
             {selectedTab === 'Compras'
               ? history.length === 0
                 ? 'Nenhuma compra registrada'
@@ -108,17 +108,17 @@ export const History = () => {
               exit={{ opacity: 0, y: -20 }}
               className="text-center py-20"
             >
-              <div className="w-20 h-20 mx-auto mb-4 bg-purple-50 rounded-full flex items-center justify-center">
+              <div className="w-20 h-20 mx-auto mb-4 bg-purple-50 dark:bg-purple-900/30 rounded-full flex items-center justify-center">
                 {selectedTab === 'Compras' ? (
-                  <ShoppingBag className="h-10 w-10 text-purple-600" />
+                  <ShoppingBag className="h-10 w-10 text-purple-600 dark:text-purple-400" />
                 ) : (
-                  <Receipt className="h-10 w-10 text-purple-600" />
+                  <Receipt className="h-10 w-10 text-purple-600 dark:text-purple-400" />
                 )}
               </div>
-              <h3 className="text-[22px] font-bold text-gray-900 mb-2">
+              <h3 className="text-[22px] font-bold text-gray-900 dark:text-white mb-2">
                 {selectedTab === 'Compras' ? 'Nenhuma compra ainda' : 'Nenhuma nota fiscal'}
               </h3>
-              <p className="text-[15px] text-gray-500 mb-6">
+              <p className="text-[15px] text-gray-500 dark:text-gray-400 mb-6">
                 {selectedTab === 'Compras'
                   ? 'Marque itens nas suas listas como comprados'
                   : 'Escaneie notas fiscais para rastrear preços'}
@@ -142,8 +142,8 @@ export const History = () => {
                 <div key={date}>
                   {/* Date Header */}
                   <div className="flex items-center gap-2 mb-3">
-                    <Calendar className="w-4 h-4 text-gray-400" />
-                    <h2 className="text-[15px] font-semibold text-gray-600">
+                    <Calendar className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+                    <h2 className="text-[15px] font-semibold text-gray-600 dark:text-gray-400">
                       {format(new Date(date), "d 'de' MMMM", { locale: ptBR })}
                     </h2>
                   </div>
@@ -156,28 +156,28 @@ export const History = () => {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.05 }}
-                        className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100"
+                        className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm dark:shadow-none border border-gray-100 dark:border-gray-700"
                       >
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center flex-shrink-0">
                             <Package className="w-5 h-5 text-white" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h3 className="text-[17px] font-semibold text-gray-900 truncate">
+                            <h3 className="text-[17px] font-semibold text-gray-900 dark:text-white truncate">
                               {item.item_name}
                             </h3>
                             <div className="flex items-center gap-2 mt-0.5">
                               {item.category && (
-                                <span className="text-[13px] text-gray-500">
+                                <span className="text-[13px] text-gray-500 dark:text-gray-400">
                                   {item.category}
                                 </span>
                               )}
                               {item.quantity && item.unit && (
                                 <>
                                   {item.category && (
-                                    <span className="text-gray-300">•</span>
+                                    <span className="text-gray-300 dark:text-gray-600">•</span>
                                   )}
-                                  <span className="text-[13px] text-gray-500">
+                                  <span className="text-[13px] text-gray-500 dark:text-gray-400">
                                     {item.quantity} {item.unit}
                                   </span>
                                 </>
@@ -185,7 +185,7 @@ export const History = () => {
                             </div>
                           </div>
                           <div className="text-right">
-                            <div className="text-[13px] text-gray-400">
+                            <div className="text-[13px] text-gray-400 dark:text-gray-500">
                               {format(new Date(item.purchased_at), 'HH:mm')}
                             </div>
                           </div>
@@ -210,31 +210,31 @@ export const History = () => {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100"
+                  className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm dark:shadow-none border border-gray-100 dark:border-gray-700"
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center flex-shrink-0">
                       <Store className="w-6 h-6 text-white" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-[17px] font-semibold text-gray-900 truncate">
+                      <h3 className="text-[17px] font-semibold text-gray-900 dark:text-white truncate">
                         {receipt.store}
                       </h3>
                       <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-[13px] text-gray-500">
+                        <span className="text-[13px] text-gray-500 dark:text-gray-400">
                           {receipt.itemCount} {receipt.itemCount === 1 ? 'item' : 'itens'}
                         </span>
-                        <span className="text-gray-300">•</span>
-                        <span className="text-[13px] font-medium text-green-600">
+                        <span className="text-gray-300 dark:text-gray-600">•</span>
+                        <span className="text-[13px] font-medium text-green-600 dark:text-green-400">
                           R$ {receipt.totalPrice.toFixed(2)}
                         </span>
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-[13px] text-gray-400">
+                      <div className="text-[13px] text-gray-400 dark:text-gray-500">
                         {format(new Date(receipt.date), "d 'de' MMM", { locale: ptBR })}
                       </div>
-                      <div className="text-[11px] text-gray-400">
+                      <div className="text-[11px] text-gray-400 dark:text-gray-500">
                         {format(new Date(receipt.date), 'HH:mm')}
                       </div>
                     </div>

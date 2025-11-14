@@ -26,28 +26,28 @@ export const ListCard = ({ list, onClick }: ListCardProps) => {
   return (
     <div
       onClick={onClick}
-      className="bg-white rounded-ios p-4 shadow-ios active:shadow-ios-pressed transition-all cursor-pointer"
+      className="bg-white dark:bg-gray-800 rounded-ios p-4 shadow-ios dark:shadow-none dark:border dark:border-gray-700 active:shadow-ios-pressed transition-all cursor-pointer"
     >
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-3 flex-1 min-w-0">
           {/* Icon */}
-          <div className="w-10 h-10 bg-primary bg-opacity-10 rounded-full flex items-center justify-center flex-shrink-0 text-xl">
+          <div className="w-10 h-10 bg-primary bg-opacity-10 dark:bg-primary/20 rounded-full flex items-center justify-center flex-shrink-0 text-xl">
             {getListEmoji(list.name)}
           </div>
 
           {/* Info */}
           <div className="flex-1 min-w-0">
-            <h3 className="text-[17px] font-semibold text-gray-900 truncate mb-0.5">
+            <h3 className="text-[17px] font-semibold text-gray-900 dark:text-white truncate mb-0.5">
               {list.name}
             </h3>
-            <div className="flex items-center gap-2 text-[13px] text-gray-500">
+            <div className="flex items-center gap-2 text-[13px] text-gray-500 dark:text-gray-400">
               <span>
                 {stats.total} {stats.total === 1 ? 'item' : 'itens'}
               </span>
               {stats.total > 0 && (
                 <>
                   <span>•</span>
-                  <span className="text-success">
+                  <span className="text-success dark:text-green-400">
                     {stats.checked} comprados
                   </span>
                 </>
@@ -58,7 +58,7 @@ export const ListCard = ({ list, onClick }: ListCardProps) => {
 
         {/* Chevron */}
         <svg
-          className="w-5 h-5 text-gray-400 flex-shrink-0"
+          className="w-5 h-5 text-gray-400 dark:text-gray-500 flex-shrink-0"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -75,18 +75,18 @@ export const ListCard = ({ list, onClick }: ListCardProps) => {
       {/* Progress Bar */}
       {stats.total > 0 && (
         <div className="relative">
-          <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+          <div className="h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
             <div
-              className="h-full bg-success rounded-full transition-all duration-300"
+              className="h-full bg-success dark:bg-green-400 rounded-full transition-all duration-300"
               style={{ width: `${progress}%` }}
             />
           </div>
           <div className="flex items-center justify-between mt-1.5">
-            <span className="text-[11px] text-gray-400">
+            <span className="text-[11px] text-gray-400 dark:text-gray-500">
               {formatRelativeDate(list.updatedAt)}
             </span>
             {progress === 100 && (
-              <span className="text-[11px] text-success font-medium">
+              <span className="text-[11px] text-success dark:text-green-400 font-medium">
                 ✓ Completo
               </span>
             )}

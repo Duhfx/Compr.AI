@@ -26,7 +26,7 @@ export const BottomTabBar = ({ onScanClick }: BottomTabBarProps) => {
       path: '/home',
       icon: (active: boolean) => (
         <List
-          className={`w-6 h-6 ${active ? 'text-primary' : 'text-gray-600'}`}
+          className={`w-6 h-6 ${active ? 'text-primary' : 'text-gray-600 dark:text-gray-400'}`}
           strokeWidth={active ? 2.5 : 2}
         />
       ),
@@ -37,7 +37,7 @@ export const BottomTabBar = ({ onScanClick }: BottomTabBarProps) => {
       path: '/history',
       icon: (active: boolean) => (
         <History
-          className={`w-6 h-6 ${active ? 'text-primary' : 'text-gray-600'}`}
+          className={`w-6 h-6 ${active ? 'text-primary' : 'text-gray-600 dark:text-gray-400'}`}
           strokeWidth={active ? 2.5 : 2}
         />
       ),
@@ -48,7 +48,7 @@ export const BottomTabBar = ({ onScanClick }: BottomTabBarProps) => {
       action: 'scan',
       icon: (active: boolean) => (
         <Receipt
-          className={`w-6 h-6 ${active ? 'text-primary' : 'text-gray-600'}`}
+          className={`w-6 h-6 ${active ? 'text-primary' : 'text-gray-600 dark:text-gray-400'}`}
           strokeWidth={active ? 2.5 : 2}
         />
       ),
@@ -107,7 +107,7 @@ export const BottomTabBar = ({ onScanClick }: BottomTabBarProps) => {
                   {/* Label */}
                   <span
                     className={`text-[11px] font-medium transition-colors relative z-10 ${
-                      isActive ? 'text-primary' : 'text-gray-600'
+                      isActive ? 'text-primary' : 'text-gray-600 dark:text-gray-400'
                     }`}
                   >
                     {tab.label}
