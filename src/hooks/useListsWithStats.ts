@@ -62,12 +62,25 @@ export const useListsWithStats = () => {
         console.error('[useListsWithStats] Error loading shared lists:', memberError);
       }
 
-      // Combinar listas próprias e compartilhadas
+      // Combinar listas próprias e compartilhadas (remover duplicatas)
       const sharedLists = memberships
         ?.map((m: any) => m.shopping_lists)
         .filter(Boolean) || [];
 
-      const allLists = [...(ownLists || []), ...sharedLists];
+      // Usar Map para garantir unicidade por ID
+      const listsMap = new Map<string, ShoppingListRow>();
+
+      // Adicionar listas próprias primeiro (prioridade)
+      (ownLists || []).forEach(list => listsMap.set(list.id, list));
+
+      // Adicionar listas compartilhadas (não sobrescreve se já existe)
+      sharedLists.forEach((list: ShoppingListRow) => {
+        if (!listsMap.has(list.id)) {
+          listsMap.set(list.id, list);
+        }
+      });
+
+      const allLists = Array.from(listsMap.values());
 
       // Buscar stats de itens para todas as listas
       const listIds = allLists.map((list: ShoppingListRow) => list.id);

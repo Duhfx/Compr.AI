@@ -168,30 +168,34 @@ export const ItemRow = ({ item, onToggle, onEdit, onDelete }: ItemRowProps) => {
         style={{ x: xSpring }}
         className="flex items-center gap-3 px-4 py-3 bg-white dark:bg-gray-800 touch-pan-y"
       >
-        {/* iOS-style checkbox */}
+        {/* iOS-style checkbox - Maior área de toque */}
         <button
           onClick={handleToggle}
-          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
-            item.checked
-              ? 'bg-primary border-primary'
-              : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700'
-          }`}
+          className="w-11 h-11 -ml-2.5 flex items-center justify-center active:bg-gray-100 dark:active:bg-gray-700 rounded-full transition-colors"
         >
-          {item.checked && (
-            <svg
-              className="w-4 h-4 text-white"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={3}
-                d="M5 13l4 4L19 7"
-              />
-            </svg>
-          )}
+          <div
+            className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+              item.checked
+                ? 'bg-primary border-primary'
+                : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700'
+            }`}
+          >
+            {item.checked && (
+              <svg
+                className="w-4 h-4 text-white"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={3}
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+            )}
+          </div>
         </button>
 
         <div onClick={handleEdit} className="flex-1 cursor-pointer min-w-0">

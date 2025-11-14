@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useSupabaseLists } from '../hooks/useSupabaseLists';
 import { useListsWithStats } from '../hooks/useListsWithStats';
 import { useAuth } from '../contexts/AuthContext';
+import { usePullToRefresh } from '../hooks/usePullToRefresh.tsx';
 import { Layout } from '../components/layout/Layout';
 import { ListCard } from '../components/lists/ListCard';
 import { CreateListWithAIModal } from '../components/lists/CreateListWithAIModal';
@@ -28,6 +29,14 @@ export const Home = () => {
   const [selectedFilter, setSelectedFilter] = useState('Todas');
 
   const loading = statsLoading;
+
+  // Pull-to-refresh
+  const { isRefreshing, PullIndicator } = usePullToRefresh({
+    onRefresh: async () => {
+      await refreshStats();
+      toast.success('Listas atualizadas!');
+    },
+  });
 
   // Redirect to landing if not authenticated
   useEffect(() => {
@@ -133,32 +142,34 @@ export const Home = () => {
   return (
     <Layout onScanClick={() => setShowScanner(true)} showTabBar={!isCreating && !showAIModal && !showJoinModal && !showActionSheet}>
       <Toaster position="top-center" />
+      <PullIndicator />
 
       <div className="px-4 py-6 pb-24">
         {/* Segmented Control (Tabs) */}
         {listsWithStats.length > 0 && (
-          <div className="mb-4">
-            <SegmentedControl
-              options={['Todas', 'Ativas', 'Concluídas']}
-              selected={selectedFilter}
-              onChange={setSelectedFilter}
-            />
+          <div className="mb-3 sticky top-0 z-20 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm -mx-4 px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex gap-2">
+              {[
+                { label: 'Todas', key: 'Todas', count: listsWithStats.length },
+                { label: 'Ativas', key: 'Ativas', count: listsWithStats.filter(list => list.uncheckedItems > 0 || list.totalItems === 0).length },
+                { label: 'Concluídas', key: 'Concluídas', count: listsWithStats.filter(list => list.totalItems > 0 && list.uncheckedItems === 0).length }
+              ].map((tab) => (
+                <button
+                  key={tab.key}
+                  onClick={() => setSelectedFilter(tab.key)}
+                  className={`flex-1 h-9 rounded-full text-[13px] font-medium transition-all ${
+                    selectedFilter === tab.key
+                      ? 'bg-primary text-white shadow-sm'
+                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                  }`}
+                >
+                  {tab.label} ({tab.count})
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
-        {/* Lista Count */}
-        {listsWithStats.length > 0 && (
-          <div className="mb-6">
-            <p className="text-[15px] text-gray-500 dark:text-gray-400">
-              {filteredLists.length === 0 && selectedFilter !== 'Todas'
-                ? `Nenhuma lista ${selectedFilter.toLowerCase()}`
-                : filteredLists.length === listsWithStats.length
-                  ? `${listsWithStats.length} ${listsWithStats.length === 1 ? 'lista' : 'listas'}`
-                  : `${filteredLists.length} de ${listsWithStats.length} ${listsWithStats.length === 1 ? 'lista' : 'listas'}`
-              }
-            </p>
-          </div>
-        )}
 
         {/* Smart Banner for new users */}
         {listsWithStats.length === 0 && (

@@ -43,7 +43,9 @@
       "Bash(git checkout:*)",
       "Bash(vercel logs:*)",
       "Bash(git rm:*)",
-      "Bash(.gitignore)"
+      "Bash(.gitignore)",
+      "Bash(echo:*)",
+      "Bash(\"C:\\Compr.AI\\comprai\\src\\pages\\Home.tsx\")"
     ],
     "deny": [],
     "ask": []

@@ -476,6 +476,123 @@ const successCount = results.filter(r => r.status === 'fulfilled').length;
 
 ### 8. **Sugestões de Itens com IA** ✓
 
+(... conteúdo existente ...)
+
+---
+
+### 9. **Indicador Visual de Lista Compartilhada** ✓
+
+**Data de Implementação:** 14/11/2025
+
+**Arquivos Principais:**
+- `src/pages/ListDetail.tsx` - Implementação do banner de lista compartilhada
+- `src/lib/sharing.ts` - Funções de verificação de propriedade
+- `src/types/database.ts` - Types do Supabase (user_profiles)
+
+**Descrição:**
+Banner sutil exibido no topo da página de detalhe da lista quando o usuário visualiza uma lista compartilhada por outro usuário (não sendo o dono original).
+
+**Fluxo Técnico:**
+1. No carregamento da página `ListDetail`, verifica-se a permissão do usuário (`getUserPermission`)
+2. Se a permissão não for `'owner'`, marca a lista como compartilhada (`isShared = true`)
+3. Busca o `user_id` do dono na tabela `shopping_lists`
+4. Consulta o perfil do dono na tabela `user_profiles` para obter o nickname
+5. Exibe banner com ícone `UserCheck` e o nome do dono
+
+**Recursos Implementados:**
+- ✅ Verificação automática de propriedade vs. acesso compartilhado
+- ✅ Busca do perfil do dono (nickname) via Supabase
+- ✅ Banner responsivo com design sutil (indigo/50 light, indigo/900/20 dark)
+- ✅ Indicador visual com ícone de usuário verificado
+- ✅ Fallback para "Lista compartilhada" caso o nickname não esteja disponível
+
+**Localização no Código:**
+```typescript
+// src/pages/ListDetail.tsx:52-94
+useEffect(() => {
+  const loadPermissionsAndOwner = async () => {
+    if (!id || !user?.id) return;
+
+    try {
+      const permission = await getUserPermission(id, user.id);
+      setUserPermission(permission);
+
+      // Verificar se a lista é compartilhada (se não for owner)
+      if (permission !== 'owner') {
+        setIsShared(true);
+
+        // Buscar informações do dono da lista
+        const { data: listData } = await supabase
+          .from('shopping_lists')
+          .select('user_id')
+          .eq('id', id)
+          .single();
+
+        if (listData?.user_id) {
+          // Buscar perfil do dono
+          const { data: ownerProfile } = await supabase
+            .from('user_profiles')
+            .select('nickname')
+            .eq('user_id', listData.user_id)
+            .single();
+
+          if (ownerProfile?.nickname) {
+            setOwnerNickname(ownerProfile.nickname);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('[ListDetail] Error loading permissions:', error);
+    }
+  };
+
+  loadPermissionsAndOwner();
+}, [id, user?.id]);
+```
+
+**UI/UX:**
+```tsx
+// Banner exibido no topo da página (src/pages/ListDetail.tsx:352-368)
+{isShared && (
+  <div className="mb-3 px-3 py-2 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/30 rounded-lg flex items-center gap-2">
+    <UserCheck className="w-4 h-4 text-indigo-600 dark:text-indigo-400 flex-shrink-0" />
+    <div className="flex-1 min-w-0">
+      <p className="text-[13px] text-indigo-800 dark:text-indigo-200">
+        {ownerNickname ? (
+          <>
+            Lista compartilhada por <span className="font-semibold">{ownerNickname}</span>
+          </>
+        ) : (
+          'Lista compartilhada'
+        )}
+      </p>
+    </div>
+  </div>
+)}
+```
+
+**Benefícios:**
+- 🎯 **Contexto claro**: Usuário sabe imediatamente quando está em uma lista compartilhada
+- 👤 **Identificação do dono**: Mostra quem criou/compartilhou a lista
+- 🎨 **Design sutil**: Não interfere na experiência, apenas informa
+- 🌓 **Suporte dark mode**: Cores adaptadas para tema claro e escuro
+
+**Casos de Teste:**
+- ✅ Lista própria (owner): Banner não é exibido
+- ✅ Lista compartilhada com permissão 'edit': Banner exibido com nome do dono
+- ✅ Lista compartilhada com permissão 'readonly': Banner exibido com nome do dono
+- ✅ Dono sem perfil cadastrado: Banner exibido sem nome ("Lista compartilhada")
+
+**Dependências:**
+- `getUserPermission()` - Verifica permissão do usuário na lista
+- `supabase` - Busca dados do dono e perfil
+- `lucide-react` - Ícone `UserCheck`
+- Tabelas: `shopping_lists`, `user_profiles`, `list_members`, `shared_lists`
+
+---
+
+### 8. **Sugestões de Itens com IA** ✓
+
 **Arquivos Principais:**
 - `src/hooks/useListSuggestions.ts` - Hook de sugestões proativas
 - `src/components/suggestions/SuggestionsBanner.tsx` - UI de sugestões
