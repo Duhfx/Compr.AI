@@ -27,41 +27,14 @@ export const SuggestionsBanner = ({
   onDismiss,
   onFetchSuggestions
 }: SuggestionsBannerProps) => {
-  // Estado inicial: Mostrar botão para buscar sugestões
-  const showButton = !loading && suggestions.length === 0 && !error;
+  // Não renderizar nada se não houver loading, erro ou sugestões
+  if (!loading && !error && suggestions.length === 0) {
+    return null;
+  }
 
   return (
     <div className="mb-4">
       <AnimatePresence mode="wait">
-        {/* Botão inicial para buscar sugestões */}
-        {showButton && (
-          <motion.button
-            key="suggestion-button"
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-            onClick={onFetchSuggestions}
-            className="w-full bg-gradient-to-r from-indigo-50 to-purple-50 hover:from-indigo-100 hover:to-purple-100 rounded-ios p-4 shadow-sm border border-indigo-100 hover:border-indigo-200 active:opacity-70 transition-all"
-          >
-            <div className="flex items-center justify-center gap-3">
-              <div className="flex items-center justify-center w-10 h-10 bg-indigo-500 rounded-full">
-                <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                </svg>
-              </div>
-              <div className="text-left">
-                <h3 className="text-[16px] font-semibold text-gray-900">
-                  Esqueci de algo?
-                </h3>
-                <p className="text-[14px] text-gray-600">
-                  Clique para receber sugestões da IA
-                </p>
-              </div>
-            </div>
-          </motion.button>
-        )}
-
         {/* Loading State */}
         {loading && (
           <motion.div
