@@ -245,10 +245,11 @@ export const ListDetail = () => {
             <button
               onClick={fetchSuggestions}
               disabled={suggestionsLoading || items.length === 0}
-              className="p-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg active:opacity-70 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
+              className="px-3 py-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg active:opacity-70 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md flex items-center gap-1.5"
               title="Sugestões da IA"
             >
-              <Sparkles className="w-5 h-5" />
+              <Sparkles className="w-4 h-4" />
+              <span className="text-[14px] font-semibold">Sugestões</span>
             </button>
 
             {/* Notify Members Button */}
