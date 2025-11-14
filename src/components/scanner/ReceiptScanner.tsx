@@ -3,7 +3,8 @@ import { ImageCapture } from './ImageCapture';
 import { OcrProgress } from './OcrProgress';
 import { ReceiptPreview } from './ReceiptPreview';
 import { useOCR } from '../../hooks/useOCR';
-import { useReceiptProcessing, ProcessedReceipt } from '../../hooks/useReceiptProcessing';
+import { useReceiptProcessing } from '../../hooks/useReceiptProcessing';
+import type { ProcessedReceipt } from '../../hooks/useReceiptProcessing';
 
 interface ReceiptScannerProps {
   userId: string;
@@ -29,9 +30,9 @@ export const ReceiptScanner: React.FC<ReceiptScannerProps> = ({
   const [step, setStep] = useState<ScannerStep>('capture');
   const [processedData, setProcessedData] = useState<ProcessedReceipt | null>(null);
   const [currentMessage, setCurrentMessage] = useState('Iniciando...');
-  
+
   const { extractText, loading: ocrLoading, progress } = useOCR();
-  const { processReceipt, loading: processingLoading } = useReceiptProcessing();
+  const { processReceipt } = useReceiptProcessing();
 
   const handleImageCapture = async (imageBase64: string) => {
     setStep('processing');

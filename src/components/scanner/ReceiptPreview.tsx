@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ProcessedReceipt, ReceiptItem } from '../../hooks/useReceiptProcessing';
+import type { ProcessedReceipt, ReceiptItem } from '../../hooks/useReceiptProcessing';
 import { db } from '../../lib/db';
 import { supabase } from '../../lib/supabase';
 
