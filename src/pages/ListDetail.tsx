@@ -239,7 +239,7 @@ export const ListDetail = () => {
 
         {/* List Title and Action Buttons */}
         <div className="flex items-center justify-between mb-2">
-          <h1 className="text-[28px] font-bold text-gray-900">{list.name}</h1>
+          <h1 className="text-[28px] font-bold text-gray-900 dark:text-white">{list.name}</h1>
           <div className="flex gap-2">
             {/* AI Suggestions Button */}
             <button
@@ -255,7 +255,7 @@ export const ListDetail = () => {
             {/* Notify Members Button */}
             <button
               onClick={handleNotifyMembers}
-              className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg active:opacity-70 transition-colors"
+              className="p-2 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/30 rounded-lg active:opacity-70 transition-colors"
               title="Notificar membros sobre atualização"
             >
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -266,7 +266,7 @@ export const ListDetail = () => {
             {/* Members Button */}
             <button
               onClick={() => setIsMembersModalOpen(true)}
-              className="p-2 text-primary hover:bg-gray-100 rounded-lg active:opacity-70 transition-colors"
+              className="p-2 text-primary hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg active:opacity-70 transition-colors"
               title="Ver membros"
             >
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -277,7 +277,7 @@ export const ListDetail = () => {
             {/* Share Button */}
             <button
               onClick={() => setIsShareModalOpen(true)}
-              className="p-2 text-primary hover:bg-gray-100 rounded-lg active:opacity-70 transition-colors"
+              className="p-2 text-primary hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg active:opacity-70 transition-colors"
               title="Compartilhar lista"
             >
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -288,7 +288,7 @@ export const ListDetail = () => {
             {/* Delete Button */}
             <button
               onClick={handleDeleteList}
-              className="p-2 text-red-600 hover:bg-red-50 rounded-lg active:opacity-70 transition-colors"
+              className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg active:opacity-70 transition-colors"
               title="Excluir lista"
             >
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -299,12 +299,12 @@ export const ListDetail = () => {
         </div>
 
         {/* Stats */}
-        <div className="flex items-center gap-4 text-[15px] text-gray-500 mb-6">
+        <div className="flex items-center gap-4 text-[15px] text-gray-500 dark:text-gray-400 mb-6">
           <span>{stats.total} {stats.total === 1 ? 'item' : 'itens'}</span>
           {stats.total > 0 && (
             <>
               <span>·</span>
-              <span className="text-success">{stats.checked} comprados</span>
+              <span className="text-success dark:text-green-400">{stats.checked} comprados</span>
             </>
           )}
         </div>
@@ -333,17 +333,17 @@ export const ListDetail = () => {
         {/* Items */}
         {items.length === 0 ? (
           <div className="text-center py-16">
-            <svg className="h-20 w-20 mx-auto text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="h-20 w-20 mx-auto text-gray-300 dark:text-gray-600 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
-            <h3 className="text-[17px] font-semibold text-gray-900 mb-1">Nenhum item</h3>
-            <p className="text-[15px] text-gray-500">Adicione itens à sua lista</p>
+            <h3 className="text-[17px] font-semibold text-gray-900 dark:text-white mb-1">Nenhum item</h3>
+            <p className="text-[15px] text-gray-500 dark:text-gray-400">Adicione itens à sua lista</p>
           </div>
         ) : (
           <div className="space-y-6">
             {/* Unchecked Items */}
             {uncheckedItems.length > 0 && (
-              <div className="bg-white rounded-ios overflow-hidden">
+              <div className="bg-white dark:bg-gray-800 rounded-ios overflow-hidden">
                 {uncheckedItems.map(item => (
                   <ItemRow
                     key={item.id}
@@ -359,10 +359,10 @@ export const ListDetail = () => {
             {/* Checked Items */}
             {checkedItems.length > 0 && (
               <div>
-                <h2 className="text-[13px] font-semibold text-gray-500 uppercase tracking-wide mb-2 px-1">
+                <h2 className="text-[13px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2 px-1">
                   Comprados
                 </h2>
-                <div className="bg-white rounded-ios overflow-hidden opacity-60">
+                <div className="bg-white dark:bg-gray-800 rounded-ios overflow-hidden opacity-60">
                   {checkedItems.map(item => (
                     <ItemRow
                       key={item.id}

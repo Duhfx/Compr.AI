@@ -105,16 +105,16 @@ export const MembersModal: React.FC<MembersModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-ios max-w-md w-full max-h-[80vh] flex flex-col">
+      <div className="bg-white dark:bg-gray-800 rounded-ios max-w-md w-full max-h-[80vh] flex flex-col">
         {/* Header */}
-        <div className="flex justify-between items-start p-6 pb-4 border-b border-gray-200">
+        <div className="flex justify-between items-start p-6 pb-4 border-b border-gray-200 dark:border-gray-700">
           <div>
-            <h2 className="text-[22px] font-bold text-gray-900">Membros</h2>
-            <p className="text-[15px] text-gray-600 mt-1">{listName}</p>
+            <h2 className="text-[22px] font-bold text-gray-900 dark:text-white">Membros</h2>
+            <p className="text-[15px] text-gray-600 dark:text-gray-400 mt-1">{listName}</p>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 active:opacity-70"
+            className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 active:opacity-70"
             aria-label="Fechar"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -127,12 +127,12 @@ export const MembersModal: React.FC<MembersModalProps> = ({
         <div className="flex-1 overflow-y-auto p-6">
           {loading ? (
             <div className="flex items-center justify-center py-8">
-              <div className="text-gray-500">Carregando membros...</div>
+              <div className="text-gray-500 dark:text-gray-400">Carregando membros...</div>
             </div>
           ) : (
             <div className="space-y-3">
               {/* Dono da lista */}
-              <div className="bg-primary-50 border border-primary-200 rounded-ios p-4">
+              <div className="bg-primary-50 dark:bg-primary-900/30 border border-primary-200 dark:border-primary-800 rounded-ios p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-semibold">
@@ -141,10 +141,10 @@ export const MembersModal: React.FC<MembersModalProps> = ({
                       </svg>
                     </div>
                     <div>
-                      <p className="text-[15px] font-semibold text-gray-900">
+                      <p className="text-[15px] font-semibold text-gray-900 dark:text-white">
                         {ownerId === currentUserId ? 'Você (Dono)' : 'Dono da Lista'}
                       </p>
-                      <p className="text-[13px] text-gray-600 font-mono">
+                      <p className="text-[13px] text-gray-600 dark:text-gray-400 font-mono">
                         {formatUserId(ownerId || '')}
                       </p>
                     </div>
@@ -158,10 +158,10 @@ export const MembersModal: React.FC<MembersModalProps> = ({
               {/* Membros */}
               {members.length === 0 ? (
                 <div className="text-center py-8">
-                  <svg className="w-16 h-16 mx-auto text-gray-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                   </svg>
-                  <p className="text-[15px] text-gray-500">
+                  <p className="text-[15px] text-gray-500 dark:text-gray-400">
                     Nenhum outro membro na lista
                   </p>
                 </div>
@@ -176,23 +176,23 @@ export const MembersModal: React.FC<MembersModalProps> = ({
                   return (
                     <div
                       key={member.id}
-                      className="bg-white border border-gray-200 rounded-ios p-4"
+                      className="bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-ios p-4"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3 flex-1">
-                          <div className="w-10 h-10 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center font-semibold">
+                          <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300 flex items-center justify-center font-semibold">
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                             </svg>
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-[15px] font-medium text-gray-900">
+                            <p className="text-[15px] font-medium text-gray-900 dark:text-white">
                               {isCurrentUser ? 'Você' : 'Membro'}
                             </p>
-                            <p className="text-[13px] text-gray-600 font-mono truncate">
+                            <p className="text-[13px] text-gray-600 dark:text-gray-400 font-mono truncate">
                               {formatUserId(member.userId)}
                             </p>
-                            <p className="text-[12px] text-gray-500 mt-1">
+                            <p className="text-[12px] text-gray-500 dark:text-gray-400 mt-1">
                               Entrou {formatDate(member.joinedAt)}
                             </p>
                           </div>
@@ -228,8 +228,8 @@ export const MembersModal: React.FC<MembersModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-6 pt-4 border-t border-gray-200">
-          <div className="text-[13px] text-gray-500 text-center mb-4">
+        <div className="p-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="text-[13px] text-gray-500 dark:text-gray-400 text-center mb-4">
             {isOwner ? (
               <>
                 <svg className="w-4 h-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -243,7 +243,7 @@ export const MembersModal: React.FC<MembersModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="w-full h-12 bg-gray-100 text-gray-700 rounded-ios text-[17px] font-semibold hover:bg-gray-200 active:opacity-70 transition-colors"
+            className="w-full h-12 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-ios text-[17px] font-semibold hover:bg-gray-200 dark:hover:bg-gray-600 active:opacity-70 transition-colors"
           >
             Fechar
           </button>

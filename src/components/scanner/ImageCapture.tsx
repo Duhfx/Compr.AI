@@ -76,7 +76,7 @@ export const ImageCapture: React.FC<ImageCaptureProps> = ({
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-bold text-gray-900">Escanear Nota Fiscal</h2>
+      <h2 className="text-xl font-bold text-gray-900 dark:text-white">Escanear Nota Fiscal</h2>
 
       {!preview ? (
         <div className="space-y-4">
@@ -97,24 +97,24 @@ export const ImageCapture: React.FC<ImageCaptureProps> = ({
             {loading ? 'Processando imagem...' : 'Capturar ou Selecionar Imagem'}
           </button>
 
-          <p className="text-sm text-gray-600 text-center">
+          <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
             Tire uma foto ou selecione uma imagem da galeria com a nota fiscal
           </p>
         </div>
       ) : (
         <div className="space-y-4">
           {/* Preview da imagem */}
-          <div className="border-2 border-gray-200 rounded-lg overflow-hidden">
-            <img 
-              src={preview} 
-              alt="Preview da nota fiscal" 
+          <div className="border-2 border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden">
+            <img
+              src={preview}
+              alt="Preview da nota fiscal"
               className="w-full h-auto"
             />
           </div>
 
           {/* Info do arquivo */}
           {fileInfo && (
-            <div className="text-sm text-gray-600 text-center">
+            <div className="text-sm text-gray-600 dark:text-gray-400 text-center">
               <p>{fileInfo.name}</p>
               <p>{fileInfo.size}</p>
             </div>
@@ -124,7 +124,7 @@ export const ImageCapture: React.FC<ImageCaptureProps> = ({
           <div className="flex gap-2">
             <button
               onClick={handleRetake}
-              className="flex-1 bg-gray-200 text-gray-700 py-3 px-4 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
+              className="flex-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 py-3 px-4 rounded-lg font-semibold hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
             >
               Selecionar Outra
             </button>
@@ -141,7 +141,7 @@ export const ImageCapture: React.FC<ImageCaptureProps> = ({
       {/* Botão cancelar */}
       <button
         onClick={onCancel}
-        className="w-full text-gray-600 hover:text-gray-800 py-2 transition-colors"
+        className="w-full text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 py-2 transition-colors"
       >
         Cancelar
       </button>

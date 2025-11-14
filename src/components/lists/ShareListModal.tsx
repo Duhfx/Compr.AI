@@ -105,16 +105,16 @@ export const ShareListModal: React.FC<ShareListModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
         {/* Header */}
         <div className="flex justify-between items-start mb-4">
           <div>
-            <h2 className="text-xl font-bold">Compartilhar Lista</h2>
-            <p className="text-sm text-gray-600">{listName}</p>
+            <h2 className="text-xl font-bold dark:text-white">Compartilhar Lista</h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400">{listName}</p>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
+            className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
             aria-label="Fechar"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -125,7 +125,7 @@ export const ShareListModal: React.FC<ShareListModalProps> = ({
 
         {/* Mensagem de erro */}
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+          <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded mb-4">
             {error}
           </div>
         )}
@@ -134,13 +134,13 @@ export const ShareListModal: React.FC<ShareListModalProps> = ({
         {!shareCode && (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Permissão
               </label>
               <select
                 value={permission}
                 onChange={(e) => setPermission(e.target.value as 'edit' | 'readonly')}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2"
                 disabled={loading}
               >
                 <option value="edit">Editar (pode adicionar/remover itens)</option>
@@ -149,13 +149,13 @@ export const ShareListModal: React.FC<ShareListModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Expiração (opcional)
               </label>
               <select
                 value={expiresInDays || ''}
                 onChange={(e) => setExpiresInDays(e.target.value ? Number(e.target.value) : undefined)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-3 py-2"
                 disabled={loading}
               >
                 <option value="">Nunca expira</option>
@@ -180,7 +180,7 @@ export const ShareListModal: React.FC<ShareListModalProps> = ({
           <div className="space-y-4">
             {/* Código */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Código de Compartilhamento
               </label>
               <div className="flex gap-2">
@@ -188,11 +188,11 @@ export const ShareListModal: React.FC<ShareListModalProps> = ({
                   type="text"
                   value={shareCode}
                   readOnly
-                  className="flex-1 border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 font-mono text-lg text-center"
+                  className="flex-1 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-gray-50 dark:bg-gray-700 dark:text-white font-mono text-lg text-center"
                 />
                 <button
                   onClick={() => copyToClipboard(shareCode)}
-                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg"
+                  className="px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg"
                   title="Copiar código"
                 >
                   {copied ? (
@@ -210,7 +210,7 @@ export const ShareListModal: React.FC<ShareListModalProps> = ({
 
             {/* URL */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Link Direto
               </label>
               <div className="flex gap-2">
@@ -218,11 +218,11 @@ export const ShareListModal: React.FC<ShareListModalProps> = ({
                   type="text"
                   value={shareUrl}
                   readOnly
-                  className="flex-1 border border-gray-300 rounded-lg px-3 py-2 bg-gray-50 text-sm"
+                  className="flex-1 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-gray-50 dark:bg-gray-700 dark:text-white text-sm"
                 />
                 <button
                   onClick={() => copyToClipboard(shareUrl)}
-                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg"
+                  className="px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg"
                   title="Copiar link"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -233,16 +233,16 @@ export const ShareListModal: React.FC<ShareListModalProps> = ({
             </div>
 
             {/* Informações */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <p className="text-sm text-blue-800">
+            <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+              <p className="text-sm text-blue-800 dark:text-blue-300">
                 <strong>Permissão:</strong> {permission === 'edit' ? 'Edição' : 'Somente Leitura'}
               </p>
               {expiresInDays && (
-                <p className="text-sm text-blue-800 mt-1">
+                <p className="text-sm text-blue-800 dark:text-blue-300 mt-1">
                   <strong>Expira em:</strong> {expiresInDays} {expiresInDays === 1 ? 'dia' : 'dias'}
                 </p>
               )}
-              <p className="text-sm text-blue-800 mt-2 font-semibold">
+              <p className="text-sm text-blue-800 dark:text-blue-300 mt-2 font-semibold">
                 ⚠️ Código de uso único: será invalidado após a primeira pessoa entrar
               </p>
             </div>
@@ -259,8 +259,8 @@ export const ShareListModal: React.FC<ShareListModalProps> = ({
         )}
 
         {/* Footer */}
-        <div className="mt-6 pt-4 border-t border-gray-200">
-          <p className="text-xs text-gray-500 text-center">
+        <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
             🔒 Por segurança, cada código pode ser usado apenas uma vez. Gere um novo código para cada pessoa que desejar convidar.
           </p>
         </div>
