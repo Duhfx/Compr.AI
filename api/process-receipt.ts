@@ -78,17 +78,21 @@ IMPORTANTE:
 2. Extraia a data da compra no formato YYYY-MM-DD (se não encontrar, use a data de hoje)
 3. Liste TODOS os produtos encontrados com:
    - Nome do produto (normalizado, sem códigos internos)
-   - Quantidade (padrão 1 se não especificado)
-   - Preço unitário em reais
-   - Preço total (quantidade × preço unitário)
+   - Quantidade (PODE SER DECIMAL! Ex: 0.374 para 374 gramas, 1.5 para 1.5 litros)
+   - Preço unitário em reais (preço por unidade/kg/litro)
+   - Preço total = quantidade × preço unitário (SEMPRE CALCULE!)
    - Categoria apropriada: Alimentos, Bebidas, Laticínios, Limpeza, Higiene, Padaria, Hortifruti, Açougue, Congelados, Outros
 4. Calcule o total geral (soma de todos os itens)
 
-REGRAS:
+REGRAS CRÍTICAS:
+- QUANTIDADE PODE SER DECIMAL: 0.374 kg, 1.5 L, 2.5 un, etc.
+- PREÇO TOTAL = QUANTIDADE × PREÇO UNITÁRIO (nunca use o preço unitário como total!)
+- Exemplo: 0.374 kg × R$ 12.50/kg = R$ 4.675 (arredonde para 2 casas: 4.68)
 - Ignore linhas de cabeçalho, rodapé, dados do estabelecimento, formas de pagamento
 - Ignore códigos de barras, NCM, CFOP
-- Se um item aparecer múltiplas vezes, agrupe em um único registro
+- Se um item aparecer múltiplas vezes, agrupe em um único registro somando quantidades
 - Valores devem ser números decimais (ex: 5.99, não "5,99" ou "R$ 5,99")
+- Converta vírgulas para pontos: "12,50" → 12.50
 
 FORMATO DE RESPOSTA (APENAS JSON VÁLIDO, SEM MARKDOWN):
 {
@@ -103,6 +107,13 @@ FORMATO DE RESPOSTA (APENAS JSON VÁLIDO, SEM MARKDOWN):
       "category": "Laticínios"
     },
     {
+      "name": "Tomate",
+      "quantity": 0.374,
+      "unitPrice": 12.50,
+      "totalPrice": 4.68,
+      "category": "Hortifruti"
+    },
+    {
       "name": "Arroz Tipo 1 5kg",
       "quantity": 1,
       "unitPrice": 25.90,
@@ -110,7 +121,7 @@ FORMATO DE RESPOSTA (APENAS JSON VÁLIDO, SEM MARKDOWN):
       "category": "Alimentos"
     }
   ],
-  "total": 37.88
+  "total": 42.56
 }
 
 Retorne APENAS o JSON, sem explicações ou formatação markdown.
