@@ -11,6 +11,7 @@ import { ShareListModal } from '../components/lists/ShareListModal';
 import { MembersModal } from '../components/lists/MembersModal';
 import { SuggestionsBanner } from '../components/suggestions/SuggestionsBanner';
 import toast, { Toaster } from 'react-hot-toast';
+import { Sparkles } from 'lucide-react';
 import type { ShoppingItem } from '../hooks/useSupabaseItems';
 
 export const ListDetail = () => {
@@ -240,6 +241,16 @@ export const ListDetail = () => {
         <div className="flex items-center justify-between mb-2">
           <h1 className="text-[28px] font-bold text-gray-900">{list.name}</h1>
           <div className="flex gap-2">
+            {/* AI Suggestions Button */}
+            <button
+              onClick={fetchSuggestions}
+              disabled={suggestionsLoading || items.length === 0}
+              className="p-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg active:opacity-70 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
+              title="Sugestões da IA"
+            >
+              <Sparkles className="w-5 h-5" />
+            </button>
+
             {/* Notify Members Button */}
             <button
               onClick={handleNotifyMembers}
