@@ -1,5 +1,5 @@
 import { useOfflineStatus } from '../../hooks/useOfflineStatus';
-import { useLocation, useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Sun, Moon, User } from 'lucide-react';
@@ -8,7 +8,6 @@ import { UserProfileModal } from '../user/UserProfileModal';
 
 export const Header = () => {
   const { isOffline } = useOfflineStatus();
-  const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { setTheme, resolvedTheme } = useTheme();
