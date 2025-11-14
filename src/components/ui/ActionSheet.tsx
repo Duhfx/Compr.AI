@@ -37,10 +37,10 @@ export const ActionSheet = ({ isOpen, onClose, options }: ActionSheetProps) => {
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
             className="fixed bottom-0 left-0 right-0 z-50 max-w-screen-sm mx-auto"
           >
-            <div className="bg-white rounded-t-[20px] shadow-ios-lg pb-safe">
+            <div className="bg-white dark:bg-gray-800 rounded-t-[20px] shadow-ios-lg pb-safe">
               {/* Handle */}
               <div className="flex justify-center pt-3 pb-2">
-                <div className="w-10 h-1 bg-gray-300 rounded-full" />
+                <div className="w-10 h-1 bg-gray-300 dark:bg-gray-600 rounded-full" />
               </div>
 
               {/* Options */}
@@ -60,8 +60,8 @@ export const ActionSheet = ({ isOpen, onClose, options }: ActionSheetProps) => {
                         ${option.gradient
                           ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white'
                           : option.variant === 'danger'
-                          ? 'bg-red-50 text-red-600 border border-red-200'
-                          : 'bg-gray-100 text-gray-900'
+                          ? 'bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800'
+                          : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'
                         }
                       `}
                     >
@@ -75,7 +75,7 @@ export const ActionSheet = ({ isOpen, onClose, options }: ActionSheetProps) => {
                   {/* Cancel Button */}
                   <button
                     onClick={onClose}
-                    className="w-full h-14 rounded-ios text-[17px] font-semibold bg-white border-2 border-gray-200 text-gray-900 active:bg-gray-50 transition-colors mt-3"
+                    className="w-full h-14 rounded-ios text-[17px] font-semibold bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 text-gray-900 dark:text-white active:bg-gray-50 dark:active:bg-gray-600 transition-colors mt-3"
                   >
                     Cancelar
                   </button>

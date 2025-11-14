@@ -121,10 +121,10 @@ export const Home = () => {
       <div className="px-4 py-4 pb-24">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-[34px] font-bold text-gray-900 mb-2">
+          <h1 className="text-[34px] font-bold text-gray-900 dark:text-white mb-2">
             Compr.AI
           </h1>
-          <p className="text-[17px] text-gray-500">
+          <p className="text-[17px] text-gray-500 dark:text-gray-400">
             {lists.length === 0
               ? 'Crie sua primeira lista'
               : `${lists.length} ${lists.length === 1 ? 'lista' : 'listas'}`
@@ -143,12 +143,12 @@ export const Home = () => {
 
         {/* Smart Banner for new users */}
         {lists.length === 0 && (
-          <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-ios p-4 mb-4 border border-purple-100">
+          <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/30 dark:to-blue-900/30 rounded-ios p-4 mb-4 border border-purple-100 dark:border-purple-800">
             <div className="flex items-start gap-3">
-              <Sparkles className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
+              <Sparkles className="w-5 h-5 text-purple-600 dark:text-purple-400 flex-shrink-0 mt-0.5" />
               <div>
-                <h4 className="font-semibold text-[15px] mb-1">💡 Experimente criar com IA</h4>
-                <p className="text-[13px] text-gray-600">
+                <h4 className="font-semibold text-[15px] mb-1 dark:text-white">💡 Experimente criar com IA</h4>
+                <p className="text-[13px] text-gray-600 dark:text-gray-400">
                   Descreva o que precisa e deixe a IA montar a lista para você!
                 </p>
               </div>
@@ -199,13 +199,13 @@ export const Home = () => {
                 animate={{ y: 0 }}
                 exit={{ y: '100%' }}
                 transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-                className="fixed bottom-0 left-0 right-0 bg-white rounded-t-[20px] z-50 max-w-screen-sm mx-auto shadow-ios-lg safe-bottom"
+                className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 rounded-t-[20px] z-50 max-w-screen-sm mx-auto shadow-ios-lg safe-bottom"
               >
                 <div className="flex justify-center pt-3 pb-2">
-                  <div className="w-10 h-1 bg-gray-300 rounded-full" />
+                  <div className="w-10 h-1 bg-gray-300 dark:bg-gray-600 rounded-full" />
                 </div>
                 <div className="px-4 pb-6">
-                  <h2 className="text-[20px] font-semibold text-center mb-6">
+                  <h2 className="text-[20px] font-semibold text-center mb-6 dark:text-white">
                     Nova Lista
                   </h2>
                   <form onSubmit={handleCreateList} className="space-y-4">
@@ -214,7 +214,7 @@ export const Home = () => {
                       value={newListName}
                       onChange={(e) => setNewListName(e.target.value)}
                       placeholder="Nome da lista"
-                      className="w-full px-4 py-3 bg-gray-100 rounded-ios text-[17px] focus:outline-none focus:bg-gray-150 transition-colors"
+                      className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-ios text-[17px] focus:outline-none focus:bg-gray-150 dark:focus:bg-gray-600 transition-colors"
                       autoFocus
                     />
                     <div className="flex gap-3">
@@ -245,7 +245,7 @@ export const Home = () => {
         {/* Lists */}
         {filteredLists.length === 0 ? (
           <div className="text-center py-20">
-            <div className="w-20 h-20 mx-auto mb-4 bg-primary bg-opacity-10 rounded-full flex items-center justify-center">
+            <div className="w-20 h-20 mx-auto mb-4 bg-primary bg-opacity-10 dark:bg-primary/20 rounded-full flex items-center justify-center">
               <svg
                 className="h-10 w-10 text-primary"
                 fill="none"
@@ -260,10 +260,10 @@ export const Home = () => {
                 />
               </svg>
             </div>
-            <h3 className="text-[22px] font-bold text-gray-900 mb-2">
+            <h3 className="text-[22px] font-bold text-gray-900 dark:text-white mb-2">
               Comece sua primeira lista
             </h3>
-            <p className="text-[15px] text-gray-500 mb-6">
+            <p className="text-[15px] text-gray-500 dark:text-gray-400 mb-6">
               Organize suas compras de forma inteligente
             </p>
             <button

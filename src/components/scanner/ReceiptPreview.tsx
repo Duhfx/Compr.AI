@@ -73,7 +73,7 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({
         try {
           await supabase.from('purchase_history').insert(
             purchaseRecords.map(r => ({
-              device_id: r.userId,
+              user_id: r.userId,
               item_name: r.itemName,
               category: r.category,
               quantity: r.quantity,
@@ -84,7 +84,7 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({
 
           await supabase.from('price_history').insert(
             priceRecords.map(r => ({
-              device_id: r.userId,
+              user_id: r.userId,
               item_name: r.itemName,
               price: r.price,
               store: r.store,
