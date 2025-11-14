@@ -30,7 +30,7 @@ export const ImageCapture: React.FC<ImageCaptureProps> = ({
 
     // Validar arquivo
     if (!isValidImage(file)) {
-      alert('❌ Arquivo inválido. Use imagens JPEG, PNG ou WebP com até 10MB.');
+      alert('Arquivo inválido. Use imagens JPEG, PNG ou WebP com até 10MB.');
       return;
     }
 
@@ -54,7 +54,7 @@ export const ImageCapture: React.FC<ImageCaptureProps> = ({
       });
     } catch (error) {
       console.error('[ImageCapture] Erro ao processar imagem:', error);
-      alert('❌ Erro ao processar imagem. Tente novamente.');
+      alert('Erro ao processar imagem. Tente novamente.');
     } finally {
       setLoading(false);
     }
@@ -76,7 +76,7 @@ export const ImageCapture: React.FC<ImageCaptureProps> = ({
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-bold text-gray-900">📸 Escanear Nota Fiscal</h2>
+      <h2 className="text-xl font-bold text-gray-900">Escanear Nota Fiscal</h2>
 
       {!preview ? (
         <div className="space-y-4">
@@ -84,32 +84,21 @@ export const ImageCapture: React.FC<ImageCaptureProps> = ({
             ref={fileInputRef}
             type="file"
             accept="image/*"
-            capture="environment" // Abre câmera traseira no mobile
             onChange={handleFileChange}
             className="hidden"
             disabled={loading}
           />
-          
+
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={loading}
-            className="w-full bg-indigo-600 text-white py-4 px-6 rounded-lg font-semibold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+            className="w-full bg-indigo-600 text-white py-4 px-6 rounded-lg font-semibold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {loading ? (
-              <>
-                <span className="animate-spin">⏳</span>
-                Processando...
-              </>
-            ) : (
-              <>
-                <span>📷</span>
-                Tirar Foto / Fazer Upload
-              </>
-            )}
+            {loading ? 'Processando imagem...' : 'Capturar ou Selecionar Imagem'}
           </button>
 
           <p className="text-sm text-gray-600 text-center">
-            Tire uma foto clara da nota fiscal ou selecione uma imagem da galeria
+            Tire uma foto ou selecione uma imagem da galeria com a nota fiscal
           </p>
         </div>
       ) : (
@@ -137,13 +126,13 @@ export const ImageCapture: React.FC<ImageCaptureProps> = ({
               onClick={handleRetake}
               className="flex-1 bg-gray-200 text-gray-700 py-3 px-4 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
             >
-              🔄 Refazer
+              Selecionar Outra
             </button>
             <button
               onClick={handleConfirm}
               className="flex-1 bg-indigo-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-indigo-700 transition-colors"
             >
-              ✅ Processar
+              Processar Nota Fiscal
             </button>
           </div>
         </div>

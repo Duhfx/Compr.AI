@@ -39,12 +39,12 @@ export const ReceiptScanner: React.FC<ReceiptScannerProps> = ({
 
     try {
       // Etapa 1: OCR - Extrair texto da imagem
-      setCurrentMessage('📄 Extraindo texto da nota fiscal...');
+      setCurrentMessage('Extraindo texto da nota fiscal...');
       const ocrResult = await extractText(imageBase64);
       console.log('[ReceiptScanner] OCR concluído:', ocrResult);
 
       // Etapa 2: Gemini - Estruturar dados
-      setCurrentMessage('🤖 Analisando produtos e preços...');
+      setCurrentMessage('Analisando produtos e preços...');
       const structured = await processReceipt(ocrResult.text, userId);
       console.log('[ReceiptScanner] Estruturação concluída:', structured);
 
@@ -54,12 +54,12 @@ export const ReceiptScanner: React.FC<ReceiptScannerProps> = ({
 
     } catch (error) {
       console.error('[ReceiptScanner] Erro no processamento:', error);
-      
-      const errorMessage = error instanceof Error 
-        ? error.message 
+
+      const errorMessage = error instanceof Error
+        ? error.message
         : 'Erro desconhecido';
 
-      alert('❌ Não foi possível processar a nota fiscal.\n\n' + errorMessage + '\n\nTente novamente.');
+      alert('Não foi possível processar a nota fiscal.\n\n' + errorMessage + '\n\nTente novamente.');
       setStep('capture');
     }
   };

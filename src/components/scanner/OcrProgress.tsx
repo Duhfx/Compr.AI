@@ -19,12 +19,7 @@ export const OcrProgress: React.FC<OcrProgressProps> = ({
     <div className="space-y-6 py-8">
       {/* Ícone animado */}
       <div className="flex justify-center">
-        <div className="relative">
-          <div className="w-20 h-20 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-2xl">📄</span>
-          </div>
-        </div>
+        <div className="w-20 h-20 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
       </div>
 
       {/* Mensagem */}
@@ -53,7 +48,7 @@ export const OcrProgress: React.FC<OcrProgressProps> = ({
       {/* Dicas enquanto espera */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <p className="text-sm text-blue-800">
-          💡 <strong>Dica:</strong> Para melhores resultados, tire fotos com boa iluminação e mantendo a nota fiscal reta.
+          <strong>Dica:</strong> Para melhores resultados, tire fotos com boa iluminação e mantendo a nota fiscal reta.
         </p>
       </div>
     </div>
