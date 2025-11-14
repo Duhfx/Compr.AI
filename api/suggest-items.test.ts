@@ -794,6 +794,205 @@ describe('API /api/suggest-items', () => {
     });
   });
 
+  describe('Filtro de Similaridade (Variações)', () => {
+    it('deve filtrar variações do mesmo produto (manteiga → manteiga sem sal)', async () => {
+      mockReq.body = {
+        userId: 'user-123',
+        prompt: 'lista de compras',
+        existingItems: ['Manteiga'],
+        maxResults: 5
+      };
+
+      const { createClient } = await import('@supabase/supabase-js');
+      const mockSupabase = {
+        from: vi.fn().mockReturnValue({
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          not: vi.fn().mockReturnThis(),
+          order: vi.fn().mockReturnThis(),
+          limit: vi.fn().mockResolvedValue({ data: [], error: null }),
+        }),
+      };
+      vi.mocked(createClient).mockReturnValue(mockSupabase as any);
+
+      const { GoogleGenerativeAI } = await import('@google/generative-ai');
+      vi.mocked(GoogleGenerativeAI).mockImplementation(
+        () =>
+          ({
+            getGenerativeModel: () => ({
+              generateContent: vi.fn().mockResolvedValue({
+                response: {
+                  // IA retorna variações que devem ser filtradas
+                  text: () => JSON.stringify({
+                    items: [
+                      { name: 'Manteiga sem sal', quantity: 1, unit: 'un', category: 'Laticínios' },
+                      { name: 'Óleo', quantity: 1, unit: 'L', category: 'Alimentos' },
+                      { name: 'Sal', quantity: 1, unit: 'kg', category: 'Alimentos' }
+                    ]
+                  }),
+                },
+              }),
+            }),
+          }) as any
+      );
+
+      await handler(mockReq as VercelRequest, mockRes as VercelResponse);
+
+      expect(statusCode).toBe(200);
+      // "Manteiga sem sal" deve ser filtrada, restando apenas 2 itens
+      expect(responseData.items).toHaveLength(2);
+      expect(responseData.items.find((item: any) => item.name === 'Óleo')).toBeDefined();
+      expect(responseData.items.find((item: any) => item.name === 'Sal')).toBeDefined();
+      expect(responseData.items.find((item: any) => item.name.includes('Manteiga'))).toBeUndefined();
+    });
+
+    it('deve filtrar múltiplas variações (arroz → arroz integral, arroz branco)', async () => {
+      mockReq.body = {
+        userId: 'user-123',
+        prompt: 'lista de compras',
+        existingItems: ['Arroz'],
+        maxResults: 10
+      };
+
+      const { createClient } = await import('@supabase/supabase-js');
+      const mockSupabase = {
+        from: vi.fn().mockReturnValue({
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          not: vi.fn().mockReturnThis(),
+          order: vi.fn().mockReturnThis(),
+          limit: vi.fn().mockResolvedValue({ data: [], error: null }),
+        }),
+      };
+      vi.mocked(createClient).mockReturnValue(mockSupabase as any);
+
+      const { GoogleGenerativeAI } = await import('@google/generative-ai');
+      vi.mocked(GoogleGenerativeAI).mockImplementation(
+        () =>
+          ({
+            getGenerativeModel: () => ({
+              generateContent: vi.fn().mockResolvedValue({
+                response: {
+                  text: () => JSON.stringify({
+                    items: [
+                      { name: 'Arroz integral', quantity: 1, unit: 'kg', category: 'Alimentos' },
+                      { name: 'Arroz branco', quantity: 1, unit: 'kg', category: 'Alimentos' },
+                      { name: 'Feijão', quantity: 1, unit: 'kg', category: 'Alimentos' },
+                      { name: 'Macarrão', quantity: 500, unit: 'g', category: 'Alimentos' }
+                    ]
+                  }),
+                },
+              }),
+            }),
+          }) as any
+      );
+
+      await handler(mockReq as VercelRequest, mockRes as VercelResponse);
+
+      expect(statusCode).toBe(200);
+      // Deve filtrar ambas variações de arroz, restando 2 itens
+      expect(responseData.items).toHaveLength(2);
+      expect(responseData.items.find((item: any) => item.name === 'Feijão')).toBeDefined();
+      expect(responseData.items.find((item: any) => item.name === 'Macarrão')).toBeDefined();
+      expect(responseData.items.find((item: any) => item.name.includes('Arroz'))).toBeUndefined();
+    });
+
+    it('deve filtrar variações com acentos (cafe → café expresso)', async () => {
+      mockReq.body = {
+        userId: 'user-123',
+        prompt: 'lista de compras',
+        existingItems: ['Cafe'],  // Sem acento
+        maxResults: 5
+      };
+
+      const { createClient } = await import('@supabase/supabase-js');
+      const mockSupabase = {
+        from: vi.fn().mockReturnValue({
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          not: vi.fn().mockReturnThis(),
+          order: vi.fn().mockReturnThis(),
+          limit: vi.fn().mockResolvedValue({ data: [], error: null }),
+        }),
+      };
+      vi.mocked(createClient).mockReturnValue(mockSupabase as any);
+
+      const { GoogleGenerativeAI } = await import('@google/generative-ai');
+      vi.mocked(GoogleGenerativeAI).mockImplementation(
+        () =>
+          ({
+            getGenerativeModel: () => ({
+              generateContent: vi.fn().mockResolvedValue({
+                response: {
+                  text: () => JSON.stringify({
+                    items: [
+                      { name: 'Café expresso', quantity: 1, unit: 'pacote', category: 'Bebidas' },  // Com acento
+                      { name: 'Açúcar', quantity: 1, unit: 'kg', category: 'Alimentos' }
+                    ]
+                  }),
+                },
+              }),
+            }),
+          }) as any
+      );
+
+      await handler(mockReq as VercelRequest, mockRes as VercelResponse);
+
+      expect(statusCode).toBe(200);
+      // Deve filtrar "Café expresso" mesmo com diferença de acentuação
+      expect(responseData.items).toHaveLength(1);
+      expect(responseData.items[0].name).toBe('Açúcar');
+    });
+
+    it('não deve filtrar itens diferentes (manteiga ≠ margarina)', async () => {
+      mockReq.body = {
+        userId: 'user-123',
+        prompt: 'lista de compras',
+        existingItems: ['Manteiga'],
+        maxResults: 5
+      };
+
+      const { createClient } = await import('@supabase/supabase-js');
+      const mockSupabase = {
+        from: vi.fn().mockReturnValue({
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          not: vi.fn().mockReturnThis(),
+          order: vi.fn().mockReturnThis(),
+          limit: vi.fn().mockResolvedValue({ data: [], error: null }),
+        }),
+      };
+      vi.mocked(createClient).mockReturnValue(mockSupabase as any);
+
+      const { GoogleGenerativeAI } = await import('@google/generative-ai');
+      vi.mocked(GoogleGenerativeAI).mockImplementation(
+        () =>
+          ({
+            getGenerativeModel: () => ({
+              generateContent: vi.fn().mockResolvedValue({
+                response: {
+                  text: () => JSON.stringify({
+                    items: [
+                      { name: 'Margarina', quantity: 1, unit: 'un', category: 'Laticínios' },
+                      { name: 'Óleo', quantity: 1, unit: 'L', category: 'Alimentos' }
+                    ]
+                  }),
+                },
+              }),
+            }),
+          }) as any
+      );
+
+      await handler(mockReq as VercelRequest, mockRes as VercelResponse);
+
+      expect(statusCode).toBe(200);
+      // Margarina é diferente de Manteiga, não deve ser filtrado
+      expect(responseData.items).toHaveLength(2);
+      expect(responseData.items.find((item: any) => item.name === 'Margarina')).toBeDefined();
+      expect(responseData.items.find((item: any) => item.name === 'Óleo')).toBeDefined();
+    });
+  });
+
   describe('Tratamento de Erros', () => {
     it('deve retornar 500 quando Supabase falha', async () => {
       mockReq.body = { userId: 'user-123', prompt: 'teste' };

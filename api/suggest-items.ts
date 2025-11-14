@@ -24,6 +24,79 @@ interface SuggestionResponse {
   items: SuggestedItem[];
 }
 
+/**
+ * Normaliza string para comparação (remove acentos, lowercase, trim)
+ */
+function normalizeString(str: string): string {
+  return str
+    .toLowerCase()
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, ''); // Remove acentos
+}
+
+/**
+ * Verifica se dois itens são similares (detecta variações do mesmo produto)
+ * Exemplos:
+ * - "manteiga" é similar a "manteiga sem sal"
+ * - "arroz" é similar a "arroz integral"
+ * - "leite" é similar a "leite desnatado"
+ */
+function isSimilarItem(existingItem: string, suggestedItem: string): boolean {
+  const existing = normalizeString(existingItem);
+  const suggested = normalizeString(suggestedItem);
+
+  // Se são exatamente iguais
+  if (existing === suggested) {
+    return true;
+  }
+
+  // Se um contém o outro (detecta variações)
+  // "manteiga" está em "manteiga sem sal" → similar
+  if (suggested.includes(existing) || existing.includes(suggested)) {
+    return true;
+  }
+
+  // Dividir em palavras e verificar overlap significativo
+  const existingWords = existing.split(/\s+/).filter(w => w.length > 2);
+  const suggestedWords = suggested.split(/\s+/).filter(w => w.length > 2);
+
+  // Se não há palavras significativas, não é similar
+  if (existingWords.length === 0 || suggestedWords.length === 0) {
+    return false;
+  }
+
+  // Contar palavras em comum
+  const commonWords = existingWords.filter(word =>
+    suggestedWords.some(sw => sw.includes(word) || word.includes(sw))
+  );
+
+  // Se mais de 50% das palavras são comuns, considerar similar
+  const similarity = commonWords.length / Math.min(existingWords.length, suggestedWords.length);
+  return similarity > 0.5;
+}
+
+/**
+ * Filtra sugestões que são variações de itens existentes
+ */
+function filterSimilarItems(
+  suggestedItems: SuggestedItem[],
+  existingItems: string[]
+): SuggestedItem[] {
+  if (existingItems.length === 0) {
+    return suggestedItems;
+  }
+
+  return suggestedItems.filter(suggested => {
+    // Verificar se o item sugerido é similar a algum item existente
+    const hasSimilar = existingItems.some(existing =>
+      isSimilarItem(existing, suggested.name)
+    );
+
+    return !hasSimilar; // Manter apenas se NÃO for similar
+  });
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   console.log('[suggest-items] Function invoked');
   console.log('[suggest-items] Method:', req.method);
@@ -134,6 +207,13 @@ ${listType ? `Tipo: ${listType}` : ''}
 ${existingItems.length > 0 ? existingItems.map(item => `• ${item}`).join('\n') : 'Nenhum item adicionado ainda'}
 
 ⚠️ IMPORTANTE: NÃO sugira nenhum dos itens listados acima. O usuário já os adicionou à lista.
+
+🔍 REGRA CRÍTICA DE VARIAÇÕES:
+- Se a lista tem "Manteiga", NÃO sugira "Manteiga sem sal", "Manteiga com sal", "Manteiga light", etc.
+- Se a lista tem "Arroz", NÃO sugira "Arroz integral", "Arroz parboilizado", "Arroz branco", etc.
+- Se a lista tem "Leite", NÃO sugira "Leite desnatado", "Leite integral", "Leite sem lactose", etc.
+- REGRA GERAL: Se um item já está na lista, NÃO sugira NENHUMA VARIAÇÃO dele (tipo, marca, característica)
+- Sugira apenas itens COMPLETAMENTE DIFERENTES que complementem a lista
 
 ═══════════════════════════════════════════════════════════════════
 📊 HISTÓRICO DE COMPRAS DO USUÁRIO (use como referência)
@@ -284,6 +364,15 @@ AGORA SUGIRA até ${maxResults} itens para a solicitação do usuário acima:
     if (!suggestions.items || !Array.isArray(suggestions.items)) {
       console.error('[suggest-items] Invalid response structure:', suggestions);
       throw new Error('Invalid response structure from AI');
+    }
+
+    // Filtrar itens similares/variações (camada de segurança adicional)
+    const itemsBeforeFilter = suggestions.items.length;
+    suggestions.items = filterSimilarItems(suggestions.items, existingItems);
+    const itemsFiltered = itemsBeforeFilter - suggestions.items.length;
+
+    if (itemsFiltered > 0) {
+      console.log('[suggest-items] Filtered', itemsFiltered, 'similar items (variations)');
     }
 
     // Limitar número de resultados
