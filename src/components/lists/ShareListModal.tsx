@@ -242,6 +242,9 @@ export const ShareListModal: React.FC<ShareListModalProps> = ({
                   <strong>Expira em:</strong> {expiresInDays} {expiresInDays === 1 ? 'dia' : 'dias'}
                 </p>
               )}
+              <p className="text-sm text-blue-800 mt-2 font-semibold">
+                ⚠️ Código de uso único: será invalidado após a primeira pessoa entrar
+              </p>
             </div>
 
             {/* Botão de revogar */}
@@ -258,7 +261,7 @@ export const ShareListModal: React.FC<ShareListModalProps> = ({
         {/* Footer */}
         <div className="mt-6 pt-4 border-t border-gray-200">
           <p className="text-xs text-gray-500 text-center">
-            Qualquer pessoa com o código poderá acessar esta lista
+            🔒 Por segurança, cada código pode ser usado apenas uma vez. Gere um novo código para cada pessoa que desejar convidar.
           </p>
         </div>
       </div>

@@ -122,6 +122,12 @@ export const validateShareCode = async (code: string) => {
     return { valid: false, error: 'Código inválido ou não encontrado' };
   }
 
+  // Verificar se já foi usado (single-use security)
+  if (data.used === true) {
+    console.warn('[validateShareCode] Code already used:', code);
+    return { valid: false, error: 'Este código já foi utilizado. Peça ao dono da lista para gerar um novo código.' };
+  }
+
   // Verificar se expirou
   if (data.expires_at) {
     const expiresAt = new Date(data.expires_at);
@@ -187,6 +193,17 @@ export const joinSharedList = async (code: string, userId: string) => {
       console.error('Error adding member:', memberError);
       throw memberError;
     }
+
+    // Marcar código como usado (single-use security)
+    console.log('[joinSharedList] Marking code as used:', code);
+    await supabase
+      .from('shared_lists')
+      .update({
+        used: true,
+        used_at: new Date().toISOString(),
+        used_by_user_id: userId,
+      })
+      .eq('share_code', code.toUpperCase());
   }
 
   // Buscar dados completos da lista
