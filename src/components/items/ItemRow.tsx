@@ -113,6 +113,28 @@ export const ItemRow = ({ item, onToggle, onEdit, onDelete }: ItemRowProps) => {
     onEdit(item);
   };
 
+  const handleChevronClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (isDragging.current) {
+      console.log('[ItemRow] Ignoring chevron during drag');
+      return;
+    }
+
+    if (isOpen) {
+      // If already open, close it
+      console.log('[ItemRow] Closing delete button via chevron');
+      x.set(0);
+      setIsOpen(false);
+    } else {
+      // If closed, open delete button
+      console.log('[ItemRow] Opening delete button via chevron');
+      x.set(-80);
+      setIsOpen(true);
+    }
+  };
+
   return (
     <div className="relative bg-white dark:bg-gray-800 overflow-hidden border-b border-gray-150 dark:border-gray-700">
       {/* Delete button background */}
@@ -185,9 +207,9 @@ export const ItemRow = ({ item, onToggle, onEdit, onDelete }: ItemRowProps) => {
 
         {/* Info chevron */}
         <button
-          onClick={handleEdit}
+          onClick={handleChevronClick}
           className="p-1 -mr-1 active:opacity-50 transition-opacity"
-          aria-label="Editar item"
+          aria-label={isOpen ? "Fechar" : "Abrir opções"}
         >
           <svg
             className="w-5 h-5 text-gray-300 dark:text-gray-600 flex-shrink-0"
