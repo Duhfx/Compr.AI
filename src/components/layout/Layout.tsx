@@ -10,10 +10,10 @@ interface LayoutProps {
 
 export const Layout = ({ children, showTabBar = true, onScanClick }: LayoutProps) => {
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex flex-col transition-colors">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex flex-col transition-colors overflow-x-hidden w-full">
       <Header />
-      <main className="flex-1 overflow-y-auto pb-24">
-        <div className="max-w-screen-sm mx-auto">
+      <main className="flex-1 overflow-y-auto overflow-x-hidden pb-24 w-full">
+        <div className="max-w-screen-sm mx-auto w-full">
           {children}
         </div>
       </main>
