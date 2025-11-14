@@ -1,8 +1,7 @@
 // src/hooks/useListSuggestions.ts
-// Hook para gerenciar sugestões proativas de itens para uma lista
+// Hook para gerenciar sugestões sob demanda de itens para uma lista
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { db } from '../lib/db';
+import { useState, useCallback, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import type { ShoppingItem } from './useSupabaseItems';
 
@@ -17,35 +16,11 @@ interface UseListSuggestionsReturn {
   suggestions: SuggestedItem[];
   loading: boolean;
   error: Error | null;
-  refreshSuggestions: () => Promise<void>;
+  fetchSuggestions: () => Promise<void>;
   dismissSuggestions: () => void;
 }
 
-// Configurações de throttling
-const CACHE_VALIDITY_MS = 5 * 60 * 1000; // 5 minutos
-const DEBOUNCE_MS = 3 * 1000; // 3 segundos após mudanças (reduzido de 30s)
-const MIN_ITEMS_FOR_CONTEXT = 1; // Mínimo de itens para gerar sugestões (reduzido de 2)
-const ITEMS_CHANGE_THRESHOLD = 1; // Recalcular após N novos itens (reduzido de 3)
-
-/**
- * Cria um hash simples dos nomes dos itens para detectar mudanças de contexto
- */
-const createItemsHash = (items: ShoppingItem[]): string => {
-  const lastFiveItems = items
-    .slice(-5)
-    .map(item => item.name.toLowerCase().trim())
-    .sort()
-    .join('|');
-
-  // Hash simples (soma dos char codes)
-  let hash = 0;
-  for (let i = 0; i < lastFiveItems.length; i++) {
-    const char = lastFiveItems.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32bit integer
-  }
-  return hash.toString(36);
-};
+const MIN_ITEMS_FOR_CONTEXT = 1; // Mínimo de itens para gerar sugestões
 
 export const useListSuggestions = (
   listId: string | undefined,
@@ -56,74 +31,29 @@ export const useListSuggestions = (
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  // Refs para evitar re-renders desnecessários
-  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const lastItemCount = useRef(0);
+  // Ref para prevenir chamadas simultâneas
   const isFetchingRef = useRef(false);
 
   /**
-   * Verifica se o cache é válido
+   * Busca sugestões da API (chamada sob demanda)
    */
-  const isCacheValid = useCallback(async (): Promise<boolean> => {
-    if (!listId) return false;
-
-    try {
-      const cached = await db.listSuggestionCache.get(listId);
-      if (!cached) return false;
-
-      const age = Date.now() - cached.createdAt.getTime();
-      const isExpired = age > CACHE_VALIDITY_MS;
-
-      if (isExpired) {
-        console.log('[useListSuggestions] Cache expired for list:', listId, '(age:', Math.round(age / 1000), 's)');
-        return false;
-      }
-
-      // Verificar se o contexto mudou significativamente
-      const currentHash = createItemsHash(items);
-      const contextChanged = currentHash !== cached.lastItemNamesHash;
-
-      if (contextChanged) {
-        console.log('[useListSuggestions] Context changed for list:', listId);
-        return false;
-      }
-
-      // Verificar se a quantidade de itens mudou muito
-      const itemsDiff = Math.abs(items.length - cached.itemsCountWhenGenerated);
-      const significantChange = itemsDiff >= ITEMS_CHANGE_THRESHOLD;
-
-      if (significantChange) {
-        console.log('[useListSuggestions] Significant item count change:', itemsDiff);
-        return false;
-      }
-
-      console.log('[useListSuggestions] Using valid cache for list:', listId);
-      return true;
-    } catch (err) {
-      console.error('[useListSuggestions] Error checking cache:', err);
-      // Se o cache falhar, simplesmente ignora e busca da API
-      return false;
-    }
-  }, [listId, items]);
-
-  /**
-   * Busca sugestões da API
-   */
-  const fetchSuggestions = useCallback(async (): Promise<SuggestedItem[]> => {
+  const fetchSuggestions = useCallback(async (): Promise<void> => {
     if (!user || !listId) {
-      return [];
+      console.log('[useListSuggestions] Missing user or listId');
+      return;
     }
 
     // Não buscar se a lista tem poucos itens (sem contexto suficiente)
     if (items.length < MIN_ITEMS_FOR_CONTEXT) {
       console.log('[useListSuggestions] Not enough items for context:', items.length);
-      return [];
+      setError(new Error('Adicione pelo menos 1 item para receber sugestões'));
+      return;
     }
 
     // Prevenir chamadas simultâneas
     if (isFetchingRef.current) {
       console.log('[useListSuggestions] Already fetching, skipping...');
-      return [];
+      return;
     }
 
     isFetchingRef.current = true;
@@ -152,7 +82,7 @@ export const useListSuggestions = (
           prompt,
           listType: 'sugestões complementares',
           maxResults: 5,
-          existingItems  // Nova propriedade
+          existingItems
         })
       });
 
@@ -178,25 +108,12 @@ export const useListSuggestions = (
 
       console.log('[useListSuggestions] Filtered to', filteredSuggestions.length, 'new suggestions');
 
-      // Salvar no cache (com fallback se falhar)
-      try {
-        await db.listSuggestionCache.put({
-          listId,
-          suggestions: filteredSuggestions,
-          createdAt: new Date(),
-          itemsCountWhenGenerated: items.length,
-          lastItemNamesHash: createItemsHash(items)
-        });
-      } catch (cacheError) {
-        console.warn('[useListSuggestions] Failed to save to cache, continuing without cache:', cacheError);
-        // Não propagar o erro - as sugestões já foram buscadas
-      }
-
-      return filteredSuggestions;
+      // Atualizar estado com sugestões
+      setSuggestions(filteredSuggestions);
     } catch (err) {
       console.error('[useListSuggestions] Error fetching suggestions:', err);
       setError(err as Error);
-      return [];
+      setSuggestions([]);
     } finally {
       setLoading(false);
       isFetchingRef.current = false;
@@ -204,101 +121,18 @@ export const useListSuggestions = (
   }, [user, listId, items]);
 
   /**
-   * Carrega sugestões (do cache ou API)
-   */
-  const loadSuggestions = useCallback(async () => {
-    if (!listId) {
-      setSuggestions([]);
-      return;
-    }
-
-    // Verificar cache primeiro
-    const cacheIsValid = await isCacheValid();
-
-    if (cacheIsValid) {
-      try {
-        const cached = await db.listSuggestionCache.get(listId);
-        if (cached) {
-          setSuggestions(cached.suggestions);
-          return;
-        }
-      } catch (cacheError) {
-        console.warn('[useListSuggestions] Failed to read from cache, fetching from API:', cacheError);
-        // Continua para buscar da API
-      }
-    }
-
-    // Cache inválido ou não existe - buscar da API
-    const newSuggestions = await fetchSuggestions();
-    setSuggestions(newSuggestions);
-  }, [listId, isCacheValid, fetchSuggestions]);
-
-  /**
-   * Força atualização das sugestões
-   */
-  const refreshSuggestions = useCallback(async () => {
-    if (!listId) return;
-
-    // Limpar cache (com fallback se falhar)
-    try {
-      await db.listSuggestionCache.delete(listId);
-    } catch (cacheError) {
-      console.warn('[useListSuggestions] Failed to clear cache, continuing:', cacheError);
-    }
-
-    // Buscar novamente
-    const newSuggestions = await fetchSuggestions();
-    setSuggestions(newSuggestions);
-  }, [listId, fetchSuggestions]);
-
-  /**
    * Descarta sugestões (usuário não quer ver)
    */
   const dismissSuggestions = useCallback(() => {
     setSuggestions([]);
+    setError(null);
   }, []);
-
-  // Carregar sugestões ao montar ou quando listId mudar
-  useEffect(() => {
-    loadSuggestions();
-  }, [listId]); // Apenas listId, não incluir loadSuggestions para evitar loops
-
-  // Detectar mudanças significativas na lista e reagir com debounce
-  useEffect(() => {
-    // Limpar timeout anterior
-    if (debounceTimer.current) {
-      clearTimeout(debounceTimer.current);
-    }
-
-    // Verificar se houve mudança significativa
-    const itemsDiff = Math.abs(items.length - lastItemCount.current);
-
-    if (itemsDiff >= ITEMS_CHANGE_THRESHOLD) {
-      console.log('[useListSuggestions] Detected', itemsDiff, 'new items, scheduling refresh...');
-
-      // Agendar atualização com debounce
-      debounceTimer.current = setTimeout(() => {
-        console.log('[useListSuggestions] Debounce completed, refreshing suggestions');
-        loadSuggestions();
-      }, DEBOUNCE_MS);
-    }
-
-    // Atualizar contador
-    lastItemCount.current = items.length;
-
-    // Cleanup
-    return () => {
-      if (debounceTimer.current) {
-        clearTimeout(debounceTimer.current);
-      }
-    };
-  }, [items.length]); // Apenas length, não incluir loadSuggestions
 
   return {
     suggestions,
     loading,
     error,
-    refreshSuggestions,
+    fetchSuggestions,
     dismissSuggestions
   };
 };
