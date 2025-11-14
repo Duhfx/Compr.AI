@@ -15,7 +15,6 @@ import {
   Receipt,
   Check,
   ArrowRight,
-  Smartphone,
   Shield,
   Cloud
 } from 'lucide-react';
@@ -52,7 +51,7 @@ export const Landing = () => {
       title: 'Sugestões Inteligentes',
       description: 'IA analisa seu histórico e sugere itens automaticamente',
       gradient: 'from-purple-500 to-indigo-600',
-      highlight: 'Powered by Gemini AI'
+      highlight: 'Inteligência Artificial'
     },
     {
       icon: <Camera className="w-8 h-8" />,
@@ -81,15 +80,8 @@ export const Landing = () => {
     { icon: <Zap />, text: 'Criação com IA' },
     { icon: <Receipt />, text: 'OCR de notas' },
     { icon: <History />, text: 'Histórico completo' },
-    { icon: <Smartphone />, text: 'Funciona offline' },
     { icon: <Shield />, text: 'Dados seguros' },
     { icon: <Cloud />, text: 'Sync na nuvem' }
-  ];
-
-  const stats = [
-    { number: '10x', label: 'Mais rápido' },
-    { number: '100%', label: 'Grátis' },
-    { number: '24/7', label: 'Disponível' }
   ];
 
   return (
@@ -160,26 +152,11 @@ export const Landing = () => {
             </p>
           </motion.div>
 
-          {/* Quick Stats */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="flex justify-center gap-8 mb-10"
-          >
-            {stats.map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="text-3xl font-black text-white mb-1">{stat.number}</div>
-                <div className="text-xs text-white/70 font-medium">{stat.label}</div>
-              </div>
-            ))}
-          </motion.div>
-
           {/* CTA Buttons */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.6 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
             className="space-y-4 mb-8"
           >
             <button
@@ -201,7 +178,7 @@ export const Landing = () => {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.8 }}
+            transition={{ duration: 0.6, delay: 0.6 }}
             className="flex flex-wrap justify-center gap-2"
           >
             {features.map((feature, index) => (
@@ -209,7 +186,7 @@ export const Landing = () => {
                 key={index}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3, delay: 0.9 + index * 0.05 }}
+                transition={{ duration: 0.3, delay: 0.7 + index * 0.05 }}
                 className="px-4 py-2 bg-white/10 backdrop-blur-xl rounded-full border border-white/20 flex items-center gap-2 text-white text-sm font-medium"
               >
                 {feature.icon && <span className="w-4 h-4">{feature.icon}</span>}
@@ -287,15 +264,15 @@ export const Landing = () => {
               },
               {
                 step: '2',
-                title: 'Escaneia notas fiscais',
-                description: 'Tire foto de notas antigas e a IA extrai produtos e preços automaticamente',
-                icon: <Camera className="w-6 h-6" />
-              },
-              {
-                step: '3',
                 title: 'Compartilhe',
                 description: 'Envie link para família e amigos colaborarem em tempo real',
                 icon: <Users className="w-6 h-6" />
+              },
+              {
+                step: '3',
+                title: 'Escaneia notas fiscais',
+                description: 'Tire foto de notas antigas e a IA extrai produtos e preços automaticamente',
+                icon: <Camera className="w-6 h-6" />
               },
               {
                 step: '4',
@@ -354,9 +331,9 @@ export const Landing = () => {
               { icon: '📸', text: 'OCR de notas' },
               { icon: '👥', text: 'Colaborativo' },
               { icon: '📊', text: 'Análise preços' },
-              { icon: '💾', text: 'Modo offline' },
               { icon: '🔒', text: '100% seguro' },
-              { icon: '🎯', text: 'Fácil de usar' }
+              { icon: '🎯', text: 'Fácil de usar' },
+              { icon: '☁️', text: 'Sync em nuvem' }
             ].map((benefit, index) => (
               <motion.div
                 key={index}
@@ -392,7 +369,7 @@ export const Landing = () => {
                 Tecnologia de ponta
               </h3>
               <p className="text-white/80 text-sm">
-                Powered by Google Gemini AI
+                Inteligência Artificial integrada
               </p>
             </div>
 
@@ -401,7 +378,7 @@ export const Landing = () => {
                 'Sugestões personalizadas baseadas em ML',
                 'OCR com precisão de 95%+',
                 'Sincronização em tempo real',
-                'Funciona 100% offline'
+                'Análise inteligente de dados'
               ].map((feature, index) => (
                 <motion.div
                   key={index}
@@ -447,10 +424,6 @@ export const Landing = () => {
                 <span>Criar Conta Grátis</span>
                 <Sparkles className="w-5 h-5 group-hover:rotate-12 transition-transform" />
               </button>
-
-              <p className="text-sm text-gray-500">
-                Sem cartão de crédito • Grátis para sempre
-              </p>
             </div>
           </motion.div>
         </div>
