@@ -36,6 +36,8 @@ export interface Database {
           unit: string;
           category: string | null;
           checked: boolean;
+          deleted: boolean;
+          deleted_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -47,6 +49,8 @@ export interface Database {
           unit?: string;
           category?: string | null;
           checked?: boolean;
+          deleted?: boolean;
+          deleted_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -58,6 +62,8 @@ export interface Database {
           unit?: string;
           category?: string | null;
           checked?: boolean;
+          deleted?: boolean;
+          deleted_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
