@@ -70,16 +70,13 @@ export const BottomTabBar = ({ onScanClick }: BottomTabBarProps) => {
 
   return (
     <div className="fixed bottom-4 left-4 right-4 z-50 flex justify-center">
-      <motion.div
-        initial={{ y: 100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+      <div
         className="backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 border border-gray-200/20 rounded-2xl shadow-lg max-w-md w-full overflow-hidden"
         style={{
           boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04)',
         }}
       >
-        <div className="flex items-center justify-around h-16 px-2">
+        <div className="flex items-center justify-around h-16">
           {tabs.map((tab) => {
             const isActive = tab.path ? location.pathname === tab.path : false;
 
@@ -91,13 +88,13 @@ export const BottomTabBar = ({ onScanClick }: BottomTabBarProps) => {
               >
                 <motion.div
                   whileTap={{ scale: 0.85 }}
-                  className="flex flex-col items-center gap-1"
+                  className="flex flex-col items-center gap-1 w-full"
                 >
                   {/* Fundo ativo */}
                   {isActive && (
                     <motion.div
                       layoutId="activeTab"
-                      className="absolute inset-0 bg-primary/10 rounded-xl mx-2"
+                      className="absolute inset-0 bg-primary/10 rounded-xl"
                       transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                     />
                   )}
@@ -120,7 +117,7 @@ export const BottomTabBar = ({ onScanClick }: BottomTabBarProps) => {
             );
           })}
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 };

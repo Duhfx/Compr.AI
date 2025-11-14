@@ -9,6 +9,8 @@ import { ShoppingBag, Calendar, Package, Receipt, Store } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { SegmentedControl } from '../components/ui/SegmentedControl';
+import { ReceiptScanner } from '../components/scanner/ReceiptScanner';
+import toast from 'react-hot-toast';
 
 type HistoryTab = 'Compras' | 'Notas Fiscais';
 
@@ -16,9 +18,15 @@ export const History = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [selectedTab, setSelectedTab] = useState<HistoryTab>('Compras');
+  const [showScanner, setShowScanner] = useState(false);
 
   const { history, loading: purchasesLoading } = usePurchaseHistory(user?.id || '');
   const { receipts, loading: receiptsLoading } = useReceiptHistory(user?.id || '');
+
+  const refreshHistory = () => {
+    // Force re-render by navigating to same route
+    window.location.reload();
+  };
 
   // Group purchase history by date
   const groupedPurchases = useMemo(() => {
@@ -40,7 +48,7 @@ export const History = () => {
 
   if (loading) {
     return (
-      <Layout>
+      <Layout onScanClick={() => setShowScanner(true)}>
         <div className="flex items-center justify-center h-64">
           <div className="text-gray-500">Carregando histórico...</div>
         </div>
@@ -49,7 +57,20 @@ export const History = () => {
   }
 
   return (
-    <Layout>
+    <Layout onScanClick={() => setShowScanner(true)}>
+      {/* Receipt Scanner */}
+      {showScanner && (
+        <ReceiptScanner
+          userId={user?.id || ''}
+          onSuccess={() => {
+            setShowScanner(false);
+            toast.success('✅ Histórico atualizado!');
+            refreshHistory();
+          }}
+          onCancel={() => setShowScanner(false)}
+        />
+      )}
+
       <div className="px-4 py-4 pb-28">
         {/* Header */}
         <div className="mb-6">
