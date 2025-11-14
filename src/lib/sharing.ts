@@ -242,83 +242,37 @@ export const joinSharedList = async (code: string, userId: string) => {
 
     const listData = sharedData.shopping_lists as any;
 
-    // Salvar lista localmente
-    await db.shoppingLists.add({
-      id: listData.id,
-      name: listData.name,
-      createdAt: new Date(listData.created_at),
-      updatedAt: new Date(listData.updated_at),
-      syncedAt: new Date(),
-      isLocal: false,
-    });
+    // Não precisamos salvar no IndexedDB - Supabase é a fonte da verdade
+    // Os dados serão carregados diretamente do Supabase quando necessário
 
-    // Buscar itens via query pública
-    const { data: items } = await supabase
+    // Buscar contagem de itens para retorno
+    const { count: itemCount } = await supabase
       .from('shopping_items')
-      .select('*')
+      .select('*', { count: 'exact', head: true })
       .eq('list_id', listData.id);
-
-    if (items) {
-      for (const item of items) {
-        await db.shoppingItems.add({
-          id: item.id,
-          listId: item.list_id,
-          name: item.name,
-          quantity: item.quantity,
-          unit: item.unit,
-          category: item.category || undefined,
-          checked: item.checked,
-          createdAt: new Date(item.created_at),
-          updatedAt: new Date(item.updated_at),
-        });
-      }
-    }
 
     return {
       listId: listData.id,
       listName: listData.name,
       permission,
-      itemCount: items?.length || 0,
+      itemCount: itemCount || 0,
     };
   }
 
-  // Salvar lista localmente
-  await db.shoppingLists.add({
-    id: list.id,
-    name: list.name,
-    createdAt: new Date(list.created_at),
-    updatedAt: new Date(list.updated_at),
-    syncedAt: new Date(),
-    isLocal: false,
-  });
+  // Não precisamos salvar no IndexedDB - Supabase é a fonte da verdade
+  // Os dados serão carregados diretamente do Supabase quando necessário
 
-  // Buscar e salvar itens da lista
-  const { data: items } = await supabase
+  // Buscar contagem de itens para retorno
+  const { count } = await supabase
     .from('shopping_items')
-    .select('*')
+    .select('*', { count: 'exact', head: true })
     .eq('list_id', listId);
-
-  if (items) {
-    for (const item of items) {
-      await db.shoppingItems.add({
-        id: item.id,
-        listId: item.list_id,
-        name: item.name,
-        quantity: item.quantity,
-        unit: item.unit,
-        category: item.category || undefined,
-        checked: item.checked,
-        createdAt: new Date(item.created_at),
-        updatedAt: new Date(item.updated_at),
-      });
-    }
-  }
 
   return {
     listId,
     listName,
     permission,
-    itemCount: items?.length || 0,
+    itemCount: count || 0,
   };
 };
 
