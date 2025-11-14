@@ -1,3 +1,4 @@
+import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Receipt, History } from 'lucide-react';
@@ -7,7 +8,7 @@ interface Tab {
   label: string;
   path?: string;
   action?: string;
-  icon: (active: boolean) => JSX.Element;
+  icon: (active: boolean) => React.ReactElement;
   isCenter?: boolean;
 }
 
