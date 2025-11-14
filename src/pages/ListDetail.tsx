@@ -4,7 +4,8 @@ import { useSupabaseLists } from '../hooks/useSupabaseLists';
 import { useSupabaseItems } from '../hooks/useSupabaseItems';
 import { useAuth } from '../contexts/AuthContext';
 import { useListSuggestions } from '../hooks/useListSuggestions';
-import { getUserPermission } from '../lib/sharing';
+import { getUserPermission, isListOwner } from '../lib/sharing';
+import { supabase } from '../lib/supabase';
 import { Layout } from '../components/layout/Layout';
 import { ItemRow } from '../components/items/ItemRow';
 import { ItemModal } from '../components/items/ItemModal';
@@ -12,7 +13,7 @@ import { ShareListModal } from '../components/lists/ShareListModal';
 import { MembersModal } from '../components/lists/MembersModal';
 import { SuggestionsBanner } from '../components/suggestions/SuggestionsBanner';
 import toast, { Toaster } from 'react-hot-toast';
-import { Sparkles, MoreVertical, Bell, Users, Share2, Trash2, Edit2 } from 'lucide-react';
+import { Sparkles, MoreVertical, Bell, Users, Share2, Trash2, Edit2, UserCheck } from 'lucide-react';
 import type { ShoppingItem } from '../hooks/useSupabaseItems';
 
 export const ListDetail = () => {
@@ -45,21 +46,53 @@ export const ListDetail = () => {
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedName, setEditedName] = useState('');
   const [userPermission, setUserPermission] = useState<'owner' | 'edit' | 'readonly' | null>(null);
+  const [ownerNickname, setOwnerNickname] = useState<string | null>(null);
+  const [isShared, setIsShared] = useState(false);
+  const [quickAddOpen, setQuickAddOpen] = useState(false);
+  const [quickAddName, setQuickAddName] = useState('');
 
-  // Carregar permissões do usuário
+  // Carregar permissões do usuário e informações de compartilhamento
   useEffect(() => {
-    const loadPermissions = async () => {
+    const loadPermissionsAndOwner = async () => {
       if (!id || !user?.id) return;
 
       try {
         const permission = await getUserPermission(id, user.id);
         setUserPermission(permission);
+
+        // Verificar se a lista é compartilhada (se não for owner)
+        if (permission !== 'owner') {
+          setIsShared(true);
+
+          // Buscar informações do dono da lista
+          const { data: listData } = await supabase
+            .from('shopping_lists')
+            .select('user_id')
+            .eq('id', id)
+            .single();
+
+          if (listData?.user_id) {
+            // Buscar perfil do dono
+            const { data: ownerProfile } = await supabase
+              .from('user_profiles')
+              .select('nickname')
+              .eq('user_id', listData.user_id)
+              .single();
+
+            if (ownerProfile?.nickname) {
+              setOwnerNickname(ownerProfile.nickname);
+            }
+          }
+        } else {
+          setIsShared(false);
+          setOwnerNickname(null);
+        }
       } catch (error) {
         console.error('[ListDetail] Error loading permissions:', error);
       }
     };
 
-    loadPermissions();
+    loadPermissionsAndOwner();
   }, [id, user?.id]);
 
   useEffect(() => {
@@ -281,6 +314,26 @@ export const ListDetail = () => {
     }
   };
 
+  const handleQuickAdd = async () => {
+    if (!quickAddName.trim()) return;
+
+    try {
+      await createItem(quickAddName.trim(), 1, 'un');
+      setQuickAddName('');
+      setQuickAddOpen(false);
+
+      // Haptic feedback
+      if ('vibrate' in navigator) {
+        navigator.vibrate(10);
+      }
+
+      toast.success('Item adicionado!');
+    } catch (error) {
+      console.error('Erro ao adicionar item:', error);
+      toast.error('Erro ao adicionar item');
+    }
+  };
+
   // Mostrar loading enquanto autentica ou carrega lista
   if (authLoading || loading) {
     return (
@@ -306,7 +359,7 @@ export const ListDetail = () => {
     <Layout showTabBar={false}>
       <Toaster position="top-center" />
 
-      <div className="px-4 py-4">
+      <div className="px-4 py-4 pb-24">
         {/* Back Button */}
         <button
           onClick={() => navigate('/')}
@@ -318,32 +371,61 @@ export const ListDetail = () => {
           <span className="text-[17px] font-medium">Listas</span>
         </button>
 
-        {/* Header: Title + Actions */}
-        <div className="mb-4">
-          {/* Title and Actions Row */}
-          <div className="flex items-start justify-between gap-3 mb-2">
-            <h1 className="text-[26px] font-bold text-gray-900 dark:text-white break-words flex-1 leading-tight">
-              {list.name}
-            </h1>
+        {/* Shared List Indicator */}
+        {isShared && (
+          <div className="mb-3 px-3 py-2 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/30 rounded-lg flex items-center gap-2">
+            <UserCheck className="w-4 h-4 text-indigo-600 dark:text-indigo-400 flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-[13px] text-indigo-800 dark:text-indigo-200">
+                {ownerNickname ? (
+                  <>
+                    Lista compartilhada por <span className="font-semibold">{ownerNickname}</span>
+                  </>
+                ) : (
+                  'Lista compartilhada'
+                )}
+              </p>
+            </div>
+          </div>
+        )}
 
-            {/* Actions: Suggestions + More Menu */}
-            <div className="flex items-center gap-2 flex-shrink-0">
-              {/* AI Suggestions Button - Always Visible */}
+        {/* Header: Title + Actions (Compacto) */}
+        <div className="mb-3">
+          {/* Title and Actions Row - Compacto */}
+          <div className="flex items-center justify-between gap-3 mb-1">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-[22px] font-bold text-gray-900 dark:text-white truncate leading-tight">
+                {list.name}
+              </h1>
+              {/* Stats inline */}
+              <div className="flex items-center gap-2 text-[13px] text-gray-500 dark:text-gray-400 mt-0.5">
+                <span className="font-medium">{stats.total} {stats.total === 1 ? 'item' : 'itens'}</span>
+                {stats.total > 0 && (
+                  <>
+                    <span className="text-gray-300 dark:text-gray-600">•</span>
+                    <span className="text-green-600 dark:text-green-400 font-medium">{stats.checked}/{stats.total} ✓</span>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Actions compactos */}
+            <div className="flex items-center gap-1 flex-shrink-0">
+              {/* AI Suggestions Button - Icon only */}
               <button
                 onClick={fetchSuggestions}
                 disabled={suggestionsLoading || items.length === 0}
-                className="px-4 py-2.5 bg-gradient-to-r from-purple-600 to-purple-700 dark:from-purple-500 dark:to-purple-600 text-white rounded-full active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg flex items-center gap-2"
+                className="w-10 h-10 bg-gradient-to-r from-purple-600 to-purple-700 dark:from-purple-500 dark:to-purple-600 text-white rounded-full active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md flex items-center justify-center"
                 title="Sugestões da IA"
               >
-                <Sparkles className="w-4 h-4" />
-                <span className="text-[14px] font-semibold">Sugestões</span>
+                <Sparkles className="w-5 h-5" />
               </button>
 
               {/* More Actions Menu */}
               <div className="relative">
                 <button
                   onClick={() => setShowActionsMenu(!showActionsMenu)}
-                  className="p-2.5 text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-full active:scale-95 transition-all"
+                  className="w-10 h-10 text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-full active:scale-95 transition-all flex items-center justify-center"
                   title="Mais ações"
                 >
                   <MoreVertical className="w-5 h-5" />
@@ -425,29 +507,60 @@ export const ListDetail = () => {
               </div>
             </div>
           </div>
-
-          {/* Stats */}
-          <div className="flex items-center gap-3 text-[14px] text-gray-500 dark:text-gray-400">
-            <span className="font-medium">{stats.total} {stats.total === 1 ? 'item' : 'itens'}</span>
-            {stats.total > 0 && (
-              <>
-                <span className="text-gray-300 dark:text-gray-600">•</span>
-                <span className="text-green-600 dark:text-green-400 font-medium">{stats.checked} comprados</span>
-              </>
-            )}
-          </div>
         </div>
 
-        {/* Add Item Button */}
-        <button
-          onClick={handleAddItem}
-          className="w-full mb-4 h-12 bg-primary text-white rounded-ios text-[17px] font-semibold active:bg-opacity-90 transition-colors flex items-center justify-center gap-2"
-        >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          Adicionar Item
-        </button>
+        {/* Quick Add Item (inline) */}
+        <div className="mb-4">
+          {!quickAddOpen ? (
+            <button
+              onClick={() => setQuickAddOpen(true)}
+              className="w-full h-11 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full text-left px-4 text-gray-500 dark:text-gray-400 text-[15px] active:bg-gray-100 dark:active:bg-gray-700 transition-colors flex items-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Adicionar item rápido...
+            </button>
+          ) : (
+            <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-3">
+              <input
+                autoFocus
+                type="text"
+                value={quickAddName}
+                onChange={(e) => setQuickAddName(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    handleQuickAdd();
+                  }
+                }}
+                placeholder="Ex: Leite 2L"
+                className="w-full bg-transparent text-[15px] text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none mb-2"
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="sentences"
+                enterKeyHint="done"
+              />
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    setQuickAddOpen(false);
+                    setQuickAddName('');
+                  }}
+                  className="flex-1 h-9 text-[14px] font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleQuickAdd}
+                  disabled={!quickAddName.trim()}
+                  className="flex-1 h-9 bg-primary text-white text-[14px] font-semibold rounded-lg active:opacity-90 transition-opacity disabled:opacity-50"
+                >
+                  Adicionar
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* AI Suggestions Banner */}
         <SuggestionsBanner
@@ -567,6 +680,23 @@ export const ListDetail = () => {
             </div>
           </div>
         )}
+      </div>
+
+      {/* Sticky Add Item Button (Bottom) */}
+      <div className="fixed bottom-0 left-0 right-0 z-30">
+        <div className="max-w-screen-sm mx-auto px-4 pb-safe">
+          <div className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 px-4 py-3 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+            <button
+              onClick={handleAddItem}
+              className="w-full h-11 bg-primary text-white rounded-full text-[15px] font-semibold active:scale-[0.98] transition-transform flex items-center justify-center gap-2 shadow-lg"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Adicionar Item Detalhado
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Item Modal */}
