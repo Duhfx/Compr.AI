@@ -446,6 +446,9 @@ export const getShareInfo = async (listId: string) => {
     createdAt: new Date(data.created_at),
     expiresAt: data.expires_at ? new Date(data.expires_at) : undefined,
     singleUse: data.single_use ?? true, // Default to true for backward compatibility
+    used: data.used ?? false,
+    usedAt: data.used_at ? new Date(data.used_at) : undefined,
+    usedByUserId: data.used_by_user_id ?? undefined,
     shareUrl: `${window.location.origin}/join/${data.share_code}`,
   };
 };

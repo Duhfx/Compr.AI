@@ -24,6 +24,8 @@ export const ShareListModal: React.FC<ShareListModalProps> = ({
   const [permission, setPermission] = useState<'edit' | 'readonly'>('edit');
   const [expiresInDays, setExpiresInDays] = useState<number | undefined>(undefined);
   const [singleUse, setSingleUse] = useState<boolean>(true);
+  const [used, setUsed] = useState<boolean>(false);
+  const [usedAt, setUsedAt] = useState<Date | undefined>(undefined);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,6 +38,8 @@ export const ShareListModal: React.FC<ShareListModalProps> = ({
       setShareUrl(info.shareUrl);
       setPermission(info.permission);
       setSingleUse(info.singleUse);
+      setUsed(info.used);
+      setUsedAt(info.usedAt);
     }
   };
 
@@ -61,6 +65,8 @@ export const ShareListModal: React.FC<ShareListModalProps> = ({
 
       setShareCode(code);
       setShareUrl(url);
+      setUsed(false);
+      setUsedAt(undefined);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao criar link');
       console.error('Error creating share link:', err);
@@ -91,6 +97,8 @@ export const ShareListModal: React.FC<ShareListModalProps> = ({
       await revokeShareLink(listId);
       setShareCode(null);
       setShareUrl(null);
+      setUsed(false);
+      setUsedAt(undefined);
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao revogar link');
@@ -267,6 +275,16 @@ export const ShareListModal: React.FC<ShareListModalProps> = ({
               {expiresInDays && (
                 <p className="text-sm text-blue-800 dark:text-blue-300 mt-1">
                   <strong>Expira em:</strong> {expiresInDays} {expiresInDays === 1 ? 'dia' : 'dias'}
+                </p>
+              )}
+              {singleUse && used && (
+                <p className="text-sm text-green-800 dark:text-green-300 mt-2 font-semibold">
+                  ✅ Código já utilizado
+                  {usedAt && (
+                    <span className="block text-xs font-normal mt-0.5">
+                      Usado em {usedAt.toLocaleDateString('pt-BR')} às {usedAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  )}
                 </p>
               )}
             </div>
