@@ -171,18 +171,27 @@ export const joinSharedList = async (code: string, userId: string) => {
   // Verificar se já é membro
   const { data: existingMember } = await supabase
     .from('list_members')
-    .select('id')
+    .select('id, is_active')
     .eq('list_id', listId)
     .eq('user_id', userId)
-    .single();
+    .maybeSingle();
 
   if (existingMember) {
+    console.log('[joinSharedList] User is already a member:', { userId, listId, isActive: existingMember.is_active });
+
     // Reativar se estava inativo
-    await supabase
-      .from('list_members')
-      .update({ is_active: true })
-      .eq('id', existingMember.id);
+    if (!existingMember.is_active) {
+      console.log('[joinSharedList] Reactivating inactive member');
+      await supabase
+        .from('list_members')
+        .update({ is_active: true })
+        .eq('id', existingMember.id);
+    }
+
+    // Se já é membro ativo, apenas continua (não gera erro)
   } else {
+    console.log('[joinSharedList] Adding new member:', { userId, listId });
+
     // Adicionar como novo membro
     const { error: memberError } = await supabase
       .from('list_members')
@@ -202,7 +211,7 @@ export const joinSharedList = async (code: string, userId: string) => {
       .from('shared_lists')
       .select('single_use')
       .eq('share_code', code.toUpperCase())
-      .single();
+      .maybeSingle();
 
     if (shareData?.single_use === true) {
       console.log('[joinSharedList] Marking single-use code as used:', code);
