@@ -17,6 +17,8 @@ export interface ShoppingItem {
   unit: string;
   category?: string;
   checked: boolean;
+  deleted: boolean;
+  deletedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -56,6 +58,7 @@ export const useSupabaseItems = (listId: string) => {
         .from('shopping_items')
         .select('*')
         .eq('list_id', listId)
+        .eq('deleted', false) // Only load non-deleted items
         .order('created_at', { ascending: true });
 
       if (error) {
@@ -74,6 +77,8 @@ export const useSupabaseItems = (listId: string) => {
         unit: item.unit,
         category: item.category || undefined,
         checked: item.checked,
+        deleted: item.deleted || false,
+        deletedAt: item.deleted_at ? new Date(item.deleted_at) : undefined,
         createdAt: new Date(item.created_at),
         updatedAt: new Date(item.updated_at),
       }));
@@ -146,6 +151,8 @@ export const useSupabaseItems = (listId: string) => {
         unit: data.unit,
         category: data.category || undefined,
         checked: data.checked,
+        deleted: data.deleted || false,
+        deletedAt: data.deleted_at ? new Date(data.deleted_at) : undefined,
         createdAt: new Date(data.created_at),
         updatedAt: new Date(data.updated_at),
       };
@@ -214,18 +221,21 @@ export const useSupabaseItems = (listId: string) => {
     await updateItem(id, { checked: !item.checked });
   };
 
-  // Deletar item
+  // Deletar item (soft delete)
   const deleteItem = async (id: string): Promise<void> => {
     if (!user) {
       throw new Error('Usuário não autenticado');
     }
 
     try {
-      console.log('[useSupabaseItems] Deleting item:', id);
+      console.log('[useSupabaseItems] Soft deleting item:', id);
 
       const { error } = await supabase
         .from('shopping_items')
-        .delete()
+        .update({
+          deleted: true,
+          deleted_at: new Date().toISOString(),
+        })
         .eq('id', id);
 
       if (error) {
@@ -233,11 +243,104 @@ export const useSupabaseItems = (listId: string) => {
         throw error;
       }
 
-      // Remover da lista local
+      // Remover da lista local (pois a query só carrega itens não deletados)
       setItems(items.filter(item => item.id !== id));
     } catch (err) {
       const error = err as Error;
       setError(error);
+      throw error;
+    }
+  };
+
+  // Restaurar item deletado
+  const restoreItem = async (id: string): Promise<void> => {
+    if (!user) {
+      throw new Error('Usuário não autenticado');
+    }
+
+    try {
+      console.log('[useSupabaseItems] Restoring item:', id);
+
+      const { data, error } = await supabase
+        .from('shopping_items')
+        .update({
+          deleted: false,
+          deleted_at: null,
+        })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('[useSupabaseItems] Error restoring item:', error);
+        throw error;
+      }
+
+      // Adicionar de volta à lista local
+      const restoredItem: ShoppingItem = {
+        id: data.id,
+        listId: data.list_id,
+        name: data.name,
+        quantity: data.quantity,
+        unit: data.unit,
+        category: data.category || undefined,
+        checked: data.checked,
+        deleted: data.deleted || false,
+        deletedAt: data.deleted_at ? new Date(data.deleted_at) : undefined,
+        createdAt: new Date(data.created_at),
+        updatedAt: new Date(data.updated_at),
+      };
+
+      setItems([...items, restoredItem]);
+    } catch (err) {
+      const error = err as Error;
+      setError(error);
+      throw error;
+    }
+  };
+
+  // Carregar itens deletados
+  const loadDeletedItems = async (): Promise<ShoppingItem[]> => {
+    if (!user || !listId) {
+      return [];
+    }
+
+    try {
+      console.log('[useSupabaseItems] Loading deleted items for list:', listId);
+
+      const { data, error } = await supabase
+        .from('shopping_items')
+        .select('*')
+        .eq('list_id', listId)
+        .eq('deleted', true)
+        .order('deleted_at', { ascending: false });
+
+      if (error) {
+        console.error('[useSupabaseItems] Error loading deleted items:', error);
+        throw error;
+      }
+
+      console.log('[useSupabaseItems] Loaded deleted items:', data?.length || 0);
+
+      // Converter para formato do frontend
+      const formattedItems: ShoppingItem[] = (data || []).map((item: ShoppingItemRow) => ({
+        id: item.id,
+        listId: item.list_id,
+        name: item.name,
+        quantity: item.quantity,
+        unit: item.unit,
+        category: item.category || undefined,
+        checked: item.checked,
+        deleted: item.deleted || false,
+        deletedAt: item.deleted_at ? new Date(item.deleted_at) : undefined,
+        createdAt: new Date(item.created_at),
+        updatedAt: new Date(item.updated_at),
+      }));
+
+      return formattedItems;
+    } catch (err) {
+      const error = err as Error;
+      console.error('[useSupabaseItems] Error loading deleted items:', error);
       throw error;
     }
   };
@@ -251,6 +354,8 @@ export const useSupabaseItems = (listId: string) => {
     updateItem,
     toggleItem,
     deleteItem,
+    restoreItem,
+    loadDeletedItems,
     refreshItems: loadItems,
   };
 };

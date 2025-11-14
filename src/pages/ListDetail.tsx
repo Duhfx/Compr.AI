@@ -19,7 +19,7 @@ export const ListDetail = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { getListById, deleteList } = useSupabaseLists();
-  const { items, stats, createItem, updateItem, toggleItem, deleteItem } = useSupabaseItems(id || '');
+  const { items, stats, createItem, updateItem, toggleItem, deleteItem, restoreItem, loadDeletedItems } = useSupabaseItems(id || '');
 
   // Sugestões de IA
   const {
@@ -36,6 +36,9 @@ export const ListDetail = () => {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isMembersModalOpen, setIsMembersModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<ShoppingItem | undefined>(undefined);
+  const [deletedItems, setDeletedItems] = useState<ShoppingItem[]>([]);
+  const [showDeletedSection, setShowDeletedSection] = useState(false);
+  const [loadingDeleted, setLoadingDeleted] = useState(false);
 
   useEffect(() => {
     let isCancelled = false;
@@ -197,6 +200,35 @@ export const ListDetail = () => {
     } catch (error) {
       console.error('Erro ao adicionar sugestão:', error);
       toast.error('Erro ao adicionar item');
+    }
+  };
+
+  const handleToggleDeletedSection = async () => {
+    if (!showDeletedSection) {
+      // Carregar itens deletados ao abrir a seção
+      setLoadingDeleted(true);
+      try {
+        const deleted = await loadDeletedItems();
+        setDeletedItems(deleted);
+      } catch (error) {
+        console.error('Erro ao carregar itens excluídos:', error);
+        toast.error('Erro ao carregar itens excluídos');
+      } finally {
+        setLoadingDeleted(false);
+      }
+    }
+    setShowDeletedSection(!showDeletedSection);
+  };
+
+  const handleRestoreItem = async (itemId: string) => {
+    try {
+      await restoreItem(itemId);
+      toast.success('Item restaurado');
+      // Remover da lista de deletados
+      setDeletedItems(deletedItems.filter(item => item.id !== itemId));
+    } catch (error) {
+      console.error('Erro ao restaurar item:', error);
+      toast.error('Erro ao restaurar item');
     }
   };
 
@@ -377,6 +409,67 @@ export const ListDetail = () => {
                 </div>
               </div>
             )}
+
+            {/* Deleted Items Section */}
+            <div className="mt-8">
+              <button
+                onClick={handleToggleDeletedSection}
+                className="w-full flex items-center justify-between py-3 px-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg active:opacity-70 transition-all"
+              >
+                <h2 className="text-[15px] font-semibold text-gray-600 dark:text-gray-400">
+                  Excluídos
+                </h2>
+                <svg
+                  className={`w-5 h-5 text-gray-500 dark:text-gray-400 transition-transform ${
+                    showDeletedSection ? 'rotate-180' : ''
+                  }`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {showDeletedSection && (
+                <div className="mt-3">
+                  {loadingDeleted ? (
+                    <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                      Carregando...
+                    </div>
+                  ) : deletedItems.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500 dark:text-gray-400 text-[15px]">
+                      Nenhum item excluído
+                    </div>
+                  ) : (
+                    <div className="bg-white dark:bg-gray-800 rounded-ios overflow-hidden opacity-50">
+                      {deletedItems.map(item => (
+                        <div
+                          key={item.id}
+                          className="flex items-center gap-3 px-4 py-3 border-b border-gray-150 dark:border-gray-700 last:border-b-0"
+                        >
+                          <div className="flex-1 min-w-0">
+                            <h4 className="text-[17px] text-gray-900 dark:text-white line-through truncate">
+                              {item.name}
+                            </h4>
+                            <p className="text-[13px] text-gray-500 dark:text-gray-400">
+                              {item.quantity} {item.unit}
+                              {item.category && ` · ${item.category}`}
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => handleRestoreItem(item.id)}
+                            className="px-3 py-1.5 bg-primary text-white text-[14px] font-medium rounded-lg active:opacity-70 transition-opacity"
+                          >
+                            Restaurar
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
