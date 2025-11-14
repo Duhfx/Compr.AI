@@ -30,7 +30,7 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({
 
   const handleSaveToHistory = async () => {
     if (editableItems.length === 0) {
-      alert('❌ Nenhum item para salvar');
+      alert('Nenhum item para salvar');
       return;
     }
 
@@ -104,7 +104,7 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({
 
     } catch (error) {
       console.error('[ReceiptPreview] Erro ao salvar:', error);
-      alert('❌ Erro ao salvar histórico. Tente novamente.');
+      alert('Erro ao salvar histórico. Tente novamente.');
     } finally {
       setSaving(false);
     }
@@ -133,7 +133,7 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-bold text-gray-900">📋 Revisar Compra</h2>
+      <h2 className="text-xl font-bold text-gray-900">Revisar Compra</h2>
 
       {/* Metadados da nota fiscal */}
       <div className="bg-gray-100 p-4 rounded-lg space-y-2">
@@ -174,10 +174,10 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({
               />
               <button
                 onClick={() => handleRemoveItem(index)}
-                className="text-red-500 hover:text-red-700 px-2"
+                className="text-red-500 hover:text-red-700 px-3 text-lg font-bold"
                 title="Remover item"
               >
-                🗑️
+                ×
               </button>
             </div>
 
@@ -216,7 +216,7 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({
             {/* Categoria */}
             {item.category && (
               <div className="text-xs text-gray-600">
-                📂 {item.category}
+                Categoria: {item.category}
               </div>
             )}
           </div>
@@ -232,7 +232,7 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({
       {/* Informação importante */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
         <p className="text-sm text-blue-800">
-          ℹ️ <strong>Esses itens serão salvos no seu histórico</strong> para melhorar 
+          <strong>Importante:</strong> Esses itens serão salvos no seu histórico para melhorar
           sugestões futuras e prever gastos. Nenhuma lista será criada.
         </p>
       </div>
@@ -251,7 +251,7 @@ export const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({
           className="flex-1 bg-indigo-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-indigo-700 disabled:opacity-50 transition-colors"
           disabled={saving || editableItems.length === 0}
         >
-          {saving ? '💾 Salvando...' : '✅ Salvar no Histórico'}
+          {saving ? 'Salvando...' : 'Salvar no Histórico'}
         </button>
       </div>
     </div>
