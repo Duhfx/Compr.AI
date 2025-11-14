@@ -10,7 +10,7 @@ export const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
-  const { theme, setTheme, resolvedTheme } = useTheme();
+  const { setTheme, resolvedTheme } = useTheme();
   const [showMenu, setShowMenu] = useState(false);
 
   // Simple title based on route
