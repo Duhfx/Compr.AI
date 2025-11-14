@@ -10,6 +10,7 @@ interface SuggestionRequest {
   prompt?: string;
   listType?: string;
   maxResults?: number;
+  existingItems?: string[];  // Nomes dos itens já adicionados na lista
 }
 
 interface SuggestedItem {
@@ -49,8 +50,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const { userId, prompt, listType, maxResults = 10 } = req.body as SuggestionRequest;
-    console.log('[suggest-items] Request params:', { userId, prompt, listType, maxResults });
+    const { userId, prompt, listType, maxResults = 10, existingItems = [] } = req.body as SuggestionRequest;
+    console.log('[suggest-items] Request params:', { userId, prompt, listType, maxResults, existingItemsCount: existingItems.length });
 
     // Validação básica
     if (!userId) {
@@ -126,6 +127,13 @@ Você é um assistente brasileiro especializado em listas de compras para superm
 ═══════════════════════════════════════════════════════════════════
 ${prompt ? `"${prompt}"` : 'Lista de compras genérica'}
 ${listType ? `Tipo: ${listType}` : ''}
+
+═══════════════════════════════════════════════════════════════════
+🚫 ITENS JÁ ADICIONADOS (NÃO SUGIRA NOVAMENTE)
+═══════════════════════════════════════════════════════════════════
+${existingItems.length > 0 ? existingItems.map(item => `• ${item}`).join('\n') : 'Nenhum item adicionado ainda'}
+
+⚠️ IMPORTANTE: NÃO sugira nenhum dos itens listados acima. O usuário já os adicionou à lista.
 
 ═══════════════════════════════════════════════════════════════════
 📊 HISTÓRICO DE COMPRAS DO USUÁRIO (use como referência)

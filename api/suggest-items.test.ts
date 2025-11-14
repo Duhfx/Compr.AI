@@ -612,6 +612,188 @@ describe('API /api/suggest-items', () => {
     });
   });
 
+  describe('Prevenção de Duplicados (existingItems)', () => {
+    it('deve aceitar parâmetro existingItems no request', async () => {
+      mockReq.body = {
+        userId: 'user-123',
+        prompt: 'lista de compras',
+        existingItems: ['Arroz', 'Feijão', 'Macarrão'],
+        maxResults: 5
+      };
+
+      const { createClient } = await import('@supabase/supabase-js');
+      const mockSupabase = {
+        from: vi.fn().mockReturnValue({
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          not: vi.fn().mockReturnThis(),
+          order: vi.fn().mockReturnThis(),
+          limit: vi.fn().mockResolvedValue({ data: [], error: null }),
+        }),
+      };
+      vi.mocked(createClient).mockReturnValue(mockSupabase as any);
+
+      const { GoogleGenerativeAI } = await import('@google/generative-ai');
+      vi.mocked(GoogleGenerativeAI).mockImplementation(
+        () =>
+          ({
+            getGenerativeModel: () => ({
+              generateContent: vi.fn().mockResolvedValue({
+                response: {
+                  text: () => JSON.stringify({
+                    items: [
+                      { name: 'Óleo', quantity: 1, unit: 'L', category: 'Alimentos' },
+                      { name: 'Sal', quantity: 1, unit: 'kg', category: 'Alimentos' }
+                    ]
+                  }),
+                },
+              }),
+            }),
+          }) as any
+      );
+
+      await handler(mockReq as VercelRequest, mockRes as VercelResponse);
+
+      expect(statusCode).toBe(200);
+      expect(responseData.items).toHaveLength(2);
+    });
+
+    it('deve incluir existingItems no prompt do Gemini', async () => {
+      mockReq.body = {
+        userId: 'user-123',
+        prompt: 'lista de compras básica',
+        existingItems: ['Arroz', 'Feijão', 'Macarrão'],
+        maxResults: 5
+      };
+
+      const { createClient } = await import('@supabase/supabase-js');
+      const mockSupabase = {
+        from: vi.fn().mockReturnValue({
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          not: vi.fn().mockReturnThis(),
+          order: vi.fn().mockReturnThis(),
+          limit: vi.fn().mockResolvedValue({ data: [], error: null }),
+        }),
+      };
+      vi.mocked(createClient).mockReturnValue(mockSupabase as any);
+
+      const { GoogleGenerativeAI } = await import('@google/generative-ai');
+      const mockGenerateContent = vi.fn().mockResolvedValue({
+        response: {
+          text: () => JSON.stringify({
+            items: [
+              { name: 'Óleo', quantity: 1, unit: 'L', category: 'Alimentos' }
+            ]
+          }),
+        },
+      });
+
+      vi.mocked(GoogleGenerativeAI).mockImplementation(
+        () =>
+          ({
+            getGenerativeModel: () => ({
+              generateContent: mockGenerateContent
+            }),
+          }) as any
+      );
+
+      await handler(mockReq as VercelRequest, mockRes as VercelResponse);
+
+      // Verificar que o prompt contém a seção de itens já adicionados
+      const promptArg = mockGenerateContent.mock.calls[0][0];
+      expect(promptArg).toContain('ITENS JÁ ADICIONADOS');
+      expect(promptArg).toContain('NÃO SUGIRA NOVAMENTE');
+      expect(promptArg).toContain('Arroz');
+      expect(promptArg).toContain('Feijão');
+      expect(promptArg).toContain('Macarrão');
+      expect(promptArg).toContain('NÃO sugira nenhum dos itens listados acima');
+    });
+
+    it('deve funcionar sem existingItems (retrocompatibilidade)', async () => {
+      mockReq.body = {
+        userId: 'user-123',
+        prompt: 'lista de compras',
+        maxResults: 5
+      };
+
+      const { createClient } = await import('@supabase/supabase-js');
+      const mockSupabase = {
+        from: vi.fn().mockReturnValue({
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          not: vi.fn().mockReturnThis(),
+          order: vi.fn().mockReturnThis(),
+          limit: vi.fn().mockResolvedValue({ data: [], error: null }),
+        }),
+      };
+      vi.mocked(createClient).mockReturnValue(mockSupabase as any);
+
+      const { GoogleGenerativeAI } = await import('@google/generative-ai');
+      vi.mocked(GoogleGenerativeAI).mockImplementation(
+        () =>
+          ({
+            getGenerativeModel: () => ({
+              generateContent: vi.fn().mockResolvedValue({
+                response: {
+                  text: () => JSON.stringify({ items: [] }),
+                },
+              }),
+            }),
+          }) as any
+      );
+
+      await handler(mockReq as VercelRequest, mockRes as VercelResponse);
+
+      expect(statusCode).toBe(200);
+    });
+
+    it('deve lidar com array vazio de existingItems', async () => {
+      mockReq.body = {
+        userId: 'user-123',
+        prompt: 'lista de compras',
+        existingItems: [],
+        maxResults: 5
+      };
+
+      const { createClient } = await import('@supabase/supabase-js');
+      const mockSupabase = {
+        from: vi.fn().mockReturnValue({
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          not: vi.fn().mockReturnThis(),
+          order: vi.fn().mockReturnThis(),
+          limit: vi.fn().mockResolvedValue({ data: [], error: null }),
+        }),
+      };
+      vi.mocked(createClient).mockReturnValue(mockSupabase as any);
+
+      const { GoogleGenerativeAI } = await import('@google/generative-ai');
+      const mockGenerateContent = vi.fn().mockResolvedValue({
+        response: {
+          text: () => JSON.stringify({ items: [] }),
+        },
+      });
+
+      vi.mocked(GoogleGenerativeAI).mockImplementation(
+        () =>
+          ({
+            getGenerativeModel: () => ({
+              generateContent: mockGenerateContent
+            }),
+          }) as any
+      );
+
+      await handler(mockReq as VercelRequest, mockRes as VercelResponse);
+
+      expect(statusCode).toBe(200);
+
+      // Verificar que o prompt indica "Nenhum item adicionado ainda"
+      const promptArg = mockGenerateContent.mock.calls[0][0];
+      expect(promptArg).toContain('Nenhum item adicionado ainda');
+    });
+  });
+
   describe('Tratamento de Erros', () => {
     it('deve retornar 500 quando Supabase falha', async () => {
       mockReq.body = { userId: 'user-123', prompt: 'teste' };
