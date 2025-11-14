@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSupabaseLists } from '../hooks/useSupabaseLists';
+import { useListsWithStats } from '../hooks/useListsWithStats';
 import { useAuth } from '../contexts/AuthContext';
 import { Layout } from '../components/layout/Layout';
 import { ListCard } from '../components/lists/ListCard';
@@ -16,7 +17,8 @@ import { Sparkles, Edit, Users, Plus } from 'lucide-react';
 export const Home = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  const { lists, loading, createList, deleteList, refreshLists } = useSupabaseLists();
+  const { lists: listsWithStats, loading: statsLoading, refreshLists: refreshStats } = useListsWithStats();
+  const { createList, deleteList } = useSupabaseLists();
   const [isCreating, setIsCreating] = useState(false);
   const [newListName, setNewListName] = useState('');
   const [showAIModal, setShowAIModal] = useState(false);
@@ -24,6 +26,8 @@ export const Home = () => {
   const [showScanner, setShowScanner] = useState(false);
   const [showActionSheet, setShowActionSheet] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState('Todas');
+
+  const loading = statsLoading;
 
   // Redirect to landing if not authenticated
   useEffect(() => {
@@ -67,16 +71,28 @@ export const Home = () => {
 
   const handleJoinSuccess = async (listId: string) => {
     toast.success('Você entrou na lista compartilhada!');
-    await refreshLists();
+    await refreshStats();
     navigate(`/list/${listId}`);
   };
 
   // Filter lists based on selected tab
   const filteredLists = useMemo(() => {
-    // TODO: Implement actual filtering logic when we have list status
-    // For now, just return all lists
-    return lists;
-  }, [lists, selectedFilter]);
+    if (selectedFilter === 'Todas') {
+      return listsWithStats;
+    }
+
+    if (selectedFilter === 'Ativas') {
+      // Lista ativa = tem itens não marcados OU não tem itens
+      return listsWithStats.filter(list => list.uncheckedItems > 0 || list.totalItems === 0);
+    }
+
+    if (selectedFilter === 'Concluídas') {
+      // Lista concluída = tem itens E todos estão marcados
+      return listsWithStats.filter(list => list.totalItems > 0 && list.uncheckedItems === 0);
+    }
+
+    return listsWithStats;
+  }, [listsWithStats, selectedFilter]);
 
   // Action Sheet options
   const actionSheetOptions = [
@@ -118,31 +134,34 @@ export const Home = () => {
     <Layout onScanClick={() => setShowScanner(true)} showTabBar={!isCreating && !showAIModal && !showJoinModal && !showActionSheet}>
       <Toaster position="top-center" />
 
-      <div className="px-4 py-4 pb-24">
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-[34px] font-bold text-gray-900 dark:text-white mb-2">
-            Compr.AI
-          </h1>
-          <p className="text-[17px] text-gray-500 dark:text-gray-400">
-            {lists.length === 0
-              ? 'Crie sua primeira lista'
-              : `${lists.length} ${lists.length === 1 ? 'lista' : 'listas'}`
-            }
-          </p>
-        </div>
-
+      <div className="px-4 py-6 pb-24">
         {/* Segmented Control (Tabs) */}
-        {lists.length > 0 && (
-          <SegmentedControl
-            options={['Todas', 'Ativas', 'Concluídas']}
-            selected={selectedFilter}
-            onChange={setSelectedFilter}
-          />
+        {listsWithStats.length > 0 && (
+          <div className="mb-4">
+            <SegmentedControl
+              options={['Todas', 'Ativas', 'Concluídas']}
+              selected={selectedFilter}
+              onChange={setSelectedFilter}
+            />
+          </div>
+        )}
+
+        {/* Lista Count */}
+        {listsWithStats.length > 0 && (
+          <div className="mb-6">
+            <p className="text-[15px] text-gray-500 dark:text-gray-400">
+              {filteredLists.length === 0 && selectedFilter !== 'Todas'
+                ? `Nenhuma lista ${selectedFilter.toLowerCase()}`
+                : filteredLists.length === listsWithStats.length
+                  ? `${listsWithStats.length} ${listsWithStats.length === 1 ? 'lista' : 'listas'}`
+                  : `${filteredLists.length} de ${listsWithStats.length} ${listsWithStats.length === 1 ? 'lista' : 'listas'}`
+              }
+            </p>
+          </div>
         )}
 
         {/* Smart Banner for new users */}
-        {lists.length === 0 && (
+        {listsWithStats.length === 0 && (
           <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/30 dark:to-blue-900/30 rounded-ios p-4 mb-4 border border-purple-100 dark:border-purple-800">
             <div className="flex items-start gap-3">
               <Sparkles className="w-5 h-5 text-purple-600 dark:text-purple-400 flex-shrink-0 mt-0.5" />
@@ -177,7 +196,7 @@ export const Home = () => {
             onSuccess={() => {
               setShowScanner(false);
               toast.success('✅ Histórico atualizado!');
-              refreshLists();
+              refreshStats();
             }}
             onCancel={() => setShowScanner(false)}
           />
@@ -243,7 +262,7 @@ export const Home = () => {
         </AnimatePresence>
 
         {/* Lists */}
-        {filteredLists.length === 0 ? (
+        {listsWithStats.length === 0 ? (
           <div className="text-center py-20">
             <div className="w-20 h-20 mx-auto mb-4 bg-primary bg-opacity-10 dark:bg-primary/20 rounded-full flex items-center justify-center">
               <svg
@@ -273,12 +292,28 @@ export const Home = () => {
               Criar Lista →
             </button>
           </div>
+        ) : filteredLists.length === 0 ? (
+          <div className="text-center py-16">
+            <p className="text-[17px] text-gray-500 dark:text-gray-400 mb-2">
+              Nenhuma lista {selectedFilter.toLowerCase()}
+            </p>
+            <p className="text-[13px] text-gray-400 dark:text-gray-500">
+              {selectedFilter === 'Concluídas'
+                ? 'Complete seus itens para ver as listas aqui'
+                : 'Adicione itens às suas listas'}
+            </p>
+          </div>
         ) : (
           <div className="space-y-3">
             {filteredLists.map((list) => (
               <ListCard
                 key={list.id}
-                list={list}
+                list={{
+                  id: list.id,
+                  name: list.name,
+                  createdAt: list.createdAt,
+                  updatedAt: list.updatedAt,
+                }}
                 onClick={() => navigate(`/list/${list.id}`)}
                 onDelete={handleDeleteList}
               />
