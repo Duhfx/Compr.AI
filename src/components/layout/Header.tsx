@@ -15,9 +15,8 @@ export const Header = () => {
   const [showMenu, setShowMenu] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
 
-  // Simple title based on route
+  // Always show app name
   const getTitle = () => {
-    if (location.pathname.startsWith('/list/')) return 'Lista';
     return 'Compr.AI';
   };
 
@@ -41,24 +40,24 @@ export const Header = () => {
   };
 
   return (
-    <header className="bg-white dark:bg-gray-800 border-b border-gray-150 dark:border-gray-700 sticky top-0 z-10 safe-top transition-colors">
-      <div className="flex items-center justify-between h-11 px-4">
+    <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-b border-primary/10 dark:border-indigo-500/20 sticky top-0 z-10 safe-top transition-all shadow-sm">
+      <div className="flex items-center justify-between h-14 px-5">
         <div className="flex-1" />
 
-        <div className="flex items-center gap-2">
-          <h1 className="text-[17px] font-semibold text-gray-900 dark:text-white">
+        <div className="flex items-center gap-2.5">
+          <h1 className="text-[18px] font-bold text-gray-900 dark:text-white tracking-tight">
             {getTitle()}
           </h1>
           {isOffline && (
-            <div className="w-2 h-2 bg-warning rounded-full" title="Offline" />
+            <div className="w-2 h-2 bg-warning rounded-full animate-pulse" title="Offline" />
           )}
         </div>
 
-        <div className="flex-1 flex justify-end items-center gap-2 relative">
+        <div className="flex-1 flex justify-end items-center gap-3 relative">
           {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
-            className="p-1.5 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full active:opacity-70 transition-colors"
+            className="p-2.5 text-gray-600 dark:text-gray-300 bg-gray-100/70 dark:bg-gray-700/50 hover:bg-gray-200/80 dark:hover:bg-gray-600/60 backdrop-blur-sm rounded-full active:scale-95 transition-all shadow-sm"
             title={`Mudar para modo ${resolvedTheme === 'dark' ? 'claro' : 'escuro'}`}
           >
             {resolvedTheme === 'dark' ? (
@@ -72,7 +71,7 @@ export const Header = () => {
             <>
               <button
                 onClick={() => setShowMenu(!showMenu)}
-                className="p-1.5 text-primary hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full active:opacity-70 transition-colors"
+                className="p-2.5 text-primary dark:text-indigo-400 bg-primary/10 dark:bg-indigo-500/20 hover:bg-primary/20 dark:hover:bg-indigo-500/30 backdrop-blur-sm rounded-full active:scale-95 transition-all shadow-sm"
                 title={user.email}
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -86,21 +85,21 @@ export const Header = () => {
                     className="fixed inset-0 z-10"
                     onClick={() => setShowMenu(false)}
                   />
-                  <div className="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-gray-800 rounded-ios shadow-lg border border-gray-200 dark:border-gray-700 z-20">
-                    <div className="p-3 border-b border-gray-100 dark:border-gray-700">
-                      <p className="text-[13px] text-gray-500 dark:text-gray-400">Conectado como</p>
-                      <p className="text-[15px] font-medium text-gray-900 dark:text-white truncate">{user.email}</p>
+                  <div className="absolute right-0 top-full mt-2 w-56 bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-2xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 z-20 overflow-hidden">
+                    <div className="p-4 border-b border-gray-100/50 dark:border-gray-700/50 bg-gradient-to-br from-primary/5 to-purple-500/5 dark:from-primary/10 dark:to-purple-500/10">
+                      <p className="text-[13px] text-gray-500 dark:text-gray-400 font-medium">Conectado como</p>
+                      <p className="text-[15px] font-semibold text-gray-900 dark:text-white truncate mt-0.5">{user.email}</p>
                     </div>
                     <button
                       onClick={handleOpenProfile}
-                      className="w-full px-3 py-2 text-left text-[15px] text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600 flex items-center gap-2"
+                      className="w-full px-4 py-3 text-left text-[15px] font-medium text-gray-900 dark:text-white hover:bg-gray-100/70 dark:hover:bg-gray-700/50 active:bg-gray-200/70 dark:active:bg-gray-600/50 flex items-center gap-3 transition-colors"
                     >
                       <User className="w-4 h-4" />
                       Meu Perfil
                     </button>
                     <button
                       onClick={handleLogout}
-                      className="w-full px-3 py-2 text-left text-[15px] text-red-600 dark:text-red-400 hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600 border-t border-gray-100 dark:border-gray-700"
+                      className="w-full px-4 py-3 text-left text-[15px] font-medium text-red-600 dark:text-red-400 hover:bg-red-50/70 dark:hover:bg-red-900/20 active:bg-red-100/70 dark:active:bg-red-900/30 border-t border-gray-100/50 dark:border-gray-700/50 transition-colors"
                     >
                       Sair
                     </button>
@@ -111,7 +110,7 @@ export const Header = () => {
           ) : (
             <Link
               to="/login"
-              className="p-1.5 text-primary hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full active:opacity-70 transition-colors"
+              className="p-2.5 text-primary dark:text-indigo-400 bg-primary/10 dark:bg-indigo-500/20 hover:bg-primary/20 dark:hover:bg-indigo-500/30 backdrop-blur-sm rounded-full active:scale-95 transition-all shadow-sm"
               title="Fazer login"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

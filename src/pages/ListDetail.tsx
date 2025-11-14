@@ -11,7 +11,7 @@ import { ShareListModal } from '../components/lists/ShareListModal';
 import { MembersModal } from '../components/lists/MembersModal';
 import { SuggestionsBanner } from '../components/suggestions/SuggestionsBanner';
 import toast, { Toaster } from 'react-hot-toast';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, MoreVertical, Bell, Users, Share2, Trash2 } from 'lucide-react';
 import type { ShoppingItem } from '../hooks/useSupabaseItems';
 
 export const ListDetail = () => {
@@ -40,6 +40,7 @@ export const ListDetail = () => {
   const [deletedItems, setDeletedItems] = useState<ShoppingItem[]>([]);
   const [showDeletedSection, setShowDeletedSection] = useState(false);
   const [loadingDeleted, setLoadingDeleted] = useState(false);
+  const [showActionsMenu, setShowActionsMenu] = useState(false);
 
   useEffect(() => {
     let isCancelled = false;
@@ -272,78 +273,102 @@ export const ListDetail = () => {
           <span className="text-[17px] font-medium">Listas</span>
         </button>
 
-        {/* List Title */}
-        <div className="mb-3">
-          <h1 className="text-[28px] font-bold text-gray-900 dark:text-white break-words">{list.name}</h1>
-        </div>
+        {/* Header: Title + Actions */}
+        <div className="mb-4">
+          {/* Title and Actions Row */}
+          <div className="flex items-start justify-between gap-3 mb-2">
+            <h1 className="text-[26px] font-bold text-gray-900 dark:text-white break-words flex-1 leading-tight">
+              {list.name}
+            </h1>
 
-        {/* Action Buttons */}
-        <div className="flex justify-end gap-2 mb-2">
-          {/* AI Suggestions Button */}
-          <button
-            onClick={fetchSuggestions}
-            disabled={suggestionsLoading || items.length === 0}
-            className="px-3 py-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg active:opacity-70 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md flex items-center gap-1.5"
-            title="Sugestões da IA"
-          >
-            <Sparkles className="w-4 h-4" />
-            <span className="text-[14px] font-semibold">Sugestões</span>
-          </button>
+            {/* Actions: Suggestions + More Menu */}
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {/* AI Suggestions Button - Always Visible */}
+              <button
+                onClick={fetchSuggestions}
+                disabled={suggestionsLoading || items.length === 0}
+                className="px-4 py-2.5 bg-gradient-to-r from-purple-600 to-purple-700 dark:from-purple-500 dark:to-purple-600 text-white rounded-full active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg flex items-center gap-2"
+                title="Sugestões da IA"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span className="text-[14px] font-semibold">Sugestões</span>
+              </button>
 
-          {/* Notify Members Button */}
-          <button
-            onClick={handleNotifyMembers}
-            className="p-2 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/30 rounded-lg active:opacity-70 transition-colors"
-            title="Notificar membros sobre atualização"
-          >
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-            </svg>
-          </button>
+              {/* More Actions Menu */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowActionsMenu(!showActionsMenu)}
+                  className="p-2.5 text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-full active:scale-95 transition-all"
+                  title="Mais ações"
+                >
+                  <MoreVertical className="w-5 h-5" />
+                </button>
 
-          {/* Members Button */}
-          <button
-            onClick={() => setIsMembersModalOpen(true)}
-            className="p-2 text-primary hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg active:opacity-70 transition-colors"
-            title="Ver membros"
-          >
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-            </svg>
-          </button>
+                {/* Dropdown Menu */}
+                {showActionsMenu && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-10"
+                      onClick={() => setShowActionsMenu(false)}
+                    />
+                    <div className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 z-20 overflow-hidden">
+                      <button
+                        onClick={() => {
+                          handleNotifyMembers();
+                          setShowActionsMenu(false);
+                        }}
+                        className="w-full px-4 py-3 text-left text-[15px] font-medium text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600 flex items-center gap-3 transition-colors"
+                      >
+                        <Bell className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                        Notificar membros
+                      </button>
+                      <button
+                        onClick={() => {
+                          setIsMembersModalOpen(true);
+                          setShowActionsMenu(false);
+                        }}
+                        className="w-full px-4 py-3 text-left text-[15px] font-medium text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600 flex items-center gap-3 transition-colors"
+                      >
+                        <Users className="w-5 h-5 text-primary dark:text-indigo-400" />
+                        Ver membros
+                      </button>
+                      <button
+                        onClick={() => {
+                          setIsShareModalOpen(true);
+                          setShowActionsMenu(false);
+                        }}
+                        className="w-full px-4 py-3 text-left text-[15px] font-medium text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600 flex items-center gap-3 transition-colors border-b border-gray-100 dark:border-gray-700"
+                      >
+                        <Share2 className="w-5 h-5 text-primary dark:text-indigo-400" />
+                        Compartilhar lista
+                      </button>
+                      <button
+                        onClick={() => {
+                          handleDeleteList();
+                          setShowActionsMenu(false);
+                        }}
+                        className="w-full px-4 py-3 text-left text-[15px] font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 active:bg-red-100 dark:active:bg-red-900/30 flex items-center gap-3 transition-colors"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                        Excluir lista
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
 
-          {/* Share Button */}
-          <button
-            onClick={() => setIsShareModalOpen(true)}
-            className="p-2 text-primary hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg active:opacity-70 transition-colors"
-            title="Compartilhar lista"
-          >
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-            </svg>
-          </button>
-
-          {/* Delete Button */}
-          <button
-            onClick={handleDeleteList}
-            className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg active:opacity-70 transition-colors"
-            title="Excluir lista"
-          >
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-          </button>
-        </div>
-
-        {/* Stats */}
-        <div className="flex items-center gap-4 text-[15px] text-gray-500 dark:text-gray-400 mb-6">
-          <span>{stats.total} {stats.total === 1 ? 'item' : 'itens'}</span>
-          {stats.total > 0 && (
-            <>
-              <span>·</span>
-              <span className="text-success dark:text-green-400">{stats.checked} comprados</span>
-            </>
-          )}
+          {/* Stats */}
+          <div className="flex items-center gap-3 text-[14px] text-gray-500 dark:text-gray-400">
+            <span className="font-medium">{stats.total} {stats.total === 1 ? 'item' : 'itens'}</span>
+            {stats.total > 0 && (
+              <>
+                <span className="text-gray-300 dark:text-gray-600">•</span>
+                <span className="text-green-600 dark:text-green-400 font-medium">{stats.checked} comprados</span>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Add Item Button */}

@@ -189,8 +189,8 @@ export const Landing = () => {
                 transition={{ duration: 0.3, delay: 0.7 + index * 0.05 }}
                 className="px-4 py-2 bg-white/10 backdrop-blur-xl rounded-full border border-white/20 flex items-center gap-2 text-white text-sm font-medium"
               >
-                {feature.icon && <span className="w-4 h-4">{feature.icon}</span>}
-                <span>{feature.text}</span>
+                {feature.icon && <span className="w-4 h-4 flex items-center justify-center flex-shrink-0">{feature.icon}</span>}
+                <span className="leading-none">{feature.text}</span>
               </motion.div>
             ))}
           </motion.div>

@@ -235,6 +235,10 @@ export const Home = () => {
                       placeholder="Nome da lista"
                       className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-ios text-[17px] focus:outline-none focus:bg-gray-150 dark:focus:bg-gray-600 transition-colors"
                       autoFocus
+                      autoComplete="off"
+                      autoCorrect="off"
+                      autoCapitalize="off"
+                      spellCheck="false"
                     />
                     <div className="flex gap-3">
                       <button

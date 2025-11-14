@@ -1,11 +1,18 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 
+export interface ReceiptItem {
+  id: string;
+  item_name: string;
+  price: number;
+}
+
 export interface ReceiptHistoryItem {
   store: string;
   date: string;
   itemCount: number;
   totalPrice: number;
+  items: ReceiptItem[];
 }
 
 export const useReceiptHistory = (userId: string) => {
@@ -43,12 +50,22 @@ export const useReceiptHistory = (userId: string) => {
             const existing = grouped.get(key)!;
             existing.itemCount += 1;
             existing.totalPrice += item.price;
+            existing.items.push({
+              id: item.id,
+              item_name: item.item_name,
+              price: item.price,
+            });
           } else {
             grouped.set(key, {
               store: item.store || 'Loja Desconhecida',
               date: item.purchased_at,
               itemCount: 1,
               totalPrice: item.price,
+              items: [{
+                id: item.id,
+                item_name: item.item_name,
+                price: item.price,
+              }],
             });
           }
         });

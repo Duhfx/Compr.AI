@@ -21,6 +21,21 @@
     overscroll-behavior: none;
     transition: background-color 0.3s ease;
   }
+
+  /* Hide scrollbar but keep functionality - Mobile-first approach */
+  * {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+  }
+
+  *::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+
+  /* Ensure smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
 }
 
 @layer utilities {

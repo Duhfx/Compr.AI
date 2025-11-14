@@ -5,7 +5,7 @@ import { usePurchaseHistory } from '../hooks/usePurchaseHistory';
 import { useReceiptHistory } from '../hooks/useReceiptHistory';
 import { useAuth } from '../contexts/AuthContext';
 import { Layout } from '../components/layout/Layout';
-import { ShoppingBag, Calendar, Package, Receipt, Store } from 'lucide-react';
+import { ShoppingBag, Calendar, Package, Receipt, Store, ChevronDown, ChevronUp } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { SegmentedControl } from '../components/ui/SegmentedControl';
@@ -19,6 +19,7 @@ export const History = () => {
   const { user } = useAuth();
   const [selectedTab, setSelectedTab] = useState<HistoryTab>('Compras');
   const [showScanner, setShowScanner] = useState(false);
+  const [expandedReceipts, setExpandedReceipts] = useState<Set<string>>(new Set());
 
   const { history, loading: purchasesLoading } = usePurchaseHistory(user?.id || '');
   const { receipts, loading: receiptsLoading } = useReceiptHistory(user?.id || '');
@@ -26,6 +27,18 @@ export const History = () => {
   const refreshHistory = () => {
     // Force re-render by navigating to same route
     window.location.reload();
+  };
+
+  const toggleReceiptExpansion = (receiptKey: string) => {
+    setExpandedReceipts(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(receiptKey)) {
+        newSet.delete(receiptKey);
+      } else {
+        newSet.add(receiptKey);
+      }
+      return newSet;
+    });
   };
 
   // Group purchase history by date
@@ -204,43 +217,96 @@ export const History = () => {
               exit={{ opacity: 0, x: -20 }}
               className="space-y-3"
             >
-              {receipts.map((receipt, index) => (
-                <motion.div
-                  key={`${receipt.store}_${receipt.date}`}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                  className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm dark:shadow-none border border-gray-100 dark:border-gray-700"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center flex-shrink-0">
-                      <Store className="w-6 h-6 text-white" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-[17px] font-semibold text-gray-900 dark:text-white truncate">
-                        {receipt.store}
-                      </h3>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-[13px] text-gray-500 dark:text-gray-400">
-                          {receipt.itemCount} {receipt.itemCount === 1 ? 'item' : 'itens'}
-                        </span>
-                        <span className="text-gray-300 dark:text-gray-600">•</span>
-                        <span className="text-[13px] font-medium text-green-600 dark:text-green-400">
-                          R$ {receipt.totalPrice.toFixed(2)}
-                        </span>
+              {receipts.map((receipt, index) => {
+                const receiptKey = `${receipt.store}_${receipt.date}`;
+                const isExpanded = expandedReceipts.has(receiptKey);
+
+                return (
+                  <motion.div
+                    key={receiptKey}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-none border border-gray-100 dark:border-gray-700 overflow-hidden"
+                  >
+                    <div
+                      className="p-4 cursor-pointer active:bg-gray-50 dark:active:bg-gray-700/50 transition-colors"
+                      onClick={() => toggleReceiptExpansion(receiptKey)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center flex-shrink-0">
+                          <Store className="w-6 h-6 text-white" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-[17px] font-semibold text-gray-900 dark:text-white truncate">
+                            {receipt.store}
+                          </h3>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-[13px] text-gray-500 dark:text-gray-400">
+                              {receipt.itemCount} {receipt.itemCount === 1 ? 'item' : 'itens'}
+                            </span>
+                            <span className="text-gray-300 dark:text-gray-600">•</span>
+                            <span className="text-[13px] font-medium text-green-600 dark:text-green-400">
+                              R$ {receipt.totalPrice.toFixed(2)}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <div className="text-right">
+                            <div className="text-[13px] text-gray-400 dark:text-gray-500">
+                              {format(new Date(receipt.date), "d 'de' MMM", { locale: ptBR })}
+                            </div>
+                            <div className="text-[11px] text-gray-400 dark:text-gray-500">
+                              {format(new Date(receipt.date), 'HH:mm')}
+                            </div>
+                          </div>
+                          <div className="flex-shrink-0">
+                            {isExpanded ? (
+                              <ChevronUp className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+                            ) : (
+                              <ChevronDown className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="text-[13px] text-gray-400 dark:text-gray-500">
-                        {format(new Date(receipt.date), "d 'de' MMM", { locale: ptBR })}
-                      </div>
-                      <div className="text-[11px] text-gray-400 dark:text-gray-500">
-                        {format(new Date(receipt.date), 'HH:mm')}
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
+
+                    {/* Expanded Items */}
+                    <AnimatePresence>
+                      {isExpanded && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="border-t border-gray-100 dark:border-gray-700"
+                        >
+                          <div className="p-4 bg-gray-50 dark:bg-gray-900/50 space-y-2">
+                            {receipt.items.map((item) => (
+                              <div
+                                key={item.id}
+                                className="flex items-center justify-between py-2 px-3 bg-white dark:bg-gray-800 rounded-lg"
+                              >
+                                <div className="flex items-center gap-3 flex-1 min-w-0">
+                                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center flex-shrink-0">
+                                    <Package className="w-4 h-4 text-white" />
+                                  </div>
+                                  <span className="text-[15px] text-gray-900 dark:text-white truncate">
+                                    {item.item_name}
+                                  </span>
+                                </div>
+                                <span className="text-[15px] font-semibold text-green-600 dark:text-green-400 flex-shrink-0 ml-3">
+                                  R$ {item.price.toFixed(2)}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+                );
+              })}
             </motion.div>
           )}
         </AnimatePresence>

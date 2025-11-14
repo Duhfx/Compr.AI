@@ -127,6 +127,10 @@ export const JoinListModal: React.FC<JoinListModalProps> = ({
               className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-500 rounded-lg px-4 py-3 text-center text-2xl font-mono uppercase tracking-widest focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
               disabled={loading}
               autoFocus
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="off"
+              spellCheck="false"
             />
             {validating && (
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 text-center">

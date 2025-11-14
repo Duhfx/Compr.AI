@@ -134,6 +134,10 @@ export const ItemModal = ({ isOpen, item, onClose, onSave }: ItemModalProps) => 
                     placeholder="Ex: Arroz integral"
                     required
                     autoFocus
+                    autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    spellCheck="false"
                   />
                 </div>
 
@@ -151,6 +155,7 @@ export const ItemModal = ({ isOpen, item, onClose, onSave }: ItemModalProps) => 
                       value={quantity}
                       onChange={(e) => setQuantity(parseFloat(e.target.value) || 1)}
                       className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 dark:text-white rounded-ios text-[17px] focus:outline-none focus:bg-gray-150 dark:focus:bg-gray-600 transition-colors"
+                      autoComplete="off"
                     />
                   </div>
 
