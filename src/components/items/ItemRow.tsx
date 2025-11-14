@@ -184,19 +184,25 @@ export const ItemRow = ({ item, onToggle, onEdit, onDelete }: ItemRowProps) => {
         </div>
 
         {/* Info chevron */}
-        <svg
-          className="w-5 h-5 text-gray-300 dark:text-gray-600 flex-shrink-0"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
+        <button
+          onClick={handleEdit}
+          className="p-1 -mr-1 active:opacity-50 transition-opacity"
+          aria-label="Editar item"
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M9 5l7 7-7 7"
-          />
-        </svg>
+          <svg
+            className="w-5 h-5 text-gray-300 dark:text-gray-600 flex-shrink-0"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 5l7 7-7 7"
+            />
+          </svg>
+        </button>
       </motion.div>
     </div>
   );

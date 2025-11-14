@@ -43,12 +43,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(500).json({ error: 'Failed to fetch list' });
     }
 
-    // Buscar membros da lista (incluindo o usuário atual para testes)
+    // Buscar membros da lista (excluindo o usuário atual)
     const { data: members, error: membersError } = await supabase
       .from('list_members')
       .select('user_id')
       .eq('list_id', listId)
-      // .neq('user_id', currentUserId) // Comentado para incluir quem solicitou (para testes)
+      .neq('user_id', currentUserId) // Excluir quem está notificando
       .eq('is_active', true);
 
     if (membersError) {
@@ -59,8 +59,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Combinar owner + membros (sem duplicatas)
     const allUserIds = new Set<string>();
 
-    // Adicionar owner
-    if (list.user_id) {
+    // Adicionar owner se não for o currentUserId
+    if (list.user_id && list.user_id !== currentUserId) {
       allUserIds.add(list.user_id);
     }
 
@@ -68,6 +68,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (members && members.length > 0) {
       members.forEach(m => allUserIds.add(m.user_id));
     }
+
+    console.log('[notify-members] Owner user_id:', list.user_id);
+    console.log('[notify-members] Current user_id:', currentUserId);
+    console.log('[notify-members] Members found:', members?.length || 0);
+    console.log('[notify-members] Total unique user IDs to notify:', allUserIds.size);
+    console.log('[notify-members] User IDs:', Array.from(allUserIds));
 
     if (allUserIds.size === 0) {
       return res.status(200).json({
@@ -84,11 +90,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(500).json({ error: 'Failed to fetch users' });
     }
 
+    console.log('[notify-members] Total users in auth:', users.length);
+
     // Filtrar apenas os usuários que são membros da lista
     const memberEmails = users
       .filter(user => allUserIds.has(user.id))
       .map(user => user.email)
       .filter((email): email is string => !!email);
+
+    console.log('[notify-members] Emails to notify:', memberEmails);
 
     if (memberEmails.length === 0) {
       return res.status(200).json({
@@ -97,11 +107,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    // Buscar nome do usuário que está notificando
+    // Buscar nome do usuário que está notificando da tabela user_profiles
+    const { data: currentUserProfile } = await supabase
+      .from('user_profiles')
+      .select('nickname')
+      .eq('user_id', currentUserId)
+      .single();
+
+    // Fallback para auth.users se não encontrar em user_profiles
     const currentUser = users.find(u => u.id === currentUserId);
-    const notifierName = currentUser?.user_metadata?.name ||
+    const notifierName = currentUserProfile?.nickname ||
+                         currentUser?.user_metadata?.name ||
                          currentUser?.email?.split('@')[0] ||
                          'Um membro';
+
+    console.log('[notify-members] Notifier name:', notifierName);
 
     // Enviar emails em paralelo
     const emailPromises = memberEmails.map(email =>
@@ -162,7 +182,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const successCount = results.filter(r => r.status === 'fulfilled').length;
     const failedCount = results.filter(r => r.status === 'rejected').length;
 
-    console.log(`Notifications sent: ${successCount} succeeded, ${failedCount} failed`);
+    // Log detalhado dos resultados
+    console.log(`[notify-members] Email results: ${successCount} succeeded, ${failedCount} failed`);
+    results.forEach((result, index) => {
+      if (result.status === 'rejected') {
+        console.error(`[notify-members] Failed to send email to ${memberEmails[index]}:`, result.reason);
+      } else {
+        console.log(`[notify-members] Successfully sent email to ${memberEmails[index]}`);
+      }
+    });
 
     return res.status(200).json({
       message: 'Notifications sent successfully',
