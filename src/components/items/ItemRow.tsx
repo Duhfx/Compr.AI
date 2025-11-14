@@ -202,6 +202,7 @@ export const ItemRow = ({ item, onToggle, onEdit, onDelete }: ItemRowProps) => {
           <p className="text-[13px] text-gray-500 dark:text-gray-400">
             {item.quantity} {item.unit}
             {item.category && ` · ${item.category}`}
+            {item.checked && item.checkedByUserNickname && ` · comprado por ${item.checkedByUserNickname}`}
           </p>
         </div>
 
