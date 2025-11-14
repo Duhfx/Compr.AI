@@ -140,7 +140,10 @@ export const ItemRow = ({ item, onToggle, onEdit, onDelete }: ItemRowProps) => {
       {/* Delete button background */}
       <motion.button
         onClick={handleDelete}
-        style={{ opacity: isOpen ? 1 : 0 }}
+        style={{
+          opacity: isOpen ? 1 : 0,
+          pointerEvents: isOpen ? 'auto' : 'none'
+        }}
         className="absolute right-0 top-0 bottom-0 w-20 bg-error flex items-center justify-center active:bg-red-700 transition-opacity"
         tabIndex={isOpen ? 0 : -1}
       >
