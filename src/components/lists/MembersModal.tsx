@@ -2,7 +2,7 @@
 // Modal para visualizar e gerenciar membros da lista
 
 import { useState, useEffect } from 'react';
-import { getListMembers, getListOwner, removeMember } from '../../lib/sharing';
+import { getListOwner, removeMember } from '../../lib/sharing';
 import { supabase } from '../../lib/supabase';
 import toast from 'react-hot-toast';
 
