@@ -251,6 +251,12 @@ AGORA SUGIRA até ${maxResults} itens para a solicitação do usuário acima:
 
     console.log('[suggest-items] Calling Gemini API...');
     const result = await model.generateContent(systemPrompt);
+
+    if (!result || !result.response) {
+      console.error('[suggest-items] Invalid Gemini API response:', result);
+      throw new Error('Gemini API returned invalid response');
+    }
+
     const responseText = result.response.text();
     console.log('[suggest-items] Gemini response received, length:', responseText.length);
 

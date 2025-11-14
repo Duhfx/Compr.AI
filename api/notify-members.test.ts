@@ -4,11 +4,13 @@ import handler from './notify-members';
 
 // Mock Resend
 vi.mock('resend', () => ({
-  Resend: vi.fn().mockImplementation(() => ({
-    emails: {
-      send: vi.fn(),
-    },
-  })),
+  Resend: vi.fn(function() {
+    return {
+      emails: {
+        send: vi.fn(),
+      },
+    };
+  }),
 }));
 
 // Mock Supabase
