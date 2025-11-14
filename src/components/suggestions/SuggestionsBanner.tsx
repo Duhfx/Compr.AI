@@ -43,14 +43,14 @@ export const SuggestionsBanner = ({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
-            className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-ios p-4 shadow-sm border border-indigo-100"
+            className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-ios p-4 shadow-sm border border-indigo-100 dark:border-indigo-800"
           >
             <div className="flex items-center justify-center gap-3 py-2">
-              <svg className="animate-spin h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24">
+              <svg className="animate-spin h-6 w-6 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              <span className="text-[15px] font-medium text-indigo-600">Gerando sugestões...</span>
+              <span className="text-[15px] font-medium text-indigo-600 dark:text-indigo-400">Gerando sugestões...</span>
             </div>
           </motion.div>
         )}
@@ -63,7 +63,7 @@ export const SuggestionsBanner = ({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
-            className="bg-red-50 rounded-ios p-4 shadow-sm border border-red-100"
+            className="bg-red-50 dark:bg-red-900/30 rounded-ios p-4 shadow-sm border border-red-100 dark:border-red-800"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -73,17 +73,17 @@ export const SuggestionsBanner = ({
                   </svg>
                 </div>
                 <div>
-                  <h3 className="text-[15px] font-semibold text-red-900">
+                  <h3 className="text-[15px] font-semibold text-red-900 dark:text-red-200">
                     Ops!
                   </h3>
-                  <p className="text-[14px] text-red-700">
+                  <p className="text-[14px] text-red-700 dark:text-red-300">
                     {error.message}
                   </p>
                 </div>
               </div>
               <button
                 onClick={onDismiss}
-                className="p-2 text-red-400 hover:bg-red-100 rounded-lg active:opacity-70 transition-colors"
+                className="p-2 text-red-400 hover:bg-red-100 dark:hover:bg-red-800/50 rounded-lg active:opacity-70 transition-colors"
                 title="Fechar"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -102,7 +102,7 @@ export const SuggestionsBanner = ({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
-            className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-ios p-4 shadow-sm border border-indigo-100"
+            className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-ios p-4 shadow-sm border border-indigo-100 dark:border-indigo-800"
           >
             {/* Header */}
             <div className="flex items-center justify-between mb-3">
@@ -113,10 +113,10 @@ export const SuggestionsBanner = ({
                   </svg>
                 </div>
                 <div>
-                  <h3 className="text-[15px] font-semibold text-gray-900">
+                  <h3 className="text-[15px] font-semibold text-gray-900 dark:text-white">
                     Sugestões para você
                   </h3>
-                  <p className="text-[13px] text-gray-500">
+                  <p className="text-[13px] text-gray-500 dark:text-gray-400">
                     {suggestions.length} {suggestions.length === 1 ? 'sugestão' : 'sugestões'}
                   </p>
                 </div>
@@ -126,7 +126,7 @@ export const SuggestionsBanner = ({
                 {/* Refresh Button */}
                 <button
                   onClick={onFetchSuggestions}
-                  className="p-2 text-indigo-600 hover:bg-indigo-100 rounded-lg active:opacity-70 transition-colors"
+                  className="p-2 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-800/50 rounded-lg active:opacity-70 transition-colors"
                   title="Atualizar sugestões"
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -137,7 +137,7 @@ export const SuggestionsBanner = ({
                 {/* Dismiss Button */}
                 <button
                   onClick={onDismiss}
-                  className="p-2 text-gray-400 hover:bg-gray-100 rounded-lg active:opacity-70 transition-colors"
+                  className="p-2 text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg active:opacity-70 transition-colors"
                   title="Dispensar sugestões"
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -155,21 +155,21 @@ export const SuggestionsBanner = ({
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="bg-white rounded-lg p-3 shadow-sm border border-gray-100 hover:border-indigo-200 transition-colors"
+                  className="bg-white dark:bg-gray-800 rounded-lg p-3 shadow-sm border border-gray-100 dark:border-gray-700 hover:border-indigo-200 dark:hover:border-indigo-700 transition-colors"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="text-[15px] font-medium text-gray-900">
+                        <span className="text-[15px] font-medium text-gray-900 dark:text-white">
                           {suggestion.name}
                         </span>
                         {suggestion.category && (
-                          <span className="text-[12px] px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full">
+                          <span className="text-[12px] px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-full">
                             {suggestion.category}
                           </span>
                         )}
                       </div>
-                      <div className="text-[13px] text-gray-500 mt-0.5">
+                      <div className="text-[13px] text-gray-500 dark:text-gray-400 mt-0.5">
                         {suggestion.quantity} {suggestion.unit}
                       </div>
                     </div>

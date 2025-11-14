@@ -114,7 +114,7 @@ export const ItemRow = ({ item, onToggle, onEdit, onDelete }: ItemRowProps) => {
   };
 
   return (
-    <div className="relative bg-white overflow-hidden border-b border-gray-150">
+    <div className="relative bg-white dark:bg-gray-800 overflow-hidden border-b border-gray-150 dark:border-gray-700">
       {/* Delete button background */}
       <motion.button
         onClick={handleDelete}
@@ -141,7 +141,7 @@ export const ItemRow = ({ item, onToggle, onEdit, onDelete }: ItemRowProps) => {
       <motion.div
         {...(bind() as any)}
         style={{ x: xSpring }}
-        className="flex items-center gap-3 px-4 py-3 bg-white touch-pan-y"
+        className="flex items-center gap-3 px-4 py-3 bg-white dark:bg-gray-800 touch-pan-y"
       >
         {/* iOS-style checkbox */}
         <button
@@ -149,7 +149,7 @@ export const ItemRow = ({ item, onToggle, onEdit, onDelete }: ItemRowProps) => {
           className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
             item.checked
               ? 'bg-primary border-primary'
-              : 'border-gray-300 bg-white'
+              : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700'
           }`}
         >
           {item.checked && (
@@ -172,12 +172,12 @@ export const ItemRow = ({ item, onToggle, onEdit, onDelete }: ItemRowProps) => {
         <div onClick={handleEdit} className="flex-1 cursor-pointer min-w-0">
           <h4
             className={`text-[17px] truncate ${
-              item.checked ? 'line-through text-gray-400' : 'text-gray-900'
+              item.checked ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gray-900 dark:text-white'
             }`}
           >
             {item.name}
           </h4>
-          <p className="text-[13px] text-gray-500">
+          <p className="text-[13px] text-gray-500 dark:text-gray-400">
             {item.quantity} {item.unit}
             {item.category && ` · ${item.category}`}
           </p>
@@ -185,7 +185,7 @@ export const ItemRow = ({ item, onToggle, onEdit, onDelete }: ItemRowProps) => {
 
         {/* Info chevron */}
         <svg
-          className="w-5 h-5 text-gray-300 flex-shrink-0"
+          className="w-5 h-5 text-gray-300 dark:text-gray-600 flex-shrink-0"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"

@@ -107,22 +107,22 @@ export const ItemModal = ({ isOpen, item, onClose, onSave }: ItemModalProps) => 
             animate={{ y: y }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className="fixed bottom-0 left-0 right-0 bg-white rounded-t-[20px] z-50 max-w-screen-sm mx-auto shadow-ios-lg safe-bottom"
+            className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 rounded-t-[20px] z-50 max-w-screen-sm mx-auto shadow-ios-lg safe-bottom"
           >
             {/* Handle */}
             <div {...bind()} className="flex justify-center pt-3 pb-2 cursor-grab active:cursor-grabbing">
-              <div className="w-10 h-1 bg-gray-300 rounded-full" />
+              <div className="w-10 h-1 bg-gray-300 dark:bg-gray-600 rounded-full" />
             </div>
 
             <div className="px-4 pb-6">
-              <h2 className="text-[20px] font-semibold text-center mb-6">
+              <h2 className="text-[20px] font-semibold text-center mb-6 dark:text-white">
                 {item ? 'Editar Item' : 'Adicionar Item'}
               </h2>
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Name Input */}
                 <div>
-                  <label htmlFor="name" className="block text-[13px] font-medium text-gray-500 mb-1 ml-3">
+                  <label htmlFor="name" className="block text-[13px] font-medium text-gray-500 dark:text-gray-400 mb-1 ml-3">
                     Nome do Produto
                   </label>
                   <input
@@ -130,7 +130,7 @@ export const ItemModal = ({ isOpen, item, onClose, onSave }: ItemModalProps) => 
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-100 rounded-ios text-[17px] focus:outline-none focus:bg-gray-150 transition-colors"
+                    className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-ios text-[17px] focus:outline-none focus:bg-gray-150 dark:focus:bg-gray-600 transition-colors"
                     placeholder="Ex: Arroz integral"
                     required
                     autoFocus
@@ -140,7 +140,7 @@ export const ItemModal = ({ isOpen, item, onClose, onSave }: ItemModalProps) => 
                 {/* Quantity and Unit */}
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label htmlFor="quantity" className="block text-[13px] font-medium text-gray-500 mb-1 ml-3">
+                    <label htmlFor="quantity" className="block text-[13px] font-medium text-gray-500 dark:text-gray-400 mb-1 ml-3">
                       Quantidade
                     </label>
                     <input
@@ -150,19 +150,19 @@ export const ItemModal = ({ isOpen, item, onClose, onSave }: ItemModalProps) => 
                       step="0.01"
                       value={quantity}
                       onChange={(e) => setQuantity(parseFloat(e.target.value) || 1)}
-                      className="w-full px-4 py-3 bg-gray-100 rounded-ios text-[17px] focus:outline-none focus:bg-gray-150 transition-colors"
+                      className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 dark:text-white rounded-ios text-[17px] focus:outline-none focus:bg-gray-150 dark:focus:bg-gray-600 transition-colors"
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="unit" className="block text-[13px] font-medium text-gray-500 mb-1 ml-3">
+                    <label htmlFor="unit" className="block text-[13px] font-medium text-gray-500 dark:text-gray-400 mb-1 ml-3">
                       Unidade
                     </label>
                     <select
                       id="unit"
                       value={unit}
                       onChange={(e) => setUnit(e.target.value)}
-                      className="w-full px-4 py-3 bg-gray-100 rounded-ios text-[17px] focus:outline-none focus:bg-gray-150 transition-colors"
+                      className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 dark:text-white rounded-ios text-[17px] focus:outline-none focus:bg-gray-150 dark:focus:bg-gray-600 transition-colors"
                     >
                       {UNITS.map(u => (
                         <option key={u} value={u}>{u}</option>
@@ -173,14 +173,14 @@ export const ItemModal = ({ isOpen, item, onClose, onSave }: ItemModalProps) => 
 
                 {/* Category */}
                 <div>
-                  <label htmlFor="category" className="block text-[13px] font-medium text-gray-500 mb-1 ml-3">
+                  <label htmlFor="category" className="block text-[13px] font-medium text-gray-500 dark:text-gray-400 mb-1 ml-3">
                     Categoria
                   </label>
                   <select
                     id="category"
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-100 rounded-ios text-[17px] focus:outline-none focus:bg-gray-150 transition-colors"
+                    className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 dark:text-white rounded-ios text-[17px] focus:outline-none focus:bg-gray-150 dark:focus:bg-gray-600 transition-colors"
                   >
                     <option value="">Nenhuma</option>
                     {CATEGORIES.map(cat => (
@@ -194,7 +194,7 @@ export const ItemModal = ({ isOpen, item, onClose, onSave }: ItemModalProps) => 
                   <button
                     type="button"
                     onClick={onClose}
-                    className="flex-1 h-12 rounded-ios text-[17px] font-semibold text-primary border-2 border-primary hover:bg-primary hover:bg-opacity-5 transition-colors"
+                    className="flex-1 h-12 rounded-ios text-[17px] font-semibold text-primary border-2 border-primary hover:bg-primary hover:bg-opacity-5 dark:hover:bg-opacity-10 transition-colors"
                   >
                     Cancelar
                   </button>
