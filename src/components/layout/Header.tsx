@@ -2,8 +2,9 @@ import { useOfflineStatus } from '../../hooks/useOfflineStatus';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
-import { Sun, Moon } from 'lucide-react';
+import { Sun, Moon, User } from 'lucide-react';
 import { useState } from 'react';
+import { UserProfileModal } from '../user/UserProfileModal';
 
 export const Header = () => {
   const { isOffline } = useOfflineStatus();
@@ -12,6 +13,7 @@ export const Header = () => {
   const { user, signOut } = useAuth();
   const { setTheme, resolvedTheme } = useTheme();
   const [showMenu, setShowMenu] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
 
   // Simple title based on route
   const getTitle = () => {
@@ -31,6 +33,11 @@ export const Header = () => {
 
   const toggleTheme = () => {
     setTheme(resolvedTheme === 'dark' ? 'light' : 'dark');
+  };
+
+  const handleOpenProfile = () => {
+    setShowMenu(false);
+    setShowProfileModal(true);
   };
 
   return (
@@ -85,8 +92,15 @@ export const Header = () => {
                       <p className="text-[15px] font-medium text-gray-900 dark:text-white truncate">{user.email}</p>
                     </div>
                     <button
+                      onClick={handleOpenProfile}
+                      className="w-full px-3 py-2 text-left text-[15px] text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600 flex items-center gap-2"
+                    >
+                      <User className="w-4 h-4" />
+                      Meu Perfil
+                    </button>
+                    <button
                       onClick={handleLogout}
-                      className="w-full px-3 py-2 text-left text-[15px] text-red-600 dark:text-red-400 hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600"
+                      className="w-full px-3 py-2 text-left text-[15px] text-red-600 dark:text-red-400 hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600 border-t border-gray-100 dark:border-gray-700"
                     >
                       Sair
                     </button>
@@ -107,6 +121,12 @@ export const Header = () => {
           )}
         </div>
       </div>
+
+      {/* User Profile Modal */}
+      <UserProfileModal
+        isOpen={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+      />
     </header>
   );
 };

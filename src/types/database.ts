@@ -178,6 +178,43 @@ export interface Database {
           created_at?: string;
         };
       };
+      user_profiles: {
+        Row: {
+          user_id: string;
+          nickname: string;
+          avatar_url: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          nickname: string;
+          avatar_url?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          nickname?: string;
+          avatar_url?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+    };
+    Views: {
+      list_members_with_names: {
+        Row: {
+          id: string;
+          list_id: string;
+          user_id: string;
+          joined_at: string;
+          last_seen_at: string | null;
+          is_active: boolean;
+          nickname: string;
+          avatar_url: string | null;
+        };
+      };
     };
   };
 }

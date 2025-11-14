@@ -5,6 +5,7 @@
 import { useState, useEffect } from 'react';
 import { db } from '../lib/db';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
 
 export const useDeviceId = (): string => {
   const [deviceId, setDeviceId] = useState<string>('');
@@ -28,6 +29,36 @@ export const useDeviceId = (): string => {
         if (user) {
           console.log('[useDeviceId] Using authenticated user ID:', user.id);
           setDeviceId(user.id);
+
+          // Check if profile exists in Supabase, create if not
+          try {
+            const { data: existingProfile } = await supabase
+              .from('user_profiles')
+              .select('user_id')
+              .eq('user_id', user.id)
+              .single();
+
+            if (!existingProfile) {
+              // Create profile for authenticated user
+              const defaultNickname = user.email?.split('@')[0] || `Usuário ${new Date().toLocaleDateString()}`;
+
+              const { error: profileError } = await supabase
+                .from('user_profiles')
+                .insert({
+                  user_id: user.id,
+                  nickname: defaultNickname,
+                });
+
+              if (profileError) {
+                console.warn('[useDeviceId] Failed to create profile for authenticated user:', profileError);
+              } else {
+                console.log('[useDeviceId] Profile created for authenticated user');
+              }
+            }
+          } catch (err) {
+            console.warn('[useDeviceId] Error checking/creating profile for authenticated user:', err);
+          }
+
           return;
         }
 
@@ -42,13 +73,33 @@ export const useDeviceId = (): string => {
         } else {
           // Create new device ID
           const newDeviceId = crypto.randomUUID();
+          const defaultNickname = `Dispositivo ${new Date().toLocaleDateString()}`;
           console.log('[useDeviceId] Creating new device ID:', newDeviceId);
 
+          // Save to IndexedDB
           await db.userDevice.add({
             userId: newDeviceId,
-            nickname: `Dispositivo ${new Date().toLocaleDateString()}`,
+            nickname: defaultNickname,
             lastSyncAt: new Date()
           });
+
+          // Create user profile in Supabase
+          try {
+            const { error: profileError } = await supabase
+              .from('user_profiles')
+              .insert({
+                user_id: newDeviceId,
+                nickname: defaultNickname,
+              });
+
+            if (profileError) {
+              console.warn('[useDeviceId] Failed to create profile in Supabase:', profileError);
+            } else {
+              console.log('[useDeviceId] Profile created in Supabase');
+            }
+          } catch (err) {
+            console.warn('[useDeviceId] Error creating profile in Supabase:', err);
+          }
 
           setDeviceId(newDeviceId);
         }
