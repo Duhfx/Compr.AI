@@ -19,6 +19,7 @@ export interface ShoppingItem {
   unit: string;
   category?: string;
   checked: boolean;
+  checkedByUserNickname?: string; // Nickname de quem marcou como comprado
   deleted: boolean;
   deletedAt?: Date;
   createdAt: Date;
@@ -59,7 +60,10 @@ export const useSupabaseItems = (listId: string) => {
 
       const { data, error } = await supabase
         .from('shopping_items')
-        .select('*')
+        .select(`
+          *,
+          checked_by_profile:user_profiles!shopping_items_checked_by_user_id_fkey(nickname)
+        `)
         .eq('list_id', listId)
         .eq('deleted', false) // Only load non-deleted items
         .order('created_at', { ascending: true });
@@ -72,7 +76,7 @@ export const useSupabaseItems = (listId: string) => {
       console.log('[useSupabaseItems] Loaded items:', data?.length || 0);
 
       // Converter para formato do frontend
-      const formattedItems: ShoppingItem[] = (data || []).map((item: ShoppingItemRow) => ({
+      const formattedItems: ShoppingItem[] = (data || []).map((item: any) => ({
         id: item.id,
         listId: item.list_id,
         name: item.name,
@@ -80,6 +84,7 @@ export const useSupabaseItems = (listId: string) => {
         unit: item.unit,
         category: item.category || undefined,
         checked: item.checked,
+        checkedByUserNickname: item.checked_by_profile?.nickname,
         deleted: item.deleted || false,
         deletedAt: item.deleted_at ? new Date(item.deleted_at) : undefined,
         createdAt: new Date(item.created_at),
@@ -160,10 +165,22 @@ export const useSupabaseItems = (listId: string) => {
           table: 'shopping_items',
           filter: `list_id=eq.${listId}`,
         },
-        (payload) => {
+        async (payload) => {
           const updatedItem = payload.new as ShoppingItemRow;
 
           console.log('[useSupabaseItems] Realtime UPDATE:', updatedItem.name, 'deleted:', updatedItem.deleted);
+
+          // Buscar nickname se foi marcado como comprado
+          let checkedByUserNickname: string | undefined = undefined;
+          if (updatedItem.checked && updatedItem.checked_by_user_id) {
+            const { data: profileData } = await supabase
+              .from('user_profiles')
+              .select('nickname')
+              .eq('user_id', updatedItem.checked_by_user_id)
+              .single();
+
+            checkedByUserNickname = profileData?.nickname;
+          }
 
           setItems(currentItems => {
             // Se foi marcado como deletado, remover da lista
@@ -171,22 +188,34 @@ export const useSupabaseItems = (listId: string) => {
               return currentItems.filter(item => item.id !== updatedItem.id);
             }
 
-            // Caso contrário, atualizar o item
-            return currentItems.map(item =>
-              item.id === updatedItem.id
-                ? {
-                    ...item,
-                    name: updatedItem.name,
-                    quantity: updatedItem.quantity,
-                    unit: updatedItem.unit,
-                    category: updatedItem.category || undefined,
-                    checked: updatedItem.checked,
-                    deleted: updatedItem.deleted || false,
-                    deletedAt: updatedItem.deleted_at ? new Date(updatedItem.deleted_at) : undefined,
-                    updatedAt: new Date(updatedItem.updated_at),
-                  }
-                : item
-            );
+            // Verificar se o item já existe na lista
+            const existingItemIndex = currentItems.findIndex(item => item.id === updatedItem.id);
+
+            const formattedItem: ShoppingItem = {
+              id: updatedItem.id,
+              listId: updatedItem.list_id,
+              name: updatedItem.name,
+              quantity: updatedItem.quantity,
+              unit: updatedItem.unit,
+              category: updatedItem.category || undefined,
+              checked: updatedItem.checked,
+              checkedByUserNickname,
+              deleted: updatedItem.deleted || false,
+              deletedAt: updatedItem.deleted_at ? new Date(updatedItem.deleted_at) : undefined,
+              createdAt: new Date(updatedItem.created_at),
+              updatedAt: new Date(updatedItem.updated_at),
+            };
+
+            if (existingItemIndex >= 0) {
+              // Item existe: atualizar
+              return currentItems.map(item =>
+                item.id === updatedItem.id ? formattedItem : item
+              );
+            } else {
+              // Item não existe: foi restaurado, adicionar à lista
+              console.log('[useSupabaseItems] Realtime RESTORE:', updatedItem.name);
+              return [...currentItems, formattedItem];
+            }
           });
         }
       )
@@ -346,10 +375,61 @@ export const useSupabaseItems = (listId: string) => {
 
   // Toggle checked status
   const toggleItem = async (id: string): Promise<void> => {
+    if (!user) {
+      throw new Error('Usuário não autenticado');
+    }
+
     const item = items.find(i => i.id === id);
     if (!item) return;
 
-    await updateItem(id, { checked: !item.checked });
+    const newCheckedState = !item.checked;
+
+    try {
+      console.log('[useSupabaseItems] Toggling item:', id, 'new checked state:', newCheckedState);
+
+      // Atualizar no banco incluindo quem marcou
+      const { error } = await supabase
+        .from('shopping_items')
+        .update({
+          checked: newCheckedState,
+          checked_by_user_id: newCheckedState ? user.id : null, // Salva quem marcou, ou limpa se desmarcar
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', id);
+
+      if (error) {
+        console.error('[useSupabaseItems] Error toggling item:', error);
+        throw error;
+      }
+
+      // Buscar nickname do usuário para atualizar localmente
+      let checkedByUserNickname: string | undefined = undefined;
+      if (newCheckedState) {
+        const { data: profileData } = await supabase
+          .from('user_profiles')
+          .select('nickname')
+          .eq('user_id', user.id)
+          .single();
+
+        checkedByUserNickname = profileData?.nickname;
+      }
+
+      // Atualizar na lista local
+      setItems(items.map(i =>
+        i.id === id
+          ? {
+              ...i,
+              checked: newCheckedState,
+              checkedByUserNickname,
+              updatedAt: new Date()
+            }
+          : i
+      ));
+    } catch (err) {
+      const error = err as Error;
+      setError(error);
+      throw error;
+    }
   };
 
   // Deletar item (soft delete)
