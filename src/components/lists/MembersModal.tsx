@@ -2,7 +2,8 @@
 // Modal para visualizar e gerenciar membros da lista
 
 import { useState, useEffect } from 'react';
-import { getListMembers, getListOwner, removeMember } from '../../lib/sharing';
+import { getListOwner, removeMember } from '../../lib/sharing';
+import { supabase } from '../../lib/supabase';
 import toast from 'react-hot-toast';
 
 interface Member {
@@ -10,6 +11,7 @@ interface Member {
   userId: string;
   joinedAt: Date;
   lastSeenAt?: Date;
+  nickname?: string;
 }
 
 interface MembersModalProps {
@@ -29,6 +31,7 @@ export const MembersModal: React.FC<MembersModalProps> = ({
 }) => {
   const [members, setMembers] = useState<Member[]>([]);
   const [ownerId, setOwnerId] = useState<string | null>(null);
+  const [ownerNickname, setOwnerNickname] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [removingId, setRemovingId] = useState<string | null>(null);
 
@@ -41,13 +44,47 @@ export const MembersModal: React.FC<MembersModalProps> = ({
     const loadData = async () => {
       try {
         setLoading(true);
-        const [membersData, ownerData] = await Promise.all([
-          getListMembers(listId),
-          getListOwner(listId),
-        ]);
+
+        // Buscar membros com nicknames da view
+        const { data: membersWithNames, error: membersError } = await supabase
+          .from('list_members_with_names')
+          .select('*')
+          .eq('list_id', listId)
+          .eq('is_active', true)
+          .order('joined_at', { ascending: true });
+
+        if (membersError) {
+          console.error('Error loading members:', membersError);
+          throw membersError;
+        }
+
+        // Converter para formato Member
+        const membersData: Member[] = (membersWithNames || []).map(m => ({
+          id: m.id,
+          userId: m.user_id,
+          joinedAt: new Date(m.joined_at),
+          lastSeenAt: m.last_seen_at ? new Date(m.last_seen_at) : undefined,
+          nickname: m.nickname || undefined,
+        }));
+
+        // Buscar dono da lista
+        const ownerData = await getListOwner(listId);
+
+        // Buscar nickname do dono
+        let ownerNick = null;
+        if (ownerData) {
+          const { data: ownerProfile } = await supabase
+            .from('user_profiles')
+            .select('nickname')
+            .eq('user_id', ownerData)
+            .single();
+
+          ownerNick = ownerProfile?.nickname || null;
+        }
 
         setMembers(membersData);
         setOwnerId(ownerData);
+        setOwnerNickname(ownerNick);
       } catch (error) {
         console.error('Error loading members:', error);
         toast.error('Erro ao carregar membros');
@@ -142,10 +179,15 @@ export const MembersModal: React.FC<MembersModalProps> = ({
                     </div>
                     <div>
                       <p className="text-[15px] font-semibold text-gray-900 dark:text-white">
-                        {ownerId === currentUserId ? 'Você (Dono)' : 'Dono da Lista'}
+                        {ownerNickname || 'Dono da Lista'}
                       </p>
-                      <p className="text-[13px] text-gray-600 dark:text-gray-400 font-mono">
-                        {formatUserId(ownerId || '')}
+                      {ownerId === currentUserId && (
+                        <p className="text-[12px] text-primary dark:text-primary-400">
+                          Você
+                        </p>
+                      )}
+                      <p className="text-[13px] text-gray-500 dark:text-gray-500 font-mono text-xs">
+                        ID: {formatUserId(ownerId || '')}
                       </p>
                     </div>
                   </div>
@@ -187,10 +229,15 @@ export const MembersModal: React.FC<MembersModalProps> = ({
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-[15px] font-medium text-gray-900 dark:text-white">
-                              {isCurrentUser ? 'Você' : 'Membro'}
+                              {member.nickname || 'Usuário Anônimo'}
                             </p>
-                            <p className="text-[13px] text-gray-600 dark:text-gray-400 font-mono truncate">
-                              {formatUserId(member.userId)}
+                            {isCurrentUser && (
+                              <p className="text-[12px] text-primary dark:text-primary-400">
+                                Você
+                              </p>
+                            )}
+                            <p className="text-[13px] text-gray-500 dark:text-gray-500 font-mono text-xs truncate">
+                              ID: {formatUserId(member.userId)}
                             </p>
                             <p className="text-[12px] text-gray-500 dark:text-gray-400 mt-1">
                               Entrou {formatDate(member.joinedAt)}
