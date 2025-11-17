@@ -3,6 +3,7 @@ import { compressImage, blobToBase64, isValidImage, formatFileSize } from '../..
 
 interface ImageCaptureProps {
   onCapture: (imageBase64: string) => void;
+  onCancel?: () => void;
 }
 
 /**
