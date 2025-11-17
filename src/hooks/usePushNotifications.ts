@@ -151,6 +151,21 @@ export const usePushNotifications = () => {
         throw new Error('VAPID key inválida. Formato incorreto.');
       }
 
+      // Verificar se já existe subscription anterior
+      const existingSubscription = await registration.pushManager.getSubscription();
+      if (existingSubscription) {
+        console.warn('[usePushNotifications] Subscription anterior encontrada, removendo...');
+        try {
+          await existingSubscription.unsubscribe();
+          console.log('[usePushNotifications] Subscription anterior removida');
+        } catch (unsubError) {
+          console.error('[usePushNotifications] Erro ao remover subscription anterior:', unsubError);
+        }
+      }
+
+      console.log('[usePushNotifications] Iniciando subscribe com pushManager...');
+      console.log('[usePushNotifications] Permissão:', Notification.permission);
+
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey,
