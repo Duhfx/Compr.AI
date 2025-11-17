@@ -4001,3 +4001,147 @@ Sistema de push notifications completo e production-ready que:
 **Linhas de Código:** 850+
 
 **Documento atualizado em:** 17/11/2025 às 02:30
+
+---
+
+### 9. **Push Notifications (Web Push)** ✓
+
+**Data de Implementação:** 17/11/2025
+
+**Arquivos Principais:**
+- `src/hooks/usePushNotifications.ts` - Hook principal para gerenciar push
+- `src/components/notifications/PushNotificationsManager.tsx` - Gerenciador de onboarding
+- `src/components/notifications/PushOnboardingModal.tsx` - Modal de primeira vez
+- `public/sw-push.js` - Event listeners do Service Worker
+- `api/notify-members.ts` - Backend para envio de notificações
+
+**Fluxo Técnico:**
+1. **Onboarding:** Modal aparece no primeiro login do usuário
+2. **Registro:** Service Worker cria PushSubscription com VAPID keys
+3. **Persistência:** Subscription salva em `user_profiles.push_subscription` (JSONB)
+4. **Envio:** API `/api/notify-members` envia notificações via web-push
+5. **Recebimento:** Service Worker exibe notificação nativa
+6. **Interação:** Clique na notificação abre app na lista correta
+
+**Recursos Implementados:**
+- ✅ Detecção automática de suporte do browser
+- ✅ Detecção de iOS e modo standalone (PWA instalado)
+- ✅ Modal de onboarding com UX nativa iOS
+- ✅ Conversão de VAPID key (base64 → Uint8Array)
+- ✅ Salvamento de subscription no Supabase
+- ✅ Remoção de subscriptions expiradas (erro 410)
+- ✅ Fallback para email quando push falha
+- ✅ Click handler para deep linking
+- ✅ Unsubscribe funcional
+
+**Tecnologias:**
+- Push API (W3C)
+- Service Workers
+- Notifications API
+- web-push (servidor VAPID)
+- Web Push Protocol (RFC 8030)
+
+**Variáveis de Ambiente Necessárias:**
+```env
+# Frontend
+VITE_VAPID_PUBLIC_KEY=sua-public-key
+
+# Backend
+VAPID_PUBLIC_KEY=mesma-public-key
+VAPID_PRIVATE_KEY=sua-private-key
+```
+
+**Configuração Supabase:**
+```sql
+ALTER TABLE user_profiles 
+ADD COLUMN IF NOT EXISTS push_subscription JSONB;
+
+CREATE INDEX idx_user_profiles_push_subscription 
+ON user_profiles USING GIN (push_subscription);
+```
+
+**Pontos Fortes:**
+- Tratamento automático de subscriptions expiradas
+- UX nativa iOS com aviso de instalação do PWA
+- Logs detalhados para debugging
+- Fallback para email quando push falha
+- Detecção inteligente de suporte (incluindo iOS)
+
+**Compatibilidade:**
+- Chrome/Edge/Opera: ✅ Suporte completo
+- Firefox: ✅ Suporte completo
+- Safari Desktop: ✅ Suporte completo
+- Safari iOS: ⚠️ Requer PWA instalado
+
+**Localização no Código:**
+```typescript
+// src/hooks/usePushNotifications.ts:101-164
+const requestPermission = useCallback(async (): Promise<boolean> => {
+  // Solicitar permissão
+  const permissionResult = await Notification.requestPermission();
+  
+  // Registrar subscription
+  const subscription = await registration.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+  });
+  
+  // Salvar no Supabase
+  await supabase.from('user_profiles')
+    .update({ push_subscription: subscription.toJSON() })
+    .eq('user_id', user.id);
+});
+```
+
+```typescript
+// api/notify-members.ts:206-234
+const pushPromises = pushSubscriptions.map(async ({ userId, subscription }) => {
+  try {
+    await webpush.sendNotification(subscription, JSON.stringify({
+      title: `📝 ${listName}`,
+      body: `${notifierName} atualizou a lista`,
+      data: { url: `/list/${listId}`, listId, listName }
+    }));
+  } catch (error: any) {
+    // Remove subscriptions expiradas automaticamente
+    if (error?.statusCode === 410) {
+      await supabase.from('user_profiles')
+        .update({ push_subscription: null })
+        .eq('user_id', userId);
+    }
+  }
+});
+```
+
+**Melhorias Futuras Sugeridas:**
+- [ ] Agrupamento de notificações da mesma lista
+- [ ] Notificações com prioridade (urgente vs. normal)
+- [ ] Rich Notifications (imagens, ações)
+- [ ] Histórico de notificações enviadas/recebidas
+- [ ] Preferências por tipo de evento
+- [ ] Rate limiting (evitar spam)
+
+**Testes Recomendados:**
+```bash
+# Build e preview (simula produção)
+npm run build
+npm run preview
+
+# Checklist:
+# - Modal aparece no primeiro login
+# - Permissão é solicitada ao clicar
+# - Subscription salva no Supabase
+# - Notificação chega ao atualizar lista
+# - Clique abre app na lista correta
+# - Funciona com app fechado
+```
+
+**Documentação Adicional:**
+- Ver `PUSH_NOTIFICATIONS_SETUP.md` para guia completo
+- Ver `api/notify-members.test.ts` para checklist de testes
+
+---
+
+**Última Atualização:** 17/11/2025
+**Total de Funcionalidades:** 9
+
