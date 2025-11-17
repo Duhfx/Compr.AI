@@ -3,12 +3,11 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { Layout } from '../components/layout/Layout';
 import { ImageCapture } from '../components/scanner/ImageCapture';
 import { OcrProgress } from '../components/scanner/OcrProgress';
 import { ReceiptPreview } from '../components/scanner/ReceiptPreview';
-import { BottomTabBar } from '../components/layout/BottomTabBar';
 import { useOCR } from '../hooks/useOCR';
 import { useReceiptProcessing } from '../hooks/useReceiptProcessing';
 import type { ProcessedReceipt } from '../hooks/useReceiptProcessing';
@@ -58,40 +57,29 @@ export const Scanner = () => {
     navigate('/history');
   };
 
-  const handleCancel = () => {
+  const handleReset = () => {
     setProcessedData(null);
     setStep('capture');
-    navigate(-1);
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-24">
+    <Layout>
       <Toaster position="top-center" />
 
-      {/* Header */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-        <div className="max-w-screen-sm mx-auto px-4 py-4">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleCancel}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5 text-gray-700 dark:text-gray-300" />
-            </button>
-            <h1 className="text-[20px] font-semibold text-gray-900 dark:text-white">
-              Escanear Nota Fiscal
-            </h1>
-          </div>
+      <div className="px-4 py-4 pb-28">
+        {/* Header */}
+        <div className="mb-6">
+          <h1 className="text-[34px] font-bold text-gray-900 dark:text-white mb-2">
+            Escanear Nota
+          </h1>
+          <p className="text-[17px] text-gray-500 dark:text-gray-400">
+            Capture uma foto da nota fiscal para registrar os preços
+          </p>
         </div>
-      </div>
 
-      {/* Content */}
-      <div className="max-w-screen-sm mx-auto px-4 py-6 pb-28">
+        {/* Content */}
         {step === 'capture' && (
-          <ImageCapture
-            onCapture={handleImageCapture}
-            onCancel={handleCancel}
-          />
+          <ImageCapture onCapture={handleImageCapture} />
         )}
 
         {step === 'processing' && (
@@ -106,13 +94,10 @@ export const Scanner = () => {
             data={processedData}
             userId={user?.id || ''}
             onSuccess={handleSuccess}
-            onCancel={handleCancel}
+            onCancel={handleReset}
           />
         )}
       </div>
-
-      {/* Bottom Tab Bar */}
-      <BottomTabBar />
-    </div>
+    </Layout>
   );
 };

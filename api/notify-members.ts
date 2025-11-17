@@ -1,8 +1,18 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { Resend } from 'resend';
 import { createClient } from '@supabase/supabase-js';
+import webpush from 'web-push';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+
+// Configurar VAPID keys para Web Push
+if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
+  webpush.setVapidDetails(
+    'mailto:noreply@compr-ai.vercel.app',
+    process.env.VAPID_PUBLIC_KEY,
+    process.env.VAPID_PRIVATE_KEY
+  );
+}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Validar método
@@ -100,9 +110,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     console.log('[notify-members] Emails to notify:', memberEmails);
 
-    if (memberEmails.length === 0) {
+    // Buscar push subscriptions dos membros
+    const { data: memberProfiles } = await supabase
+      .from('user_profiles')
+      .select('user_id, push_subscription')
+      .in('user_id', Array.from(allUserIds));
+
+    const pushSubscriptions = (memberProfiles || [])
+      .filter(profile => profile.push_subscription)
+      .map(profile => ({
+        userId: profile.user_id,
+        subscription: profile.push_subscription
+      }));
+
+    console.log('[notify-members] Push subscriptions found:', pushSubscriptions.length);
+
+    if (memberEmails.length === 0 && pushSubscriptions.length === 0) {
       return res.status(200).json({
-        message: 'No valid emails found',
+        message: 'No members to notify',
         notifiedCount: 0
       });
     }
@@ -177,14 +202,40 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       })
     );
 
-    const results = await Promise.allSettled(emailPromises);
+    // Enviar push notifications em paralelo
+    const pushPromises = pushSubscriptions.map(({ subscription }) =>
+      webpush.sendNotification(
+        subscription,
+        JSON.stringify({
+          title: `📝 ${listName}`,
+          body: `${notifierName} atualizou a lista`,
+          icon: '/icons/icon-192.png',
+          badge: '/icons/icon-192.png',
+          data: {
+            url: `/list/${listId}`,
+            listId,
+            listName
+          }
+        })
+      )
+    );
 
-    const successCount = results.filter(r => r.status === 'fulfilled').length;
-    const failedCount = results.filter(r => r.status === 'rejected').length;
+    // Executar emails e push em paralelo
+    const [emailResults, pushResults] = await Promise.all([
+      Promise.allSettled(emailPromises),
+      Promise.allSettled(pushPromises)
+    ]);
+
+    const emailSuccessCount = emailResults.filter(r => r.status === 'fulfilled').length;
+    const emailFailedCount = emailResults.filter(r => r.status === 'rejected').length;
+    const pushSuccessCount = pushResults.filter(r => r.status === 'fulfilled').length;
+    const pushFailedCount = pushResults.filter(r => r.status === 'rejected').length;
 
     // Log detalhado dos resultados
-    console.log(`[notify-members] Email results: ${successCount} succeeded, ${failedCount} failed`);
-    results.forEach((result, index) => {
+    console.log(`[notify-members] Email results: ${emailSuccessCount} succeeded, ${emailFailedCount} failed`);
+    console.log(`[notify-members] Push results: ${pushSuccessCount} succeeded, ${pushFailedCount} failed`);
+
+    emailResults.forEach((result, index) => {
       if (result.status === 'rejected') {
         console.error(`[notify-members] Failed to send email to ${memberEmails[index]}:`, result.reason);
       } else {
@@ -192,11 +243,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     });
 
+    pushResults.forEach((result, index) => {
+      if (result.status === 'rejected') {
+        console.error(`[notify-members] Failed to send push to user ${pushSubscriptions[index].userId}:`, result.reason);
+      } else {
+        console.log(`[notify-members] Successfully sent push to user ${pushSubscriptions[index].userId}`);
+      }
+    });
+
+    const totalNotified = emailSuccessCount + pushSuccessCount;
+
     return res.status(200).json({
       message: 'Notifications sent successfully',
-      notifiedCount: successCount,
-      failedCount,
-      totalMembers: memberEmails.length
+      notifiedCount: totalNotified,
+      emailsSent: emailSuccessCount,
+      pushSent: pushSuccessCount,
+      emailsFailed: emailFailedCount,
+      pushFailed: pushFailedCount,
+      totalMembers: allUserIds.size
     });
 
   } catch (error) {

@@ -3,12 +3,11 @@ import { compressImage, blobToBase64, isValidImage, formatFileSize } from '../..
 
 interface ImageCaptureProps {
   onCapture: (imageBase64: string) => void;
-  onCancel: () => void;
 }
 
 /**
  * Componente para captura de imagem de nota fiscal
- * 
+ *
  * Permite:
  * - Tirar foto via câmera (mobile)
  * - Upload de arquivo (desktop)
@@ -16,8 +15,7 @@ interface ImageCaptureProps {
  * - Compressão automática
  */
 export const ImageCapture: React.FC<ImageCaptureProps> = ({
-  onCapture,
-  onCancel
+  onCapture
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -76,8 +74,6 @@ export const ImageCapture: React.FC<ImageCaptureProps> = ({
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-bold text-gray-900 dark:text-white">Escanear Nota Fiscal</h2>
-
       {!preview ? (
         <div className="space-y-4">
           <input
@@ -92,19 +88,19 @@ export const ImageCapture: React.FC<ImageCaptureProps> = ({
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={loading}
-            className="w-full bg-indigo-600 text-white py-4 px-6 rounded-lg font-semibold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full bg-primary text-white py-4 px-6 rounded-ios font-semibold text-[17px] hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95"
           >
             {loading ? 'Processando imagem...' : 'Capturar ou Selecionar Imagem'}
           </button>
 
-          <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
-            Tire uma foto ou selecione uma imagem da galeria com a nota fiscal
+          <p className="text-[15px] text-gray-500 dark:text-gray-400 text-center">
+            Tire uma foto ou selecione uma imagem da galeria
           </p>
         </div>
       ) : (
         <div className="space-y-4">
           {/* Preview da imagem */}
-          <div className="border-2 border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden">
+          <div className="border-2 border-gray-200 dark:border-gray-700 rounded-2xl overflow-hidden shadow-sm">
             <img
               src={preview}
               alt="Preview da nota fiscal"
@@ -114,37 +110,29 @@ export const ImageCapture: React.FC<ImageCaptureProps> = ({
 
           {/* Info do arquivo */}
           {fileInfo && (
-            <div className="text-sm text-gray-600 dark:text-gray-400 text-center">
-              <p>{fileInfo.name}</p>
+            <div className="text-[13px] text-gray-500 dark:text-gray-400 text-center space-y-1">
+              <p className="font-medium">{fileInfo.name}</p>
               <p>{fileInfo.size}</p>
             </div>
           )}
 
           {/* Ações */}
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <button
               onClick={handleRetake}
-              className="flex-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 py-3 px-4 rounded-lg font-semibold hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+              className="flex-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 py-3 px-4 rounded-ios font-semibold text-[17px] hover:bg-gray-200 dark:hover:bg-gray-600 transition-all active:scale-95"
             >
               Selecionar Outra
             </button>
             <button
               onClick={handleConfirm}
-              className="flex-1 bg-indigo-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-indigo-700 transition-colors"
+              className="flex-1 bg-primary text-white py-3 px-4 rounded-ios font-semibold text-[17px] hover:bg-opacity-90 transition-all active:scale-95"
             >
-              Processar Nota Fiscal
+              Processar
             </button>
           </div>
         </div>
       )}
-
-      {/* Botão cancelar */}
-      <button
-        onClick={onCancel}
-        className="w-full text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 py-2 transition-colors"
-      >
-        Cancelar
-      </button>
     </div>
   );
 };

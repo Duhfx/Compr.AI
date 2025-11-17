@@ -3,10 +3,11 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Save, Loader2, ArrowLeft, LogOut } from 'lucide-react';
+import { User, Save, Loader2, ArrowLeft, LogOut, Bell, BellOff } from 'lucide-react';
 import { useUserProfile } from '../hooks/useUserProfile';
 import { useDeviceId } from '../hooks/useDeviceId';
 import { useAuth } from '../contexts/AuthContext';
+import { usePushNotifications } from '../hooks/usePushNotifications';
 import { BottomTabBar } from '../components/layout/BottomTabBar';
 import toast, { Toaster } from 'react-hot-toast';
 
@@ -15,6 +16,14 @@ export const Profile = () => {
   const deviceId = useDeviceId();
   const { profile, loading: profileLoading, updateProfile } = useUserProfile();
   const { signOut } = useAuth();
+  const {
+    isSupported: pushSupported,
+    isSubscribed: pushEnabled,
+    loading: pushLoading,
+    requestPermission,
+    unsubscribe,
+    isDenied: pushDenied,
+  } = usePushNotifications();
 
   const [nickname, setNickname] = useState('');
   const [saving, setSaving] = useState(false);
@@ -52,6 +61,29 @@ export const Profile = () => {
       toast.error('Erro ao salvar perfil');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleTogglePushNotifications = async () => {
+    try {
+      if (pushEnabled) {
+        // Desativar
+        const success = await unsubscribe();
+        if (success) {
+          toast.success('Notificações desativadas');
+        }
+      } else {
+        // Ativar
+        const success = await requestPermission();
+        if (success) {
+          toast.success('Notificações ativadas!');
+        } else {
+          toast.error('Não foi possível ativar as notificações');
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao alternar notificações:', error);
+      toast.error('Erro ao alterar configuração');
     }
   };
 
@@ -136,6 +168,47 @@ export const Profile = () => {
             Este nome será exibido para outros membros das listas compartilhadas
           </p>
         </div>
+
+        {/* Push Notifications Card */}
+        {pushSupported && (
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 border border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-3">
+                {pushEnabled ? (
+                  <Bell className="w-5 h-5 text-primary" />
+                ) : (
+                  <BellOff className="w-5 h-5 text-gray-400" />
+                )}
+                <div>
+                  <h3 className="text-[15px] font-semibold text-gray-900 dark:text-white">
+                    Notificações Push
+                  </h3>
+                  <p className="text-[13px] text-gray-500 dark:text-gray-400">
+                    {pushEnabled ? 'Ativadas' : 'Desativadas'}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={handleTogglePushNotifications}
+                disabled={pushLoading || pushDenied}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${
+                  pushEnabled ? 'bg-primary' : 'bg-gray-200 dark:bg-gray-700'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    pushEnabled ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              {pushDenied
+                ? 'Permissão negada. Ative nas configurações do navegador.'
+                : 'Receba avisos quando alguém atualizar suas listas compartilhadas'}
+            </p>
+          </div>
+        )}
 
         {/* Error Message */}
         {error && (

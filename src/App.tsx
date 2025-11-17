@@ -3,6 +3,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { ListsProvider } from './contexts/ListsContext';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { PushNotificationsManager } from './components/notifications/PushNotificationsManager';
 import { Landing } from './pages/Landing';
 import { Home } from './pages/Home';
 import { ListDetail } from './pages/ListDetail';
@@ -20,6 +21,8 @@ function App() {
         <AuthProvider>
           {/* ✅ ListsProvider para cache global de listas */}
           <ListsProvider>
+            {/* ✅ PushNotificationsManager para solicitar permissão no primeiro login */}
+            <PushNotificationsManager />
             <Routes>
             {/* Public routes */}
             <Route path="/" element={<Landing />} />
