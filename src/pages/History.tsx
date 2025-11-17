@@ -21,12 +21,22 @@ export const History = () => {
   const [showScanner, setShowScanner] = useState(false);
   const [expandedReceipts, setExpandedReceipts] = useState<Set<string>>(new Set());
 
-  const { history, loading: purchasesLoading } = usePurchaseHistory(user?.id || '');
-  const { receipts, loading: receiptsLoading } = useReceiptHistory(user?.id || '');
+  const { history, loading: purchasesLoading, refetch: refetchPurchases } = usePurchaseHistory(user?.id || '');
+  const { receipts, loading: receiptsLoading, refetch: refetchReceipts } = useReceiptHistory(user?.id || '');
 
-  const refreshHistory = () => {
-    // Force re-render by navigating to same route
-    window.location.reload();
+  // ✅ Refresh inteligente - atualiza estado ao invés de reload
+  const refreshHistory = async () => {
+    toast.loading('Atualizando histórico...', { id: 'refresh-history' });
+    try {
+      await Promise.all([
+        refetchPurchases?.(),
+        refetchReceipts?.()
+      ]);
+      toast.success('Histórico atualizado!', { id: 'refresh-history' });
+    } catch (error) {
+      console.error('[History] Erro ao atualizar:', error);
+      toast.error('Erro ao atualizar histórico', { id: 'refresh-history' });
+    }
   };
 
   const toggleReceiptExpansion = (receiptKey: string) => {

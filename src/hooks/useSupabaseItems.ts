@@ -46,8 +46,8 @@ export const useSupabaseItems = (listId: string) => {
     unchecked: items.filter(item => !item.checked).length,
   };
 
-  // Carregar itens do Supabase
-  const loadItems = async () => {
+  // ✅ Carregar itens do Supabase com suporte a background refetch
+  const loadItems = async (background = false) => {
     if (!user || !listId) {
       setItems([]);
       setLoading(false);
@@ -55,8 +55,12 @@ export const useSupabaseItems = (listId: string) => {
     }
 
     try {
-      setLoading(true);
-      console.log('[useSupabaseItems] Loading items for list:', listId);
+      // ✅ Só mostra loading se não for background refetch
+      if (!background) {
+        setLoading(true);
+      } else {
+        console.log('[useSupabaseItems] Background refetch iniciado para lista:', listId);
+      }
 
       // Carregar itens
       const { data, error } = await supabase
@@ -71,7 +75,7 @@ export const useSupabaseItems = (listId: string) => {
         throw error;
       }
 
-      console.log('[useSupabaseItems] Loaded items:', data?.length || 0);
+      console.log(`[useSupabaseItems] ${background ? 'Background' : 'Initial'} load: ${data?.length || 0} items`);
 
       // Buscar nicknames para itens marcados como comprados
       const itemsWithNicknames: ShoppingItem[] = await Promise.all(
@@ -111,15 +115,26 @@ export const useSupabaseItems = (listId: string) => {
     } catch (err) {
       const error = err as Error;
       console.error('[useSupabaseItems] Error loading items:', error);
-      setError(error);
+
+      // ✅ Se falhar no background, manter dados antigos
+      if (!background) {
+        setError(error);
+      }
     } finally {
-      setLoading(false);
+      if (!background) {
+        setLoading(false);
+      }
     }
   };
 
-  // Recarregar quando o usuário ou listId mudar
+  // ✅ Recarregar quando o usuário ou listId mudar
   useEffect(() => {
-    loadItems();
+    // Se já tem itens, fazer background refetch
+    if (items.length > 0) {
+      loadItems(true); // Background
+    } else {
+      loadItems(false); // Com loading
+    }
   }, [user?.id, listId]);
 
   // Configurar sincronização em tempo real

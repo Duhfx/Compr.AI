@@ -144,25 +144,27 @@ export const Home = () => {
       <PullIndicator />
 
       <div className="px-4 py-6 pb-24">
-        {/* Segmented Control (Tabs) */}
+        {/* Segmented Control (Tabs) - iOS Modern Style */}
         {listsWithStats.length > 0 && (
-          <div className="mb-3 sticky top-0 z-20 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm -mx-4 px-4 py-2 border-b border-gray-200 dark:border-gray-700">
-            <div className="flex gap-2">
+          <div className="sticky top-0 z-20 bg-gray-50 dark:bg-gray-900 -mx-4 px-4 pt-2 pb-4">
+            <div className="flex bg-gray-100 dark:bg-gray-800 rounded-full p-1 gap-1">
               {[
-                { label: 'Todas', key: 'Todas', count: listsWithStats.length },
-                { label: 'Ativas', key: 'Ativas', count: listsWithStats.filter(list => list.uncheckedItems > 0 || list.totalItems === 0).length },
-                { label: 'Concluídas', key: 'Concluídas', count: listsWithStats.filter(list => list.totalItems > 0 && list.uncheckedItems === 0).length }
+                { label: 'Todas', key: 'Todas' },
+                { label: 'Ativas', key: 'Ativas' },
+                { label: 'Concluídas', key: 'Concluídas' }
               ].map((tab) => (
                 <button
                   key={tab.key}
                   onClick={() => setSelectedFilter(tab.key)}
-                  className={`flex-1 h-9 rounded-full text-[13px] font-medium transition-all ${
-                    selectedFilter === tab.key
-                      ? 'bg-primary text-white shadow-sm'
-                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
-                  }`}
+                  className={`
+                    flex-1 h-10 rounded-full text-[15px] font-semibold transition-all
+                    ${selectedFilter === tab.key
+                      ? 'bg-white dark:bg-gray-700 text-primary dark:text-white shadow-sm'
+                      : 'text-gray-500 dark:text-gray-400 active:opacity-70'
+                    }
+                  `}
                 >
-                  {tab.label} ({tab.count})
+                  {tab.label}
                 </button>
               ))}
             </div>

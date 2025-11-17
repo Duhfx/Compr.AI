@@ -1,12 +1,13 @@
 // src/hooks/useSupabaseLists.ts
-// Hook para gerenciar listas usando APENAS Supabase (sem IndexedDB)
+// Hook OTIMIZADO para gerenciar listas usando APENAS Supabase (sem IndexedDB)
+// ✅ Agora integrado com contexto de cache
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import { useLists } from '../contexts/ListsContext';
 import type { Database } from '../types/database';
 
-type ShoppingListRow = Database['public']['Tables']['shopping_lists']['Row'];
 type ShoppingListInsert = Database['public']['Tables']['shopping_lists']['Insert'];
 
 export interface ShoppingList {
@@ -18,81 +19,18 @@ export interface ShoppingList {
 
 export const useSupabaseLists = () => {
   const { user } = useAuth();
-  const [lists, setLists] = useState<ShoppingList[]>([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  // Carregar listas do Supabase
-  const loadLists = async () => {
-    if (!user) {
-      setLists([]);
-      setLoading(false);
-      return;
-    }
+  // ✅ Usar contexto de cache ao invés de estado local
+  const { lists: cachedLists, loading, fetchLists, invalidate, updateListInCache, removeListFromCache } = useLists();
 
-    try {
-      setLoading(true);
-      console.log('[useSupabaseLists] Loading lists for user:', user.id);
-
-      // Buscar listas próprias
-      const { data: ownLists, error: ownError } = await supabase
-        .from('shopping_lists')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('updated_at', { ascending: false });
-
-      if (ownError) {
-        console.error('[useSupabaseLists] Error loading own lists:', ownError);
-        throw ownError;
-      }
-
-      // Buscar listas compartilhadas (onde sou membro)
-      const { data: memberships, error: memberError } = await supabase
-        .from('list_members')
-        .select(`
-          list_id,
-          shopping_lists (*)
-        `)
-        .eq('user_id', user.id)
-        .eq('is_active', true);
-
-      if (memberError) {
-        console.error('[useSupabaseLists] Error loading shared lists:', memberError);
-        // Não lançar erro, apenas logar
-      }
-
-      // Combinar listas próprias e compartilhadas
-      const sharedLists = memberships
-        ?.map((m: any) => m.shopping_lists)
-        .filter(Boolean) || [];
-
-      const allLists = [...(ownLists || []), ...sharedLists];
-
-      console.log('[useSupabaseLists] Loaded lists:', allLists.length);
-
-      // Converter para formato do frontend
-      const formattedLists: ShoppingList[] = allLists.map((list: ShoppingListRow) => ({
-        id: list.id,
-        name: list.name,
-        createdAt: new Date(list.created_at),
-        updatedAt: new Date(list.updated_at),
-      }));
-
-      setLists(formattedLists);
-      setError(null);
-    } catch (err) {
-      const error = err as Error;
-      console.error('[useSupabaseLists] Error loading lists:', error);
-      setError(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Recarregar quando o usuário mudar
-  useEffect(() => {
-    loadLists();
-  }, [user?.id]);
+  // Converter listas do cache para formato compatível
+  const lists: ShoppingList[] = cachedLists.map(list => ({
+    id: list.id,
+    name: list.name,
+    createdAt: new Date(list.created_at || list.createdAt),
+    updatedAt: new Date(list.updated_at || list.updatedAt),
+  }));
 
   // Criar nova lista
   const createList = async (name: string): Promise<ShoppingList> => {
@@ -136,8 +74,9 @@ export const useSupabaseLists = () => {
         updatedAt: new Date(data.updated_at),
       };
 
-      // Adicionar à lista local
-      setLists([createdList, ...lists]);
+      // ✅ Invalidar cache para forçar refetch
+      invalidate();
+      await fetchLists(true);
 
       return createdList;
     } catch (err) {
@@ -169,12 +108,12 @@ export const useSupabaseLists = () => {
         throw error;
       }
 
-      // Atualizar na lista local
-      setLists(lists.map(list =>
-        list.id === id
-          ? { ...list, ...updates, updatedAt: new Date() }
-          : list
-      ));
+      // ✅ Atualizar no cache (otimista)
+      updateListInCache(id, {
+        ...updates,
+        updated_at: new Date().toISOString(),
+        updatedAt: new Date(),
+      } as any);
     } catch (err) {
       const error = err as Error;
       setError(error);
@@ -208,8 +147,8 @@ export const useSupabaseLists = () => {
         throw error;
       }
 
-      // Remover da lista local
-      setLists(lists.filter(list => list.id !== id));
+      // ✅ Remover do cache
+      removeListFromCache(id);
     } catch (err) {
       const error = err as Error;
       setError(error);
@@ -284,6 +223,6 @@ export const useSupabaseLists = () => {
     updateList,
     deleteList,
     getListById,
-    refreshLists: loadLists,
+    refreshLists: () => fetchLists(true), // ✅ Force refresh do cache
   };
 };
