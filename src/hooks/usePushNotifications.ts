@@ -129,16 +129,31 @@ export const usePushNotifications = () => {
       const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
 
       console.log('[usePushNotifications] VAPID public key presente:', !!vapidPublicKey);
+      console.log('[usePushNotifications] VAPID public key length:', vapidPublicKey?.length);
+      console.log('[usePushNotifications] VAPID public key (primeiros 20 chars):', vapidPublicKey?.substring(0, 20));
 
       if (!vapidPublicKey) {
         throw new Error('VAPID public key não configurada. Verifique se VITE_VAPID_PUBLIC_KEY está no .env.local');
       }
 
+      if (vapidPublicKey.length !== 87 && vapidPublicKey.length !== 88) {
+        console.warn('[usePushNotifications] VAPID key tem tamanho inválido. Esperado: 87-88, recebido:', vapidPublicKey.length);
+      }
+
       console.log('[usePushNotifications] Service Worker registrado, criando subscription...');
+
+      let applicationServerKey;
+      try {
+        applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
+        console.log('[usePushNotifications] VAPID key convertida, tamanho:', applicationServerKey.length);
+      } catch (conversionError) {
+        console.error('[usePushNotifications] Erro ao converter VAPID key:', conversionError);
+        throw new Error('VAPID key inválida. Formato incorreto.');
+      }
 
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+        applicationServerKey,
       });
 
       console.log('[usePushNotifications] Subscription criada com sucesso:', subscription);
