@@ -203,22 +203,35 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     );
 
     // Enviar push notifications em paralelo
-    const pushPromises = pushSubscriptions.map(({ subscription }) =>
-      webpush.sendNotification(
-        subscription,
-        JSON.stringify({
-          title: `📝 ${listName}`,
-          body: `${notifierName} atualizou a lista`,
-          icon: '/icons/icon-192.png',
-          badge: '/icons/icon-192.png',
-          data: {
-            url: `/list/${listId}`,
-            listId,
-            listName
-          }
-        })
-      )
-    );
+    const pushPromises = pushSubscriptions.map(async ({ userId, subscription }) => {
+      try {
+        await webpush.sendNotification(
+          subscription,
+          JSON.stringify({
+            title: `📝 ${listName}`,
+            body: `${notifierName} atualizou a lista`,
+            icon: '/icons/icon-192.png',
+            badge: '/icons/icon-192.png',
+            data: {
+              url: `/list/${listId}`,
+              listId,
+              listName
+            }
+          })
+        );
+        return { userId, success: true };
+      } catch (error: any) {
+        // Se a subscription expirou (410 Gone), remover do banco
+        if (error?.statusCode === 410) {
+          console.log(`[notify-members] Subscription expirada para user ${userId}, removendo...`);
+          await supabase
+            .from('user_profiles')
+            .update({ push_subscription: null })
+            .eq('user_id', userId);
+        }
+        throw error;
+      }
+    });
 
     // Executar emails e push em paralelo
     const [emailResults, pushResults] = await Promise.all([

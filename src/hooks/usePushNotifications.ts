@@ -128,16 +128,20 @@ export const usePushNotifications = () => {
 
       const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
 
+      console.log('[usePushNotifications] VAPID public key presente:', !!vapidPublicKey);
+
       if (!vapidPublicKey) {
-        throw new Error('VAPID public key não configurada');
+        throw new Error('VAPID public key não configurada. Verifique se VITE_VAPID_PUBLIC_KEY está no .env.local');
       }
+
+      console.log('[usePushNotifications] Service Worker registrado, criando subscription...');
 
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
       });
 
-      console.log('[usePushNotifications] Subscription criada:', subscription);
+      console.log('[usePushNotifications] Subscription criada com sucesso:', subscription);
 
       // Salvar subscription no Supabase
       const { error: updateError } = await supabase
@@ -158,7 +162,23 @@ export const usePushNotifications = () => {
       return true;
     } catch (err) {
       console.error('[usePushNotifications] Erro ao registrar push:', err);
-      setError(err instanceof Error ? err.message : 'Erro ao ativar notificações');
+
+      let errorMessage = 'Erro ao ativar notificações';
+
+      if (err instanceof Error) {
+        // Mensagens específicas para erros comuns
+        if (err.name === 'AbortError') {
+          errorMessage = 'Falha ao registrar push. Verifique se a VAPID key está configurada corretamente.';
+        } else if (err.name === 'NotAllowedError') {
+          errorMessage = 'Permissão negada. Habilite notificações nas configurações do navegador.';
+        } else if (err.message.includes('VAPID')) {
+          errorMessage = err.message;
+        } else {
+          errorMessage = err.message;
+        }
+      }
+
+      setError(errorMessage);
       setLoading(false);
       return false;
     }
