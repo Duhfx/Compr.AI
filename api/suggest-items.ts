@@ -139,7 +139,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       process.env.SUPABASE_SERVICE_KEY
     );
 
-    // Buscar histórico do usuário (últimos 50 itens únicos)
+    // Buscar histórico do usuário (últimos 100 itens para melhor análise)
     // IMPORTANTE: Filtra apenas itens de listas que ainda existem (list_id NOT NULL)
     // Quando uma lista é deletada, list_id vira NULL (ON DELETE SET NULL)
     console.log('[suggest-items] Fetching purchase history for user:', userId);
@@ -149,7 +149,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .eq('user_id', userId)
       .not('list_id', 'is', null)  // Exclui itens de listas deletadas
       .order('purchased_at', { ascending: false })
-      .limit(50);
+      .limit(100);
 
     if (historyError) {
       console.error('[suggest-items] Error fetching history:', historyError);
@@ -157,7 +157,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       console.log('[suggest-items] Found', history?.length || 0, 'history items');
     }
 
-    // Agregar itens mais comprados
+    // Agregar itens mais comprados - pegar APENAS os TOP 10 para usar no prompt
     const itemFrequency = new Map<string, { count: number; category?: string; unit: string }>();
     if (history) {
       history.forEach((item) => {
@@ -170,9 +170,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
+    // ✅ OTIMIZAÇÃO: Usar apenas TOP 10 itens mais comprados no prompt
+    // Isso reduz significativamente o tamanho do prompt e melhora a performance
     const topItems = Array.from(itemFrequency.entries())
       .sort((a, b) => b[1].count - a[1].count)
-      .slice(0, 10)
+      .slice(0, 10)  // Apenas os 10 mais comprados
       .map(([name, data]) => ({
         name,
         category: data.category,
@@ -258,8 +260,15 @@ Exemplos:
       }
     }
 
+    // ✅ OTIMIZAÇÃO: Adicionar timestamp ao prompt para garantir variação nas respostas
+    // Isso evita que a IA retorne exatamente as mesmas sugestões em múltiplas chamadas
+    const requestTimestamp = new Date().toISOString();
+
     const systemPrompt = `
 Você é um assistente brasileiro especializado em listas de compras para supermercados do Brasil.
+
+IMPORTANTE: Gere sugestões VARIADAS e DIVERSAS. Mesmo que receba solicitações similares, varie as sugestões.
+Timestamp da requisição: ${requestTimestamp}
 
 ═══════════════════════════════════════════════════════════════════
 🎯 SOLICITAÇÃO DO USUÁRIO

@@ -5,10 +5,9 @@ import { BottomTabBar } from './BottomTabBar';
 interface LayoutProps {
   children: ReactNode;
   showTabBar?: boolean;
-  onScanClick?: () => void;
 }
 
-export const Layout = ({ children, showTabBar = true, onScanClick }: LayoutProps) => {
+export const Layout = ({ children, showTabBar = true }: LayoutProps) => {
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex flex-col transition-colors overflow-x-hidden w-full">
       <Header />
@@ -17,7 +16,7 @@ export const Layout = ({ children, showTabBar = true, onScanClick }: LayoutProps
           {children}
         </div>
       </main>
-      {showTabBar && <BottomTabBar onScanClick={onScanClick} />}
+      {showTabBar && <BottomTabBar />}
     </div>
   );
 };

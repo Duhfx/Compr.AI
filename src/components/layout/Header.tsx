@@ -4,7 +4,6 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Sun, Moon, User } from 'lucide-react';
 import { useState } from 'react';
-import { UserProfileModal } from '../user/UserProfileModal';
 
 export const Header = () => {
   const { isOffline } = useOfflineStatus();
@@ -12,7 +11,6 @@ export const Header = () => {
   const { user, signOut } = useAuth();
   const { setTheme, resolvedTheme } = useTheme();
   const [showMenu, setShowMenu] = useState(false);
-  const [showProfileModal, setShowProfileModal] = useState(false);
 
   // Always show app name
   const getTitle = () => {
@@ -35,7 +33,7 @@ export const Header = () => {
 
   const handleOpenProfile = () => {
     setShowMenu(false);
-    setShowProfileModal(true);
+    navigate('/profile');
   };
 
   return (
@@ -119,12 +117,6 @@ export const Header = () => {
           )}
         </div>
       </div>
-
-      {/* User Profile Modal */}
-      <UserProfileModal
-        isOpen={showProfileModal}
-        onClose={() => setShowProfileModal(false)}
-      />
     </header>
   );
 };

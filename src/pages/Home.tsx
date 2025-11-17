@@ -9,8 +9,8 @@ import { Layout } from '../components/layout/Layout';
 import { ListCard } from '../components/lists/ListCard';
 import { CreateListWithAIModal } from '../components/lists/CreateListWithAIModal';
 import { JoinListModal } from '../components/lists/JoinListModal';
-import { ReceiptScanner } from '../components/scanner/ReceiptScanner';
 import { ActionSheet } from '../components/ui/ActionSheet';
+import { SegmentedControl } from '../components/ui/SegmentedControl';
 import toast, { Toaster } from 'react-hot-toast';
 import { Sparkles, Edit, Users, Plus } from 'lucide-react';
 
@@ -23,7 +23,6 @@ export const Home = () => {
   const [newListName, setNewListName] = useState('');
   const [showAIModal, setShowAIModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
-  const [showScanner, setShowScanner] = useState(false);
   const [showActionSheet, setShowActionSheet] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState('Todas');
 
@@ -139,35 +138,34 @@ export const Home = () => {
   }
 
   return (
-    <Layout onScanClick={() => setShowScanner(true)} showTabBar={!isCreating && !showAIModal && !showJoinModal && !showActionSheet}>
+    <Layout showTabBar={!isCreating && !showAIModal && !showJoinModal && !showActionSheet}>
       <Toaster position="top-center" />
       <PullIndicator />
 
-      <div className="px-4 py-6 pb-24">
-        {/* Segmented Control (Tabs) - iOS Modern Style */}
+      <div className="px-4 py-4 pb-24">
+        {/* Header - Estilo consistente com Histórico */}
         {listsWithStats.length > 0 && (
-          <div className="sticky top-0 z-20 bg-gray-50 dark:bg-gray-900 -mx-4 px-4 pt-2 pb-4">
-            <div className="flex bg-gray-100 dark:bg-gray-800 rounded-full p-1 gap-1">
-              {[
-                { label: 'Todas', key: 'Todas' },
-                { label: 'Ativas', key: 'Ativas' },
-                { label: 'Concluídas', key: 'Concluídas' }
-              ].map((tab) => (
-                <button
-                  key={tab.key}
-                  onClick={() => setSelectedFilter(tab.key)}
-                  className={`
-                    flex-1 h-10 rounded-full text-[15px] font-semibold transition-all
-                    ${selectedFilter === tab.key
-                      ? 'bg-white dark:bg-gray-700 text-primary dark:text-white shadow-sm'
-                      : 'text-gray-500 dark:text-gray-400 active:opacity-70'
-                    }
-                  `}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
+          <div className="mb-6">
+            <h1 className="text-[34px] font-bold text-gray-900 dark:text-white mb-2">
+              Listas
+            </h1>
+            <p className="text-[17px] text-gray-500 dark:text-gray-400">
+              {filteredLists.length === 0
+                ? `Nenhuma lista ${selectedFilter.toLowerCase()}`
+                : `${filteredLists.length} ${filteredLists.length === 1 ? 'lista' : 'listas'}`
+              }
+            </p>
+          </div>
+        )}
+
+        {/* Filtros - Usando SegmentedControl como no Histórico */}
+        {listsWithStats.length > 0 && (
+          <div className="mb-6">
+            <SegmentedControl
+              options={['Todas', 'Ativas', 'Concluídas']}
+              selected={selectedFilter}
+              onChange={(value) => setSelectedFilter(value)}
+            />
           </div>
         )}
 
@@ -200,19 +198,6 @@ export const Home = () => {
           onClose={() => setShowJoinModal(false)}
           onSuccess={handleJoinSuccess}
         />
-
-        {/* Receipt Scanner */}
-        {showScanner && (
-          <ReceiptScanner
-            userId={user?.id || ''}
-            onSuccess={() => {
-              setShowScanner(false);
-              toast.success('✅ Histórico atualizado!');
-              refreshStats();
-            }}
-            onCancel={() => setShowScanner(false)}
-          />
-        )}
 
         {/* Create List Input (iOS Bottom Sheet style) */}
         <AnimatePresence>

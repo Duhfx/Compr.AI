@@ -92,13 +92,22 @@ export const ItemModal = ({ isOpen, item, onClose, onSave }: ItemModalProps) => 
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop */}
+          {/* Backdrop - Ocupa a tela toda */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black bg-opacity-40 z-40"
+            className="fixed inset-0 bg-black bg-opacity-40 z-[999]"
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              width: '100vw',
+              height: '100vh'
+            }}
           />
 
           {/* Bottom Sheet */}
@@ -107,7 +116,7 @@ export const ItemModal = ({ isOpen, item, onClose, onSave }: ItemModalProps) => 
             animate={{ y: y }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 rounded-t-[20px] z-50 max-w-screen-sm mx-auto shadow-ios-lg safe-bottom"
+            className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 rounded-t-[20px] z-[1000] max-w-screen-sm mx-auto shadow-ios-lg safe-bottom"
           >
             {/* Handle */}
             <div {...bind()} className="flex justify-center pt-3 pb-2 cursor-grab active:cursor-grabbing">

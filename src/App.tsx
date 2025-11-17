@@ -10,6 +10,8 @@ import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { JoinList } from './pages/JoinList';
 import { History } from './pages/History';
+import { Profile } from './pages/Profile';
+import { Scanner } from './pages/Scanner';
 
 function App() {
   return (
@@ -54,6 +56,22 @@ function App() {
               element={
                 <ProtectedRoute>
                   <History />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/scanner"
+              element={
+                <ProtectedRoute>
+                  <Scanner />
                 </ProtectedRoute>
               }
             />
