@@ -32,7 +32,7 @@ export const Header = () => {
   };
 
   return (
-    <header className="backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-700/50 sticky top-0 z-30 safe-top transition-all">
+    <header className="fixed top-0 left-0 right-0 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-700/50 z-50 safe-top transition-all">
       <div className="flex items-center justify-between h-12 px-4">
         {/* Indicador offline à esquerda */}
         <div className="flex items-center">
