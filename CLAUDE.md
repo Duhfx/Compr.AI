@@ -14,12 +14,13 @@ Ao implementar uma funcionalidade nova, documentar ela no FUNCIONALIDADES_1311.m
 
 ### Stack Principal
 
-- **Frontend:** React 18 + Vite 5 + TypeScript 5 + Tailwind CSS 3
+- **Frontend:** React 19.2 + Vite 7.2 + TypeScript 5.9 + Tailwind CSS 3.4
 - **Backend API:** Vercel Functions (Node.js/TypeScript serverless)
 - **Database:** Supabase (PostgreSQL + Realtime)
-- **IA:** Google Gemini 1.5 Pro/Flash
-- **Armazenamento Local:** Dexie.js (IndexedDB)
+- **IA:** Google Gemini 2.5 Flash Lite
+- **Armazenamento Local:** Dexie.js (IndexedDB v5)
 - **PWA:** vite-plugin-pwa + Workbox
+- **Notificações:** Web Push + Resend (email)
 - **Deploy:** Vercel (frontend + API) + Supabase (database)
 
 ---
@@ -76,53 +77,82 @@ comprai/
 ├── public/
 │   ├── manifest.json           # PWA manifest
 │   ├── icons/                  # Ícones 192x192, 512x512
-│   └── robots.txt
+│   ├── sw-custom.js            # Service Worker customizado
+│   └── sw-push.js              # Handler de Push Notifications
 ├── src/
 │   ├── components/
+│   │   ├── auth/
+│   │   │   └── ProtectedRoute.tsx # HOC para proteger rotas
 │   │   ├── layout/
-│   │   │   ├── Layout.tsx      # Header + Footer
+│   │   │   ├── Layout.tsx      # Wrapper com Header + conteúdo + BottomTabBar
 │   │   │   ├── Header.tsx
-│   │   │   └── OfflineIndicator.tsx
+│   │   │   └── BottomTabBar.tsx # Navegação inferior estilo iOS
 │   │   ├── lists/
 │   │   │   ├── ListCard.tsx    # Card de lista na home
-│   │   │   ├── CreateListModal.tsx
-│   │   │   └── ShareListModal.tsx
+│   │   │   ├── CreateListWithAIModal.tsx
+│   │   │   ├── ShareListModal.tsx
+│   │   │   ├── JoinListModal.tsx
+│   │   │   ├── MembersModal.tsx
+│   │   │   ├── MemberAvatars.tsx
+│   │   │   └── SharedListBadge.tsx
 │   │   ├── items/
 │   │   │   ├── ItemRow.tsx     # Linha de item com checkbox
 │   │   │   ├── ItemModal.tsx   # Criar/editar item
 │   │   │   └── ItemInput.tsx   # Input com autocomplete
 │   │   ├── scanner/
-│   │   │   ├── Scanner.tsx     # Captura de nota fiscal
+│   │   │   ├── ReceiptScanner.tsx
+│   │   │   ├── ImageCapture.tsx
+│   │   │   ├── OcrProgress.tsx
 │   │   │   └── ReceiptPreview.tsx
-│   │   ├── chat/
-│   │   │   ├── ChatInterface.tsx
-│   │   │   └── MessageBubble.tsx
-│   │   └── ui/                 # Componentes shadcn/ui
-│   │       ├── button.tsx
-│   │       ├── card.tsx
-│   │       ├── dialog.tsx
-│   │       └── input.tsx
+│   │   ├── suggestions/
+│   │   │   └── SuggestionsBanner.tsx # Banner de sugestões com IA
+│   │   ├── notifications/
+│   │   │   ├── PushNotificationsManager.tsx
+│   │   │   └── PushOnboardingModal.tsx
+│   │   ├── user/
+│   │   │   └── UserProfileModal.tsx
+│   │   └── ui/
+│   │       ├── ActionSheet.tsx # Action sheet estilo iOS
+│   │       └── SegmentedControl.tsx # Controle segmentado iOS
+│   ├── contexts/
+│   │   ├── AuthContext.tsx     # Contexto de autenticação
+│   │   ├── ListsContext.tsx    # Contexto de listas
+│   │   └── ThemeContext.tsx    # Contexto de tema
 │   ├── pages/
+│   │   ├── Landing.tsx         # Landing page (pública)
+│   │   ├── Login.tsx           # Login (pública)
+│   │   ├── Register.tsx        # Cadastro (pública)
 │   │   ├── Home.tsx            # Lista de listas
 │   │   ├── ListDetail.tsx      # Detalhe da lista
-│   │   ├── Stats.tsx           # Estatísticas (Release 5)
-│   │   └── Settings.tsx        # Configurações
+│   │   ├── JoinList.tsx        # Entrar em lista via código
+│   │   ├── History.tsx         # Histórico de compras
+│   │   ├── Profile.tsx         # Perfil do usuário
+│   │   └── Scanner.tsx         # Scanner de nota fiscal
 │   ├── hooks/
 │   │   ├── useLocalLists.ts    # CRUD listas locais
 │   │   ├── useLocalItems.ts    # CRUD itens locais
-│   │   ├── useSync.ts          # Sincronização Supabase
-│   │   ├── useRealtimeSync.ts  # Realtime (Release 2)
-│   │   ├── useSuggestions.ts   # Sugestões IA (Release 3)
-│   │   ├── useOCR.ts           # OCR (Release 4)
-│   │   ├── useChat.ts          # Chat (Release 5)
-│   │   └── useOfflineStatus.ts # Detecta online/offline
+│   │   ├── useSupabaseLists.ts # CRUD listas Supabase (com teste)
+│   │   ├── useSupabaseItems.ts # CRUD itens Supabase (com teste)
+│   │   ├── useListsWithStats.ts # Listas com estatísticas
+│   │   ├── useSync.ts          # Sincronização bidirecional
+│   │   ├── useRealtimeSync.ts  # Realtime sync (WebSockets)
+│   │   ├── useSuggestions.ts   # Sugestões IA (com teste)
+│   │   ├── useListSuggestions.ts # Sugestões proativas
+│   │   ├── useOCR.ts           # OCR (Tesseract.js)
+│   │   ├── useReceiptProcessing.ts # Processar nota fiscal
+│   │   ├── useReceiptHistory.ts # Histórico de notas
+│   │   ├── usePurchaseHistory.ts # Histórico de compras
+│   │   ├── usePushNotifications.ts # Push notifications
+│   │   ├── useUserProfile.ts   # CRUD perfil usuário
+│   │   ├── useOfflineStatus.ts # Detecta online/offline
+│   │   └── usePullToRefresh.tsx # Pull-to-refresh
 │   ├── services/
-│   │   ├── api.ts              # Cliente API (fetch wrapper)
-│   │   └── predictions.ts      # Algoritmos de previsão
+│   │   └── api.ts              # Cliente API (fetch wrapper)
 │   ├── lib/
 │   │   ├── supabase.ts         # Cliente Supabase
-│   │   ├── db.ts               # Configuração Dexie
-│   │   ├── ocr.ts              # OCR (Tesseract.js)
+│   │   ├── db.ts               # Configuração Dexie (v5)
+│   │   ├── sharing.ts          # Funções de compartilhamento (com teste)
+│   │   ├── imageUtils.ts       # Compressão de imagens
 │   │   └── utils.ts            # Utilidades
 │   ├── types/
 │   │   ├── database.ts         # Types do Supabase
@@ -131,24 +161,38 @@ comprai/
 │   ├── main.tsx
 │   └── index.css
 ├── api/                        # Vercel Functions (Backend API)
-│   ├── suggest-items.ts        # Sugestões de IA
+│   ├── suggest-items.ts        # Sugestões de IA (com teste)
+│   ├── normalize-item.ts       # Padronizar nomes
 │   ├── process-receipt.ts      # Processar nota fiscal
-│   ├── chat.ts                 # Chat contextual
-│   ├── economy-tips.ts         # Dicas de economia
-│   └── normalize-item.ts       # Padronizar nomes
+│   ├── validate-list.ts        # Validar acesso à lista
+│   └── notify-members.ts       # Notificar membros (email + push) (com teste)
 ├── supabase/
-│   └── migrations/             # SQL migrations
+│   └── migrations/             # SQL migrations (15 arquivos)
 │       ├── 001_initial_schema.sql
 │       ├── 002_sharing.sql
 │       ├── 003_history.sql
-│       └── 004_price_history.sql
+│       ├── 004_price_history.sql
+│       ├── 005_remove_devices_table.sql
+│       ├── 006_create_user_profiles.sql
+│       ├── 006_fix_rls_for_shared_lists.sql
+│       ├── 007_fix_infinite_recursion.sql
+│       ├── 008_fix_purchase_history_trigger.sql
+│       ├── 009_single_use_share_codes.sql
+│       ├── 010_ensure_history_tables.sql
+│       ├── 011_add_deleted_field.sql
+│       ├── 012_add_checked_by_user.sql
+│       ├── 013_make_single_use_optional.sql
+│       └── 014_add_push_subscriptions.sql
+├── tests/                      # Scripts de teste local para API
 ├── .env.example
 ├── .env.local                  # Não commitar!
 ├── vite.config.ts
+├── vitest.config.ts            # Configuração de testes
 ├── tailwind.config.js
 ├── tsconfig.json
 ├── package.json
 ├── ROADMAP_DETALHADO.md        # Roadmap técnico
+├── FUNCIONALIDADES_1311.md     # Relatório de funcionalidades
 └── README.md
 ```
 
@@ -170,7 +214,7 @@ npm install
 # Core
 npm install react-router-dom
 
-# Supabase (apenas client para DB e Realtime)
+# Supabase (client para DB e Realtime)
 npm install @supabase/supabase-js
 
 # IndexedDB
@@ -183,18 +227,25 @@ npx tailwindcss init -p
 # PWA
 npm install -D vite-plugin-pwa workbox-window
 
+# UI Components e Ícones
+npm install framer-motion lucide-react react-hot-toast clsx
+npm install @use-gesture/react  # Para pull-to-refresh
+
 # Utilities
 npm install date-fns uuid zod
 npm install -D @types/uuid
 
 # Backend API (Vercel Functions)
 npm install @vercel/node @google/generative-ai
+npm install web-push resend  # Push notifications e email
+npm install -D @types/web-push
 
 # OCR (Release 4)
 npm install tesseract.js
 
-# Charts (Release 5)
-npm install recharts
+# Testes
+npm install -D vitest @vitest/ui jsdom
+npm install -D @testing-library/react @testing-library/jest-dom @testing-library/user-event
 ```
 
 ### 3. Configurar Tailwind CSS
@@ -289,9 +340,16 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL!;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY!;
 
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Variáveis de ambiente Supabase não configuradas');
+}
+
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    persistSession: false // Auth anônima, sem sessão
+    persistSession: true,      // Persiste sessão no localStorage
+    autoRefreshToken: true,     // Atualiza token automaticamente
+    detectSessionInUrl: true,   // Para magic links
+    storageKey: 'comprai-auth-token'
   }
 });
 ```
@@ -301,6 +359,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 ```env
 VITE_SUPABASE_URL=https://seu-projeto.supabase.co
 VITE_SUPABASE_ANON_KEY=sua-anon-key-aqui
+VITE_VAPID_PUBLIC_KEY=sua-vapid-public-key-aqui  # Para push notifications
 ```
 
 **d) Adicionar ao .gitignore:**
@@ -333,19 +392,22 @@ export interface ShoppingItem {
   unit: string;
   category?: string;
   checked: boolean;
+  checkedByUserId?: string;
+  deleted?: boolean;
+  deletedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
 
 export interface UserDevice {
-  deviceId: string;
+  userId: string;  // Mudou de deviceId para userId
   nickname: string;
   lastSyncAt?: Date;
 }
 
 export interface PurchaseHistory {
   id: string;
-  deviceId: string;
+  userId: string;  // Mudou de deviceId para userId
   itemName: string;
   category?: string;
   quantity: number;
@@ -356,12 +418,46 @@ export interface PurchaseHistory {
 
 export interface PriceHistory {
   id: string;
-  deviceId: string;
+  userId: string;  // Mudou de deviceId para userId
   itemName: string;
   price: number;
   store?: string;
   purchasedAt: Date;
   createdAt: Date;
+}
+
+export interface SharedList {
+  id: string;
+  listId: string;
+  shareCode: string;
+  ownerUserId: string;
+  permission: 'edit' | 'readonly';
+  createdAt: Date;
+  expiresAt?: Date;
+  singleUse?: boolean;
+  used?: boolean;
+}
+
+export interface ListMember {
+  id: string;
+  listId: string;
+  userId: string;
+  joinedAt: Date;
+  lastSeenAt?: Date;
+  isActive: boolean;
+}
+
+export interface ListSuggestionCache {
+  listId: string;
+  suggestions: Array<{
+    name: string;
+    quantity: number;
+    unit: string;
+    category?: string;
+  }>;
+  createdAt: Date;
+  itemsCountWhenGenerated: number;
+  lastItemNamesHash: string;
 }
 
 export class CompraiDB extends Dexie {
@@ -370,16 +466,23 @@ export class CompraiDB extends Dexie {
   userDevice!: Table<UserDevice, string>;
   purchaseHistory!: Table<PurchaseHistory, string>;
   priceHistory!: Table<PriceHistory, string>;
+  sharedLists!: Table<SharedList, string>;
+  listMembers!: Table<ListMember, string>;
+  listSuggestionCache!: Table<ListSuggestionCache, string>;
 
   constructor() {
     super('CompraiDB');
 
-    this.version(1).stores({
-      shoppingLists: 'id, isLocal, syncedAt',
-      shoppingItems: 'id, listId, checked',
-      userDevice: 'deviceId',
-      purchaseHistory: 'id, deviceId, itemName, purchasedAt',
-      priceHistory: 'id, deviceId, itemName, purchasedAt'
+    // Versão 5 (atual)
+    this.version(5).stores({
+      shoppingLists: 'id, isLocal, syncedAt, updatedAt',
+      shoppingItems: 'id, listId, checked, createdAt',
+      userDevice: 'userId',
+      purchaseHistory: 'id, userId, itemName, purchasedAt',
+      priceHistory: 'id, userId, itemName, purchasedAt',
+      sharedLists: 'id, listId, shareCode',
+      listMembers: 'id, listId, userId, isActive',
+      listSuggestionCache: 'listId, createdAt'
     });
   }
 }
@@ -613,23 +716,20 @@ try {
 
 ## 🗄️ Esquema do Banco de Dados
 
+**Observação:** O projeto migrou de autenticação anônima (tabela `devices`) para autenticação real com Supabase Auth (tabela `user_profiles`). As migrations 001-004 foram mantidas para referência histórica, mas o schema atual usa `user_id` ao invés de `device_id`.
+
 ### Migration 1: Schema Inicial (Release 1)
 
 ```sql
 -- supabase/migrations/001_initial_schema.sql
 
--- Tabela de dispositivos (auth anônima)
-CREATE TABLE devices (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  nickname TEXT NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  last_seen_at TIMESTAMPTZ DEFAULT NOW()
-);
+-- NOTA: Tabela devices foi REMOVIDA na migration 005
+-- Agora usamos Supabase Auth (auth.users)
 
 -- Tabela de listas de compras
 CREATE TABLE shopping_lists (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  device_id UUID REFERENCES devices(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,  -- Mudou de device_id
   name TEXT NOT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -644,35 +744,37 @@ CREATE TABLE shopping_items (
   unit TEXT DEFAULT 'un',
   category TEXT,
   checked BOOLEAN DEFAULT FALSE,
+  checked_by_user_id UUID REFERENCES auth.users(id),  -- Migration 012
+  deleted BOOLEAN DEFAULT FALSE,  -- Migration 011
+  deleted_at TIMESTAMPTZ,         -- Migration 011
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Índices para performance
-CREATE INDEX idx_lists_device ON shopping_lists(device_id);
+CREATE INDEX idx_lists_user ON shopping_lists(user_id);
 CREATE INDEX idx_items_list ON shopping_items(list_id);
 CREATE INDEX idx_items_checked ON shopping_items(list_id, checked);
+CREATE INDEX idx_items_deleted ON shopping_items(deleted);
 
--- RLS (Row Level Security) - permite acesso anônimo
-ALTER TABLE devices ENABLE ROW LEVEL SECURITY;
+-- RLS (Row Level Security)
 ALTER TABLE shopping_lists ENABLE ROW LEVEL SECURITY;
 ALTER TABLE shopping_items ENABLE ROW LEVEL SECURITY;
 
--- Políticas permissivas (auth anônima)
-CREATE POLICY "Permitir acesso a próprio dispositivo"
-  ON devices FOR ALL
-  USING (true)
-  WITH CHECK (true);
-
-CREATE POLICY "Permitir acesso a listas próprias"
+-- Políticas RLS (acesso baseado em user_id ou membership)
+CREATE POLICY "Usuários podem acessar suas próprias listas"
   ON shopping_lists FOR ALL
-  USING (true)
-  WITH CHECK (true);
+  USING (user_id = auth.uid() OR id IN (
+    SELECT list_id FROM list_members WHERE user_id = auth.uid()
+  ));
 
-CREATE POLICY "Permitir acesso a itens"
+CREATE POLICY "Membros podem acessar itens de listas compartilhadas"
   ON shopping_items FOR ALL
-  USING (true)
-  WITH CHECK (true);
+  USING (list_id IN (
+    SELECT id FROM shopping_lists
+    WHERE user_id = auth.uid()
+    OR id IN (SELECT list_id FROM list_members WHERE user_id = auth.uid())
+  ));
 ```
 
 ### Migration 2: Compartilhamento (Release 2)
@@ -685,40 +787,48 @@ CREATE TABLE shared_lists (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   list_id UUID REFERENCES shopping_lists(id) ON DELETE CASCADE,
   share_code TEXT UNIQUE NOT NULL,
-  owner_device_id UUID REFERENCES devices(id),
+  owner_user_id UUID REFERENCES auth.users(id),  -- Mudou de owner_device_id
   permission TEXT DEFAULT 'edit' CHECK (permission IN ('edit', 'readonly')),
   created_at TIMESTAMPTZ DEFAULT NOW(),
-  expires_at TIMESTAMPTZ
+  expires_at TIMESTAMPTZ,
+  single_use BOOLEAN DEFAULT FALSE,  -- Migration 009
+  used BOOLEAN DEFAULT FALSE,        -- Migration 009
+  used_at TIMESTAMPTZ,               -- Migration 009
+  used_by_user_id UUID REFERENCES auth.users(id)  -- Migration 009
 );
 
 -- Tabela de membros
 CREATE TABLE list_members (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   list_id UUID REFERENCES shopping_lists(id) ON DELETE CASCADE,
-  device_id UUID REFERENCES devices(id),
+  user_id UUID REFERENCES auth.users(id),  -- Mudou de device_id
   joined_at TIMESTAMPTZ DEFAULT NOW(),
   last_seen_at TIMESTAMPTZ,
   is_active BOOLEAN DEFAULT TRUE,
-  UNIQUE(list_id, device_id)
+  UNIQUE(list_id, user_id)
 );
 
 CREATE INDEX idx_share_code ON shared_lists(share_code);
 CREATE INDEX idx_members_list ON list_members(list_id);
-CREATE INDEX idx_members_device ON list_members(device_id);
+CREATE INDEX idx_members_user ON list_members(user_id);
 
 -- RLS
 ALTER TABLE shared_lists ENABLE ROW LEVEL SECURITY;
 ALTER TABLE list_members ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Acesso a compartilhamentos"
-  ON shared_lists FOR ALL
-  USING (true)
-  WITH CHECK (true);
-
-CREATE POLICY "Acesso a membros"
-  ON list_members FOR ALL
-  USING (true)
-  WITH CHECK (true);
+-- View helper (Migration 006)
+CREATE VIEW list_members_with_names AS
+SELECT
+  lm.id,
+  lm.list_id,
+  lm.user_id,
+  lm.joined_at,
+  lm.last_seen_at,
+  lm.is_active,
+  up.nickname,
+  up.avatar_url
+FROM list_members lm
+LEFT JOIN user_profiles up ON lm.user_id = up.user_id;
 ```
 
 ### Migration 3: Histórico (Release 3)
@@ -729,7 +839,7 @@ CREATE POLICY "Acesso a membros"
 -- Histórico de compras
 CREATE TABLE purchase_history (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  device_id UUID REFERENCES devices(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,  -- Mudou de device_id
   item_name TEXT NOT NULL,
   category TEXT,
   quantity NUMERIC,
@@ -738,16 +848,18 @@ CREATE TABLE purchase_history (
   list_id UUID REFERENCES shopping_lists(id) ON DELETE SET NULL
 );
 
-CREATE INDEX idx_history_device ON purchase_history(device_id, purchased_at DESC);
+CREATE INDEX idx_history_user ON purchase_history(user_id, purchased_at DESC);
 CREATE INDEX idx_history_item ON purchase_history(item_name);
 
 -- Trigger para registrar compras automaticamente
+-- NOTA: Corrigido nas migrations 007 e 008 para evitar recursão infinita
 CREATE OR REPLACE FUNCTION log_purchase()
 RETURNS TRIGGER AS $$
 BEGIN
-  IF NEW.checked = TRUE AND OLD.checked = FALSE THEN
-    INSERT INTO purchase_history (device_id, item_name, category, quantity, unit, list_id)
-    SELECT sl.device_id, NEW.name, NEW.category, NEW.quantity, NEW.unit, NEW.list_id
+  -- Apenas registra se item foi marcado como checked (transição de FALSE para TRUE)
+  IF NEW.checked = TRUE AND (OLD.checked IS NULL OR OLD.checked = FALSE) THEN
+    INSERT INTO purchase_history (user_id, item_name, category, quantity, unit, list_id)
+    SELECT sl.user_id, NEW.name, NEW.category, NEW.quantity, NEW.unit, NEW.list_id
     FROM shopping_lists sl
     WHERE sl.id = NEW.list_id;
   END IF;
@@ -763,10 +875,9 @@ EXECUTE FUNCTION log_purchase();
 -- RLS
 ALTER TABLE purchase_history ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Acesso ao histórico"
+CREATE POLICY "Usuários podem acessar seu próprio histórico"
   ON purchase_history FOR ALL
-  USING (true)
-  WITH CHECK (true);
+  USING (user_id = auth.uid());
 ```
 
 ### Migration 4: Preços (Release 4)
@@ -777,7 +888,7 @@ CREATE POLICY "Acesso ao histórico"
 -- Histórico de preços
 CREATE TABLE price_history (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  device_id UUID REFERENCES devices(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,  -- Mudou de device_id
   item_name TEXT NOT NULL,
   price NUMERIC NOT NULL CHECK (price >= 0),
   store TEXT,
@@ -786,15 +897,116 @@ CREATE TABLE price_history (
 );
 
 CREATE INDEX idx_price_item ON price_history(item_name, purchased_at DESC);
-CREATE INDEX idx_price_device ON price_history(device_id);
+CREATE INDEX idx_price_user ON price_history(user_id);
 
 -- RLS
 ALTER TABLE price_history ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Acesso ao histórico de preços"
+CREATE POLICY "Usuários podem acessar seu histórico de preços"
   ON price_history FOR ALL
-  USING (true)
-  WITH CHECK (true);
+  USING (user_id = auth.uid());
+```
+
+### Migration 5: Remoção da Tabela Devices (Crítica)
+
+```sql
+-- supabase/migrations/005_remove_devices_table.sql
+
+-- Migra de auth anônima (devices) para auth real (users)
+-- Esta migration remove a tabela devices e atualiza todas as referências
+
+-- 1. Remove foreign keys
+ALTER TABLE shopping_lists DROP CONSTRAINT IF EXISTS shopping_lists_device_id_fkey;
+ALTER TABLE purchase_history DROP CONSTRAINT IF EXISTS purchase_history_device_id_fkey;
+ALTER TABLE price_history DROP CONSTRAINT IF EXISTS price_history_device_id_fkey;
+
+-- 2. Renomeia colunas device_id para user_id
+ALTER TABLE shopping_lists RENAME COLUMN device_id TO user_id;
+ALTER TABLE purchase_history RENAME COLUMN device_id TO user_id;
+ALTER TABLE price_history RENAME COLUMN device_id TO user_id;
+
+-- 3. Adiciona foreign keys para auth.users
+ALTER TABLE shopping_lists ADD CONSTRAINT shopping_lists_user_id_fkey
+  FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+ALTER TABLE purchase_history ADD CONSTRAINT purchase_history_user_id_fkey
+  FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+ALTER TABLE price_history ADD CONSTRAINT price_history_user_id_fkey
+  FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+-- 4. Remove tabela devices
+DROP TABLE IF EXISTS devices CASCADE;
+```
+
+### Migration 6: Perfis de Usuário e View Helper
+
+```sql
+-- supabase/migrations/006_create_user_profiles.sql
+
+-- Tabela de perfis de usuário
+CREATE TABLE user_profiles (
+  user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  nickname TEXT NOT NULL,
+  avatar_url TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  push_subscription JSONB  -- Migration 014: Para push notifications
+);
+
+CREATE INDEX idx_user_profiles_nickname ON user_profiles(nickname);
+CREATE INDEX idx_push_subscription ON user_profiles USING GIN (push_subscription);
+
+-- Trigger para criar perfil automaticamente ao registrar
+CREATE OR REPLACE FUNCTION create_user_profile()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO user_profiles (user_id, nickname)
+  VALUES (NEW.id, COALESCE(NEW.raw_user_meta_data->>'nickname', 'Usuário'));
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER on_auth_user_created
+AFTER INSERT ON auth.users
+FOR EACH ROW
+EXECUTE FUNCTION create_user_profile();
+
+-- View helper para membros com nomes
+CREATE VIEW list_members_with_names AS
+SELECT
+  lm.id,
+  lm.list_id,
+  lm.user_id,
+  lm.joined_at,
+  lm.last_seen_at,
+  lm.is_active,
+  up.nickname,
+  up.avatar_url
+FROM list_members lm
+LEFT JOIN user_profiles up ON lm.user_id = up.user_id;
+
+-- RLS
+ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Usuários podem ver perfis públicos"
+  ON user_profiles FOR SELECT
+  USING (true);
+
+CREATE POLICY "Usuários podem atualizar seu próprio perfil"
+  ON user_profiles FOR UPDATE
+  USING (user_id = auth.uid());
+```
+
+### Migrations Adicionais (007-014)
+
+**007-008:** Correção de recursão infinita no trigger `log_purchase()`
+**009:** Códigos de compartilhamento de uso único (`single_use`, `used`, `used_at`)
+**010:** Garantia de existência das tabelas de histórico
+**011:** Soft delete em itens (`deleted`, `deleted_at`)
+**012:** Rastreamento de quem marcou item (`checked_by_user_id`)
+**013:** Torna `single_use` opcional (default FALSE)
+**014:** Adiciona `push_subscription` (JSONB) em `user_profiles`
+
+Para ver o SQL completo, consulte `/supabase/migrations/` no repositório.
 ```
 
 ---
@@ -857,39 +1069,87 @@ const query = `SELECT * FROM shopping_items WHERE list_id = '${listId}'`;
 
 ---
 
-## 🧪 Testes (Opcional para Releases Futuras)
+## 🧪 Testes
+
+### Framework Configurado
+
+**Framework:** Vitest 4.0.8 + React Testing Library 16.3.0 + jsdom 27.2.0
+
+**Scripts disponíveis:**
+```bash
+npm test              # Roda testes em modo watch
+npm run test:ui       # Interface visual de testes (Vitest UI)
+npm run test:coverage # Relatório de cobertura
+```
 
 ### Estrutura de Testes
 
 ```
 src/
-├── __tests__/
-│   ├── components/
-│   │   └── ListCard.test.tsx
-│   ├── hooks/
-│   │   └── useLocalLists.test.ts
-│   └── services/
-│       └── sync.test.ts
+├── contexts/
+│   └── AuthContext.test.tsx      ✅ Testado
+├── hooks/
+│   ├── useSupabaseLists.test.tsx ✅ Testado
+│   ├── useSupabaseItems.test.tsx ✅ Testado
+│   └── useSuggestions.test.tsx   ✅ Testado
+├── lib/
+│   └── sharing.test.ts           ✅ Testado
+api/
+├── suggest-items.test.ts         ✅ Testado
+└── notify-members.test.ts        ✅ Testado
 ```
+
+**Cobertura atual:** ~15% (9 arquivos testados de 61 total)
 
 ### Exemplo de Teste
 
 ```typescript
-// src/__tests__/hooks/useLocalLists.test.ts
-import { renderHook, act } from '@testing-library/react';
-import { useLocalLists } from '../../hooks/useLocalLists';
+// src/hooks/useSupabaseLists.test.tsx
+import { renderHook, waitFor } from '@testing-library/react';
+import { useSupabaseLists } from './useSupabaseLists';
+import { useAuth } from '../contexts/AuthContext';
 
-describe('useLocalLists', () => {
+// Mock do AuthContext
+vi.mock('../contexts/AuthContext');
+
+describe('useSupabaseLists', () => {
+  beforeEach(() => {
+    vi.mocked(useAuth).mockReturnValue({
+      user: { id: 'user-123', email: 'test@example.com' },
+      isAuthenticated: true,
+    });
+  });
+
   it('deve criar uma nova lista', async () => {
-    const { result } = renderHook(() => useLocalLists());
+    const { result } = renderHook(() => useSupabaseLists());
 
-    await act(async () => {
-      const list = await result.current.createList('Feira');
-      expect(list.name).toBe('Feira');
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
     });
 
-    expect(result.current.lists).toHaveLength(1);
+    const list = await result.current.createList('Feira');
+    expect(list.name).toBe('Feira');
+    expect(result.current.lists).toContainEqual(expect.objectContaining({ name: 'Feira' }));
   });
+});
+```
+
+### Configuração Vitest
+
+```typescript
+// vitest.config.ts
+import { defineConfig } from 'vitest/config';
+
+export default defineConfig({
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: ['./src/test/setup.ts'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+    },
+  },
 });
 ```
 
@@ -926,11 +1186,15 @@ Isso faz deploy tanto do frontend quanto das Vercel Functions na pasta `/api`.
 # Variáveis do frontend (prefixo VITE_)
 vercel env add VITE_SUPABASE_URL
 vercel env add VITE_SUPABASE_ANON_KEY
+vercel env add VITE_VAPID_PUBLIC_KEY
 
 # Variáveis das Vercel Functions (sem prefixo)
 vercel env add SUPABASE_URL
 vercel env add SUPABASE_SERVICE_KEY
 vercel env add GEMINI_API_KEY
+vercel env add RESEND_API_KEY
+vercel env add VAPID_PUBLIC_KEY
+vercel env add VAPID_PRIVATE_KEY
 ```
 
 **5. Deploy de produção:**
@@ -1155,5 +1419,33 @@ Verifique:
 
 **Este documento é um guia vivo e deve ser atualizado conforme o projeto evolui.**
 
-**Última atualização:** 2025-11-12
-**Versão:** 1.0.0
+**Última atualização:** 2025-11-18
+**Versão:** 1.1.0
+
+## 📊 Estado Atual do Projeto
+
+**Releases Implementadas:**
+- ✅ Release 1 — MVP Base (CRUD, IndexedDB, PWA, Supabase)
+- ✅ Release 2 — Compartilhamento (códigos, realtime sync, membros)
+- ✅ Release 3 — IA Sugestões (Gemini, histórico, autocomplete)
+- ⚠️ Release 4 — OCR (Tesseract.js implementado, integração parcial)
+- ❌ Release 5 — Chat e Previsão (planejado)
+
+**Componentes:** 23 arquivos
+**Hooks:** 21 arquivos (5 com testes)
+**Páginas:** 9 arquivos
+**Contexts:** 3 arquivos (1 com teste)
+**API Functions:** 6 arquivos (2 com testes)
+**Migrations:** 15 arquivos
+
+**Features Destacadas:**
+- 🔐 Autenticação real com Supabase Auth (email/senha)
+- 🔄 Sincronização em tempo real (WebSockets)
+- 🤖 Sugestões inteligentes com Gemini 2.5 Flash Lite
+- 📱 PWA completo (iOS, Android, Desktop)
+- 🔔 Push Notifications (Web Push + Email)
+- 📷 OCR de notas fiscais (Tesseract.js)
+- 🎨 Design System iOS-style
+- 📊 Histórico de compras e insights
+
+Para detalhes completos das funcionalidades, consulte `FUNCIONALIDADES_1311.md` (4.147 linhas de documentação).
