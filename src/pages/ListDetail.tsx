@@ -313,7 +313,8 @@ export const ListDetail = () => {
     try {
       await createItem(quickAddName.trim(), 1, 'un');
       setQuickAddName('');
-      setQuickAddOpen(false);
+      // Manter quickAddOpen true para permitir adicionar múltiplos itens
+      // setQuickAddOpen(false); // REMOVIDO
 
       // Haptic feedback
       if ('vibrate' in navigator) {
@@ -711,7 +712,7 @@ export const ListDetail = () => {
 
       {/* Sticky Add Item Button (Bottom) */}
       <div className="fixed bottom-0 left-0 right-0 z-30">
-        <div className="max-w-screen-sm mx-auto px-4 pb-safe">
+        <div className="max-w-screen-sm mx-auto pb-safe">
           <div className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 px-4 py-3 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
             <button
               onClick={handleAddItem}

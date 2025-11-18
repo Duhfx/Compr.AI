@@ -130,6 +130,10 @@ export const ItemInput: React.FC<ItemInputProps> = ({
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          autoComplete="off"
+          autoCorrect="on"
+          autoCapitalize="sentences"
+          spellCheck="true"
         />
         {loading && (
           <div className="absolute right-3 top-1/2 -translate-y-1/2">

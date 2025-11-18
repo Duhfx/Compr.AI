@@ -64,7 +64,7 @@ export const Stats = () => {
   if (statistics.totalPurchases === 0) {
     return (
       <Layout>
-        <div className="px-4 py-4 pb-24">
+        <div className="px-4 py-4 pb-28">
           <h1 className="text-[34px] font-bold text-gray-900 dark:text-white mb-2">
             Estatísticas
           </h1>
@@ -91,7 +91,7 @@ export const Stats = () => {
 
   return (
     <Layout>
-      <div className="px-4 py-4 pb-24">
+      <div className="px-4 py-4 pb-28">
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-[34px] font-bold text-gray-900 dark:text-white mb-2">
@@ -216,19 +216,15 @@ export const Stats = () => {
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
               Gastos por Categoria
             </h2>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={220}>
               <PieChart>
                 <Pie
                   data={statistics.topCategories as any}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={(props) => {
-                    const { category } = props.payload || {};
-                    const percent = props.percent || 0;
-                    return `${category || ''} (${(percent * 100).toFixed(0)}%)`;
-                  }}
-                  outerRadius={80}
+                  label={false}
+                  outerRadius={90}
                   fill="#8884d8"
                   dataKey="total"
                 >
@@ -246,6 +242,30 @@ export const Stats = () => {
                 />
               </PieChart>
             </ResponsiveContainer>
+
+            {/* Legenda customizada */}
+            <div className="grid grid-cols-2 gap-2 mt-4">
+              {statistics.topCategories.map((item, index) => {
+                const total = statistics.topCategories.reduce((sum, cat) => sum + cat.total, 0);
+                const percent = ((item.total / total) * 100).toFixed(1);
+                return (
+                  <div key={index} className="flex items-center gap-2">
+                    <div
+                      className="w-3 h-3 rounded-sm flex-shrink-0"
+                      style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium text-gray-900 dark:text-white truncate">
+                        {item.category}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        R$ {item.total.toFixed(2)} ({percent}%)
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 

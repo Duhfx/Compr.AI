@@ -144,9 +144,9 @@ export const ItemModal = ({ isOpen, item, onClose, onSave }: ItemModalProps) => 
                     required
                     autoFocus
                     autoComplete="off"
-                    autoCorrect="off"
+                    autoCorrect="on"
                     autoCapitalize="sentences"
-                    spellCheck="false"
+                    spellCheck="true"
                     enterKeyHint="next"
                   />
                 </div>
