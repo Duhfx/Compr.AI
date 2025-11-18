@@ -6,7 +6,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { validateShareCode, joinSharedList } from '../lib/sharing';
 import { Layout } from '../components/layout/Layout';
-import toast, { Toaster } from 'react-hot-toast';
 
 export const JoinList = () => {
   const { code } = useParams<{ code: string }>();
@@ -31,7 +30,7 @@ export const JoinList = () => {
       }
 
       if (!user) {
-        toast.error('Faça login para entrar na lista compartilhada');
+        setError('Faça login para entrar na lista compartilhada');
         navigate(`/login?redirect=/join/${code}`);
         return;
       }
@@ -56,12 +55,10 @@ export const JoinList = () => {
 
         const result = await joinSharedList(code, user.id);
 
-        toast.success(`Você entrou na lista "${result.listName}"!`);
         navigate(`/list/${result.listId}`);
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Erro ao entrar na lista';
         setError(errorMessage);
-        toast.error(errorMessage);
       } finally {
         setLoading(false);
       }
@@ -73,7 +70,6 @@ export const JoinList = () => {
   if (authLoading) {
     return (
       <Layout>
-        <Toaster position="top-center" />
         <div className="flex flex-col items-center justify-center min-h-[60vh]">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
           <p className="text-[17px] text-gray-600">Carregando...</p>
@@ -85,7 +81,6 @@ export const JoinList = () => {
   if (loading && !error) {
     return (
       <Layout>
-        <Toaster position="top-center" />
         <div className="flex flex-col items-center justify-center min-h-[60vh] px-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
           {listInfo ? (
@@ -108,7 +103,6 @@ export const JoinList = () => {
   if (error) {
     return (
       <Layout>
-        <Toaster position="top-center" />
         <div className="flex flex-col items-center justify-center min-h-[60vh] px-4">
           <div className="w-20 h-20 rounded-full bg-red-100 flex items-center justify-center mb-4">
             <svg className="w-10 h-10 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">

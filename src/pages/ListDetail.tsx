@@ -14,15 +14,16 @@ import { MembersModal } from '../components/lists/MembersModal';
 import { SuggestionsBanner } from '../components/suggestions/SuggestionsBanner';
 import { PredictionModal } from '../components/predictions/PredictionModal';
 import { ChatInterface } from '../components/chat/ChatInterface';
-import toast, { Toaster } from 'react-hot-toast';
-import { Sparkles, MoreVertical, Bell, Users, Share2, Trash2, Edit2, UserCheck, TrendingUp, MessageCircle } from 'lucide-react';
+import { ErrorMessage } from '../components/ui/ErrorMessage';
+import { useButtonAnimation } from '../hooks/useButtonAnimation';
+import { Sparkles, MoreVertical, Bell, Users, Share2, Trash2, Edit2, UserCheck, TrendingUp, MessageCircle, LogOut } from 'lucide-react';
 import type { ShoppingItem } from '../hooks/useSupabaseItems';
 
 export const ListDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  const { getListById, deleteList, updateList } = useSupabaseLists();
+  const { getListById, deleteList, updateList, leaveList } = useSupabaseLists();
   const { items, stats, createItem, updateItem, toggleItem, deleteItem, restoreItem, loadDeletedItems } = useSupabaseItems(id || '');
 
   // Sugestões de IA
@@ -54,6 +55,8 @@ export const ListDetail = () => {
   const [isShared, setIsShared] = useState(false);
   const [quickAddOpen, setQuickAddOpen] = useState(false);
   const [quickAddName, setQuickAddName] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const { triggerAnimation } = useButtonAnimation();
 
   // Carregar permissões do usuário e informações de compartilhamento
   useEffect(() => {
@@ -129,7 +132,7 @@ export const ListDetail = () => {
 
         if (!foundList) {
           console.warn('[ListDetail] List not found:', id);
-          toast.error('Lista não encontrada');
+          setError('Lista não encontrada');
           navigate('/home');
           return;
         }
@@ -141,7 +144,7 @@ export const ListDetail = () => {
         }
 
         console.error('[ListDetail] Error loading list:', error);
-        toast.error('Erro ao carregar lista');
+        setError('Erro ao carregar lista');
         navigate('/home');
       } finally {
         if (!isCancelled) {
@@ -170,26 +173,26 @@ export const ListDetail = () => {
 
   const handleSaveItem = async (data: any) => {
     try {
+      setError(null);
       if (editingItem) {
         await updateItem(editingItem.id, data);
-        toast.success('Item atualizado');
       } else {
         await createItem(data.name, data.quantity, data.unit, data.category);
-        toast.success('Item adicionado');
       }
+      triggerAnimation();
     } catch (error) {
       console.error('Erro ao salvar item:', error);
-      toast.error('Erro ao salvar item');
+      setError('Erro ao salvar item');
     }
   };
 
   const handleDeleteItem = async (itemId: string) => {
     try {
+      setError(null);
       await deleteItem(itemId);
-      toast.success('Item excluído');
     } catch (error) {
       console.error('Erro ao excluir item:', error);
-      toast.error('Erro ao excluir item');
+      setError('Erro ao excluir item');
     }
   };
 
@@ -203,12 +206,31 @@ export const ListDetail = () => {
     if (!confirmDelete) return;
 
     try {
+      setError(null);
       await deleteList(id);
-      toast.success('Lista excluída com sucesso');
       navigate('/home');
     } catch (error) {
       console.error('Erro ao excluir lista:', error);
-      toast.error('Erro ao excluir lista');
+      setError('Erro ao excluir lista');
+    }
+  };
+
+  const handleLeaveList = async () => {
+    if (!id) return;
+
+    const confirmLeave = window.confirm(
+      `Tem certeza que deseja sair da lista "${list?.name}"?\n\nVocê não terá mais acesso à lista e precisará de um novo código de compartilhamento para entrar novamente.`
+    );
+
+    if (!confirmLeave) return;
+
+    try {
+      setError(null);
+      await leaveList(id);
+      navigate('/home');
+    } catch (error) {
+      console.error('Erro ao sair da lista:', error);
+      setError('Erro ao sair da lista');
     }
   };
 
@@ -227,13 +249,14 @@ export const ListDetail = () => {
     }
 
     try {
+      setError(null);
       await updateList(id, { name: editedName.trim() });
       setList({ ...list, name: editedName.trim() });
-      toast.success('Nome da lista atualizado!');
+      triggerAnimation();
       setIsEditingName(false);
     } catch (error) {
       console.error('Erro ao atualizar nome:', error);
-      toast.error('Erro ao atualizar nome da lista');
+      setError('Erro ao atualizar nome da lista');
     }
   };
 
@@ -268,13 +291,14 @@ export const ListDetail = () => {
 
   const handleAddSuggestion = async (suggestion: { name: string; quantity: number; unit: string; category?: string }) => {
     try {
+      setError(null);
       await createItem(suggestion.name, suggestion.quantity, suggestion.unit, suggestion.category);
-      toast.success(`${suggestion.name} adicionado!`);
+      triggerAnimation();
       // Remove a sugestão da lista após adicionar com sucesso
       removeSuggestion(suggestion.name);
     } catch (error) {
       console.error('Erro ao adicionar sugestão:', error);
-      toast.error('Erro ao adicionar item');
+      setError('Erro ao adicionar item');
     }
   };
 
@@ -287,7 +311,7 @@ export const ListDetail = () => {
         setDeletedItems(deleted);
       } catch (error) {
         console.error('Erro ao carregar itens excluídos:', error);
-        toast.error('Erro ao carregar itens excluídos');
+        setError('Erro ao carregar itens excluídos');
       } finally {
         setLoadingDeleted(false);
       }
@@ -297,13 +321,13 @@ export const ListDetail = () => {
 
   const handleRestoreItem = async (itemId: string) => {
     try {
+      setError(null);
       await restoreItem(itemId);
-      toast.success('Item restaurado');
       // Remover da lista de deletados
       setDeletedItems(deletedItems.filter(item => item.id !== itemId));
     } catch (error) {
       console.error('Erro ao restaurar item:', error);
-      toast.error('Erro ao restaurar item');
+      setError('Erro ao restaurar item');
     }
   };
 
@@ -311,6 +335,7 @@ export const ListDetail = () => {
     if (!quickAddName.trim()) return;
 
     try {
+      setError(null);
       await createItem(quickAddName.trim(), 1, 'un');
       setQuickAddName('');
       // Manter quickAddOpen true para permitir adicionar múltiplos itens
@@ -321,10 +346,10 @@ export const ListDetail = () => {
         navigator.vibrate(10);
       }
 
-      toast.success('Item adicionado!');
+      triggerAnimation();
     } catch (error) {
       console.error('Erro ao adicionar item:', error);
-      toast.error('Erro ao adicionar item');
+      setError('Erro ao adicionar item');
     }
   };
 
@@ -351,9 +376,8 @@ export const ListDetail = () => {
 
   return (
     <Layout showTabBar={false}>
-      <Toaster position="top-center" />
-
       <div className="px-4 py-4 pb-24">
+        <ErrorMessage message={error} className="mb-4" />
         {/* Back Button */}
         <button
           onClick={() => navigate('/')}
@@ -490,18 +514,6 @@ export const ListDetail = () => {
                         Ver Previsão de Gastos
                       </button>
 
-                      {/* Chat com IA - todos podem */}
-                      <button
-                        onClick={() => {
-                          setIsChatOpen(true);
-                          setShowActionsMenu(false);
-                        }}
-                        className="w-full px-4 py-3 text-left text-[15px] font-medium text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600 flex items-center gap-3 transition-colors"
-                      >
-                        <MessageCircle className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                        Chat com IA
-                      </button>
-
                       {/* Compartilhar - apenas owner e edit */}
                       {(userPermission === 'owner' || userPermission === 'edit') && (
                         <button
@@ -509,10 +521,24 @@ export const ListDetail = () => {
                             setIsShareModalOpen(true);
                             setShowActionsMenu(false);
                           }}
-                          className="w-full px-4 py-3 text-left text-[15px] font-medium text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600 flex items-center gap-3 transition-colors border-b border-gray-100 dark:border-gray-700"
+                          className="w-full px-4 py-3 text-left text-[15px] font-medium text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600 flex items-center gap-3 transition-colors"
                         >
                           <Share2 className="w-5 h-5 text-primary dark:text-indigo-400" />
                           Compartilhar lista
+                        </button>
+                      )}
+
+                      {/* Sair da Lista - apenas para não-owners (membros) */}
+                      {userPermission !== 'owner' && userPermission !== null && (
+                        <button
+                          onClick={() => {
+                            handleLeaveList();
+                            setShowActionsMenu(false);
+                          }}
+                          className="w-full px-4 py-3 text-left text-[15px] font-medium text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 active:bg-orange-100 dark:active:bg-orange-900/30 flex items-center gap-3 transition-colors border-t border-gray-100 dark:border-gray-700"
+                        >
+                          <LogOut className="w-5 h-5" />
+                          Sair da Lista
                         </button>
                       )}
 
@@ -523,7 +549,7 @@ export const ListDetail = () => {
                             handleDeleteList();
                             setShowActionsMenu(false);
                           }}
-                          className="w-full px-4 py-3 text-left text-[15px] font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 active:bg-red-100 dark:active:bg-red-900/30 flex items-center gap-3 transition-colors"
+                          className="w-full px-4 py-3 text-left text-[15px] font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 active:bg-red-100 dark:active:bg-red-900/30 flex items-center gap-3 transition-colors border-t border-gray-100 dark:border-gray-700"
                         >
                           <Trash2 className="w-5 h-5" />
                           Excluir lista

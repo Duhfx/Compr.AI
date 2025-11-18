@@ -215,6 +215,46 @@ export const useSupabaseLists = () => {
     }
   };
 
+  // Sair de uma lista compartilhada
+  const leaveList = async (id: string): Promise<void> => {
+    if (!user) {
+      throw new Error('Usuário não autenticado');
+    }
+
+    try {
+      console.log('[useSupabaseLists] Leaving shared list:', id);
+
+      // Marcar como inativo na tabela list_members
+      const { error, data } = await supabase
+        .from('list_members')
+        .update({ is_active: false })
+        .eq('list_id', id)
+        .eq('user_id', user.id)
+        .select();
+
+      if (error) {
+        console.error('[useSupabaseLists] Error leaving list:', error);
+        throw error;
+      }
+
+      // Verificar se alguma linha foi atualizada
+      if (!data || data.length === 0) {
+        console.error('[useSupabaseLists] No rows updated - possible RLS policy issue or already left');
+        throw new Error('Não foi possível sair da lista. Você pode não ter permissão ou já saiu desta lista.');
+      }
+
+      console.log('[useSupabaseLists] Successfully left list, rows updated:', data.length);
+
+      // ✅ Invalidar cache e atualizar
+      invalidate();
+      await fetchLists(true);
+    } catch (err) {
+      const error = err as Error;
+      setError(error);
+      throw error;
+    }
+  };
+
   return {
     lists,
     loading,
@@ -222,6 +262,7 @@ export const useSupabaseLists = () => {
     createList,
     updateList,
     deleteList,
+    leaveList,
     getListById,
     refreshLists: () => fetchLists(true), // ✅ Force refresh do cache
   };

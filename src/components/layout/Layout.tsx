@@ -11,7 +11,7 @@ export const Layout = ({ children, showTabBar = true }: LayoutProps) => {
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex flex-col transition-colors overflow-x-hidden w-full">
       <Header />
-      <main className="flex-1 overflow-y-auto overflow-x-hidden pb-24 w-full">
+      <main className="flex-1 overflow-y-auto overflow-x-hidden pt-12 pb-24 w-full">
         <div className="max-w-screen-sm mx-auto w-full">
           {children}
         </div>

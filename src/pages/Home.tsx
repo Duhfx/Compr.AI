@@ -11,7 +11,8 @@ import { CreateListWithAIModal } from '../components/lists/CreateListWithAIModal
 import { JoinListModal } from '../components/lists/JoinListModal';
 import { ActionSheet } from '../components/ui/ActionSheet';
 import { SegmentedControl } from '../components/ui/SegmentedControl';
-import toast, { Toaster } from 'react-hot-toast';
+import { ErrorMessage } from '../components/ui/ErrorMessage';
+import { useButtonAnimation } from '../hooks/useButtonAnimation';
 import { Sparkles, Edit, Users, Plus } from 'lucide-react';
 
 export const Home = () => {
@@ -25,6 +26,8 @@ export const Home = () => {
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [showActionSheet, setShowActionSheet] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState('Todas');
+  const [error, setError] = useState<string | null>(null);
+  const { triggerAnimation } = useButtonAnimation();
 
   const loading = statsLoading;
 
@@ -32,7 +35,6 @@ export const Home = () => {
   const { PullIndicator } = usePullToRefresh({
     onRefresh: async () => {
       await refreshStats();
-      toast.success('Listas atualizadas!');
     },
   });
 
@@ -49,6 +51,7 @@ export const Home = () => {
     if (!newListName.trim()) return;
 
     try {
+      setError(null);
       const newList = await createList(newListName.trim());
       setNewListName('');
       setIsCreating(false);
@@ -58,26 +61,25 @@ export const Home = () => {
         navigator.vibrate(10);
       }
 
-      toast.success('Lista criada!');
+      triggerAnimation();
       navigate(`/list/${newList.id}`);
     } catch (error) {
       console.error('Erro ao criar lista:', error);
-      toast.error('Erro ao criar lista');
+      setError('Erro ao criar lista');
     }
   };
 
   const handleDeleteList = async (id: string) => {
     try {
+      setError(null);
       await deleteList(id);
-      toast.success('Lista excluída');
     } catch (error) {
       console.error('Erro ao excluir lista:', error);
-      toast.error('Erro ao excluir lista');
+      setError('Erro ao excluir lista');
     }
   };
 
   const handleJoinSuccess = async (listId: string) => {
-    toast.success('Você entrou na lista compartilhada!');
     await refreshStats();
     navigate(`/list/${listId}`);
   };
@@ -139,10 +141,10 @@ export const Home = () => {
 
   return (
     <Layout showTabBar={!isCreating && !showAIModal && !showJoinModal && !showActionSheet}>
-      <Toaster position="top-center" />
       <PullIndicator />
 
       <div className="px-4 py-4 pb-24">
+        <ErrorMessage message={error} className="mb-4" />
         {/* Header - Estilo consistente com Histórico */}
         {listsWithStats.length > 0 && (
           <div className="mb-6">

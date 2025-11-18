@@ -12,11 +12,6 @@ export const Header = () => {
   const { setTheme, resolvedTheme } = useTheme();
   const [showMenu, setShowMenu] = useState(false);
 
-  // Always show app name
-  const getTitle = () => {
-    return 'Compr.AI';
-  };
-
   const handleLogout = async () => {
     try {
       await signOut();
@@ -37,20 +32,17 @@ export const Header = () => {
   };
 
   return (
-    <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-b border-primary/10 dark:border-indigo-500/20 sticky top-0 z-30 safe-top transition-all shadow-sm">
-      <div className="flex items-center justify-between h-14 px-5">
-        <div className="flex-1" />
-
-        <div className="flex items-center gap-2.5">
-          <h1 className="text-[18px] font-bold text-gray-900 dark:text-white tracking-tight">
-            {getTitle()}
-          </h1>
+    <header className="fixed top-0 left-0 right-0 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-700/50 z-50 safe-top transition-all">
+      <div className="flex items-center justify-between h-12 px-4">
+        {/* Indicador offline à esquerda */}
+        <div className="flex items-center">
           {isOffline && (
             <div className="w-2 h-2 bg-warning rounded-full animate-pulse" title="Offline" />
           )}
         </div>
 
-        <div className="flex-1 flex justify-end items-center gap-3 relative">
+        {/* Botões de ação à direita */}
+        <div className="flex items-center gap-2 relative">
           {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
