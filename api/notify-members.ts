@@ -208,8 +208,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         await webpush.sendNotification(
           subscription,
           JSON.stringify({
-            title: `📝 ${listName}`,
-            body: `${notifierName} atualizou a lista`,
+            title: `${listName} foi atualizada por ${notifierName}!`,
+            body: `Clique aqui para conferir`,
             icon: '/icons/icon-192.png',
             badge: '/icons/icon-192.png',
             data: {

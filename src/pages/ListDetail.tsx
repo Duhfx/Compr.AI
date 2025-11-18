@@ -236,8 +236,6 @@ export const ListDetail = () => {
   const handleNotifyMembers = async () => {
     if (!id || !user) return;
 
-    const loadingToast = toast.loading('Enviando notificações...');
-
     try {
       const response = await fetch('/api/notify-members', {
         method: 'POST',
@@ -253,23 +251,14 @@ export const ListDetail = () => {
 
       const data = await response.json();
 
-      toast.dismiss(loadingToast);
-
       if (!response.ok) {
         throw new Error(data.error || 'Erro ao enviar notificações');
       }
 
-      if (data.notifiedCount === 0) {
-        toast('Nenhum membro para notificar', { icon: 'ℹ️' });
-      } else {
-        toast.success(
-          `${data.notifiedCount} ${data.notifiedCount === 1 ? 'membro notificado' : 'membros notificados'}!`
-        );
-      }
+      // Notificação enviada silenciosamente, sem toast
     } catch (error) {
-      toast.dismiss(loadingToast);
       console.error('Erro ao notificar membros:', error);
-      toast.error('Erro ao enviar notificações');
+      // Erro também é silencioso, apenas logado
     }
   };
 
