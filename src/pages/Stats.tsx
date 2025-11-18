@@ -13,7 +13,6 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer
 } from 'recharts';
 import { TrendingUp, TrendingDown, DollarSign, ShoppingCart, Package, Calendar } from 'lucide-react';
@@ -220,18 +219,20 @@ export const Stats = () => {
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
-                  data={statistics.topCategories}
+                  data={statistics.topCategories as any}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ category, percent }) =>
-                    `${category} (${(percent * 100).toFixed(0)}%)`
-                  }
+                  label={(props) => {
+                    const { category } = props.payload || {};
+                    const percent = props.percent || 0;
+                    return `${category || ''} (${(percent * 100).toFixed(0)}%)`;
+                  }}
                   outerRadius={80}
                   fill="#8884d8"
                   dataKey="total"
                 >
-                  {statistics.topCategories.map((entry, index) => (
+                  {statistics.topCategories.map((_item, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>

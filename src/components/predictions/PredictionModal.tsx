@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { usePriceEstimation, type PriceEstimation } from '../../hooks/usePriceEstimation';
+import { usePriceEstimation } from '../../hooks/usePriceEstimation';
 import type { ShoppingItem } from '../../hooks/useSupabaseItems';
 import { TrendingUp, AlertCircle, CheckCircle, XCircle } from 'lucide-react';
 

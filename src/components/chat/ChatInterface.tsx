@@ -27,7 +27,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   listId,
   listName
 }) => {
-  const { messages, isLoading, sendMessage, clearMessages } = useChat({ userId, listId });
+  const { messages, isLoading, sendMessage } = useChat({ userId, listId });
   const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
