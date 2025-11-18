@@ -6,7 +6,6 @@ import { db } from '../lib/db';
 import { useDeviceId } from './useDeviceId';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import toast from 'react-hot-toast';
 
 interface Suggestion {
   name: string;
@@ -252,10 +251,9 @@ Considere quantidades realistas e apropriadas para o contexto descrito.`;
           throw new Error('A IA não conseguiu validar nenhum item da lista. Tente reformular sua descrição.');
         }
 
-        // Se a confiança for muito baixa, avisar mas continuar
+        // Se a confiança for muito baixa, apenas logar (warning será mostrado na UI via return)
         if (validation.confidence < 70) {
           console.warn('[useCreateListWithAI] Low confidence validation:', validation.confidence);
-          toast('⚠️ Lista gerada com baixa confiança. Revise os itens.', { duration: 4000 });
         }
 
         // Usar apenas itens validados

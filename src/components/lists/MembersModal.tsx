@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { getListOwner, removeMember } from '../../lib/sharing';
 import { supabase } from '../../lib/supabase';
-import toast from 'react-hot-toast';
+import { ErrorMessage } from '../ui/ErrorMessage';
 
 interface Member {
   id: string;
@@ -34,6 +34,7 @@ export const MembersModal: React.FC<MembersModalProps> = ({
   const [ownerNickname, setOwnerNickname] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [removingId, setRemovingId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const isOwner = ownerId === currentUserId;
 
@@ -87,7 +88,7 @@ export const MembersModal: React.FC<MembersModalProps> = ({
         setOwnerNickname(ownerNick);
       } catch (error) {
         console.error('Error loading members:', error);
-        toast.error('Erro ao carregar membros');
+        setError('Erro ao carregar membros');
       } finally {
         setLoading(false);
       }
@@ -103,14 +104,14 @@ export const MembersModal: React.FC<MembersModalProps> = ({
 
     try {
       setRemovingId(memberUserId);
+      setError(null);
       await removeMember(listId, memberUserId, currentUserId);
 
       // Atualizar lista local
       setMembers(members.filter(m => m.userId !== memberUserId));
-      toast.success('Membro removido com sucesso');
     } catch (error) {
       console.error('Error removing member:', error);
-      toast.error(error instanceof Error ? error.message : 'Erro ao remover membro');
+      setError(error instanceof Error ? error.message : 'Erro ao remover membro');
     } finally {
       setRemovingId(null);
     }
@@ -162,6 +163,8 @@ export const MembersModal: React.FC<MembersModalProps> = ({
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6">
+          <ErrorMessage message={error} className="mb-4" />
+
           {loading ? (
             <div className="flex items-center justify-center py-8">
               <div className="text-gray-500 dark:text-gray-400">Carregando membros...</div>

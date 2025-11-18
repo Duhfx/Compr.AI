@@ -5,7 +5,6 @@ Este documento contém instruções essenciais para desenvolver o Compr.AI usand
 **Regras:**
 - Sempre criar testes quando possível
 - NÃO criar arquivos .md desnecessários
-- Documentar novas funcionalidades no FUNCIONALIDADES_1311.md
 
 ---
 
@@ -265,7 +264,7 @@ try {
 } catch (error) {
   if (error instanceof Error) {
     console.error('Erro:', error.message);
-    toast.error(`Falha: ${error.message}`);
+    setError(`Falha: ${error.message}`);
   }
 }
 ```

@@ -46,7 +46,10 @@
       "Bash(.gitignore)",
       "Bash(echo:*)",
       "Bash(\"C:\\Compr.AI\\comprai\\src\\pages\\Home.tsx\")",
-      "Bash(powershell -Command \"(Get-Content FUNCIONALIDADES_1311.md).Length\")"
+      "Bash(powershell -Command \"(Get-Content FUNCIONALIDADES_1311.md).Length\")",
+      "Bash(git restore:*)",
+      "Bash(npx supabase:*)",
+      "Bash(powershell -Command \"(Get-Content ''src\\pages\\Home.tsx'') -replace \"\"import toast, \\{ Toaster \\} from ''react-hot-toast'';?\"\", '''' -replace ''<Toaster position=\"\"top-center\"\" />?\\s*'', '''' -replace ''toast\\.(success|error|warning)\\([^\\)]+\\);?\\s*'', '''' | Set-Content ''src\\pages\\Home.tsx.tmp'' && Move-Item -Force ''src\\pages\\Home.tsx.tmp'' ''src\\pages\\Home.tsx''\")"
     ],
     "deny": [],
     "ask": []

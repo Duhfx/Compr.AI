@@ -11,7 +11,7 @@ import { ReceiptPreview } from '../components/scanner/ReceiptPreview';
 import { useOCR } from '../hooks/useOCR';
 import { useReceiptProcessing } from '../hooks/useReceiptProcessing';
 import type { ProcessedReceipt } from '../hooks/useReceiptProcessing';
-import toast, { Toaster } from 'react-hot-toast';
+import { ErrorMessage } from '../components/ui/ErrorMessage';
 
 type ScannerStep = 'capture' | 'processing' | 'preview';
 
@@ -21,12 +21,14 @@ export const Scanner = () => {
   const [step, setStep] = useState<ScannerStep>('capture');
   const [processedData, setProcessedData] = useState<ProcessedReceipt | null>(null);
   const [currentMessage, setCurrentMessage] = useState('Iniciando...');
+  const [error, setError] = useState<string | null>(null);
 
   const { extractText, loading: ocrLoading, progress } = useOCR();
   const { processReceipt } = useReceiptProcessing();
 
   const handleImageCapture = async (imageBase64: string) => {
     setStep('processing');
+    setError(null);
 
     try {
       // Etapa 1: OCR - Extrair texto da imagem
@@ -46,14 +48,13 @@ export const Scanner = () => {
     } catch (error) {
       console.error('[Scanner] Erro no processamento:', error);
 
-      toast.error('Não foi possível processar a nota fiscal. Tente novamente.');
+      setError('Não foi possível processar a nota fiscal. Tente novamente.');
       setStep('capture');
     }
   };
 
   const handleSuccess = () => {
     setProcessedData(null);
-    toast.success('✅ Histórico atualizado!');
     navigate('/history');
   };
 
@@ -64,8 +65,6 @@ export const Scanner = () => {
 
   return (
     <Layout>
-      <Toaster position="top-center" />
-
       <div className="px-4 py-4 pb-28">
         {/* Header */}
         <div className="mb-6">
@@ -76,6 +75,9 @@ export const Scanner = () => {
             Capture uma foto da nota fiscal para registrar os preços
           </p>
         </div>
+
+        {/* Error Message */}
+        <ErrorMessage message={error} className="mb-4" />
 
         {/* Content */}
         {step === 'capture' && (

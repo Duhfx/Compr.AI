@@ -9,7 +9,7 @@ import { useDeviceId } from '../hooks/useDeviceId';
 import { useAuth } from '../contexts/AuthContext';
 import { usePushNotifications } from '../hooks/usePushNotifications';
 import { BottomTabBar } from '../components/layout/BottomTabBar';
-import toast, { Toaster } from 'react-hot-toast';
+import { useButtonAnimation } from '../hooks/useButtonAnimation';
 
 export const Profile = () => {
   const navigate = useNavigate();
@@ -28,6 +28,7 @@ export const Profile = () => {
   const [nickname, setNickname] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { triggerAnimation } = useButtonAnimation();
 
   // Carregar nickname atual
   useEffect(() => {
@@ -49,16 +50,15 @@ export const Profile = () => {
 
       await updateProfile(nickname.trim());
 
-      toast.success('Perfil atualizado com sucesso!');
+      triggerAnimation();
 
       // Voltar após salvar
       setTimeout(() => {
         navigate(-1);
-      }, 1000);
+      }, 600);
     } catch (err) {
       console.error('Erro ao salvar perfil:', err);
       setError(err instanceof Error ? err.message : 'Erro ao salvar perfil');
-      toast.error('Erro ao salvar perfil');
     } finally {
       setSaving(false);
     }
@@ -68,22 +68,17 @@ export const Profile = () => {
     try {
       if (pushEnabled) {
         // Desativar
-        const success = await unsubscribe();
-        if (success) {
-          toast.success('Notificações desativadas');
-        }
+        await unsubscribe();
       } else {
         // Ativar
         const success = await requestPermission();
-        if (success) {
-          toast.success('Notificações ativadas!');
-        } else {
-          toast.error('Não foi possível ativar as notificações');
+        if (!success) {
+          setError('Não foi possível ativar as notificações');
         }
       }
     } catch (error) {
       console.error('Erro ao alternar notificações:', error);
-      toast.error('Erro ao alterar configuração');
+      setError('Erro ao alterar configuração');
     }
   };
 
@@ -92,18 +87,15 @@ export const Profile = () => {
       try {
         await signOut();
         navigate('/');
-        toast.success('Você saiu da sua conta');
       } catch (error) {
         console.error('Erro ao sair:', error);
-        toast.error('Erro ao sair');
+        setError('Erro ao sair');
       }
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-24">
-      <Toaster position="top-center" />
-
       {/* Header */}
       <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-screen-sm mx-auto px-4 py-4">

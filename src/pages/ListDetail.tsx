@@ -14,7 +14,8 @@ import { MembersModal } from '../components/lists/MembersModal';
 import { SuggestionsBanner } from '../components/suggestions/SuggestionsBanner';
 import { PredictionModal } from '../components/predictions/PredictionModal';
 import { ChatInterface } from '../components/chat/ChatInterface';
-import toast, { Toaster } from 'react-hot-toast';
+import { ErrorMessage } from '../components/ui/ErrorMessage';
+import { useButtonAnimation } from '../hooks/useButtonAnimation';
 import { Sparkles, MoreVertical, Bell, Users, Share2, Trash2, Edit2, UserCheck, TrendingUp, MessageCircle, LogOut } from 'lucide-react';
 import type { ShoppingItem } from '../hooks/useSupabaseItems';
 
@@ -54,6 +55,8 @@ export const ListDetail = () => {
   const [isShared, setIsShared] = useState(false);
   const [quickAddOpen, setQuickAddOpen] = useState(false);
   const [quickAddName, setQuickAddName] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const { triggerAnimation } = useButtonAnimation();
 
   // Carregar permissões do usuário e informações de compartilhamento
   useEffect(() => {
@@ -129,7 +132,7 @@ export const ListDetail = () => {
 
         if (!foundList) {
           console.warn('[ListDetail] List not found:', id);
-          toast.error('Lista não encontrada');
+          setError('Lista não encontrada');
           navigate('/home');
           return;
         }
@@ -141,7 +144,7 @@ export const ListDetail = () => {
         }
 
         console.error('[ListDetail] Error loading list:', error);
-        toast.error('Erro ao carregar lista');
+        setError('Erro ao carregar lista');
         navigate('/home');
       } finally {
         if (!isCancelled) {
@@ -170,26 +173,26 @@ export const ListDetail = () => {
 
   const handleSaveItem = async (data: any) => {
     try {
+      setError(null);
       if (editingItem) {
         await updateItem(editingItem.id, data);
-        toast.success('Item atualizado');
       } else {
         await createItem(data.name, data.quantity, data.unit, data.category);
-        toast.success('Item adicionado');
       }
+      triggerAnimation();
     } catch (error) {
       console.error('Erro ao salvar item:', error);
-      toast.error('Erro ao salvar item');
+      setError('Erro ao salvar item');
     }
   };
 
   const handleDeleteItem = async (itemId: string) => {
     try {
+      setError(null);
       await deleteItem(itemId);
-      toast.success('Item excluído');
     } catch (error) {
       console.error('Erro ao excluir item:', error);
-      toast.error('Erro ao excluir item');
+      setError('Erro ao excluir item');
     }
   };
 
@@ -203,12 +206,12 @@ export const ListDetail = () => {
     if (!confirmDelete) return;
 
     try {
+      setError(null);
       await deleteList(id);
-      toast.success('Lista excluída com sucesso');
       navigate('/home');
     } catch (error) {
       console.error('Erro ao excluir lista:', error);
-      toast.error('Erro ao excluir lista');
+      setError('Erro ao excluir lista');
     }
   };
 
@@ -222,12 +225,12 @@ export const ListDetail = () => {
     if (!confirmLeave) return;
 
     try {
+      setError(null);
       await leaveList(id);
-      toast.success('Você saiu da lista compartilhada');
       navigate('/home');
     } catch (error) {
       console.error('Erro ao sair da lista:', error);
-      toast.error('Erro ao sair da lista');
+      setError('Erro ao sair da lista');
     }
   };
 
@@ -246,13 +249,14 @@ export const ListDetail = () => {
     }
 
     try {
+      setError(null);
       await updateList(id, { name: editedName.trim() });
       setList({ ...list, name: editedName.trim() });
-      toast.success('Nome da lista atualizado!');
+      triggerAnimation();
       setIsEditingName(false);
     } catch (error) {
       console.error('Erro ao atualizar nome:', error);
-      toast.error('Erro ao atualizar nome da lista');
+      setError('Erro ao atualizar nome da lista');
     }
   };
 
@@ -287,13 +291,14 @@ export const ListDetail = () => {
 
   const handleAddSuggestion = async (suggestion: { name: string; quantity: number; unit: string; category?: string }) => {
     try {
+      setError(null);
       await createItem(suggestion.name, suggestion.quantity, suggestion.unit, suggestion.category);
-      toast.success(`${suggestion.name} adicionado!`);
+      triggerAnimation();
       // Remove a sugestão da lista após adicionar com sucesso
       removeSuggestion(suggestion.name);
     } catch (error) {
       console.error('Erro ao adicionar sugestão:', error);
-      toast.error('Erro ao adicionar item');
+      setError('Erro ao adicionar item');
     }
   };
 
@@ -306,7 +311,7 @@ export const ListDetail = () => {
         setDeletedItems(deleted);
       } catch (error) {
         console.error('Erro ao carregar itens excluídos:', error);
-        toast.error('Erro ao carregar itens excluídos');
+        setError('Erro ao carregar itens excluídos');
       } finally {
         setLoadingDeleted(false);
       }
@@ -316,13 +321,13 @@ export const ListDetail = () => {
 
   const handleRestoreItem = async (itemId: string) => {
     try {
+      setError(null);
       await restoreItem(itemId);
-      toast.success('Item restaurado');
       // Remover da lista de deletados
       setDeletedItems(deletedItems.filter(item => item.id !== itemId));
     } catch (error) {
       console.error('Erro ao restaurar item:', error);
-      toast.error('Erro ao restaurar item');
+      setError('Erro ao restaurar item');
     }
   };
 
@@ -330,6 +335,7 @@ export const ListDetail = () => {
     if (!quickAddName.trim()) return;
 
     try {
+      setError(null);
       await createItem(quickAddName.trim(), 1, 'un');
       setQuickAddName('');
       // Manter quickAddOpen true para permitir adicionar múltiplos itens
@@ -340,10 +346,10 @@ export const ListDetail = () => {
         navigator.vibrate(10);
       }
 
-      toast.success('Item adicionado!');
+      triggerAnimation();
     } catch (error) {
       console.error('Erro ao adicionar item:', error);
-      toast.error('Erro ao adicionar item');
+      setError('Erro ao adicionar item');
     }
   };
 
@@ -370,9 +376,8 @@ export const ListDetail = () => {
 
   return (
     <Layout showTabBar={false}>
-      <Toaster position="top-center" />
-
       <div className="px-4 py-4 pb-24">
+        <ErrorMessage message={error} className="mb-4" />
         {/* Back Button */}
         <button
           onClick={() => navigate('/')}

@@ -225,16 +225,25 @@ export const useSupabaseLists = () => {
       console.log('[useSupabaseLists] Leaving shared list:', id);
 
       // Marcar como inativo na tabela list_members
-      const { error } = await supabase
+      const { error, count } = await supabase
         .from('list_members')
         .update({ is_active: false })
         .eq('list_id', id)
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .select('*', { count: 'exact', head: true });
 
       if (error) {
         console.error('[useSupabaseLists] Error leaving list:', error);
         throw error;
       }
+
+      // Verificar se alguma linha foi atualizada
+      if (count === 0) {
+        console.error('[useSupabaseLists] No rows updated - possible RLS policy issue or already left');
+        throw new Error('Não foi possível sair da lista. Você pode não ter permissão ou já saiu desta lista.');
+      }
+
+      console.log('[useSupabaseLists] Successfully left list, rows updated:', count);
 
       // ✅ Invalidar cache e atualizar
       invalidate();

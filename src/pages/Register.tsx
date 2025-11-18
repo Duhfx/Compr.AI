@@ -4,45 +4,49 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import toast, { Toaster } from 'react-hot-toast';
+import { ErrorMessage } from '../components/ui/ErrorMessage';
+import { useButtonAnimation } from '../hooks/useButtonAnimation';
 
 export const Register = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { signUp } = useAuth();
   const navigate = useNavigate();
+  const { triggerAnimation, animationClass } = useButtonAnimation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
 
     if (!email || !password || !confirmPassword) {
-      toast.error('Preencha todos os campos');
+      setError('Preencha todos os campos');
       return;
     }
 
     if (password.length < 6) {
-      toast.error('A senha deve ter pelo menos 6 caracteres');
+      setError('A senha deve ter pelo menos 6 caracteres');
       return;
     }
 
     if (password !== confirmPassword) {
-      toast.error('As senhas não coincidem');
+      setError('As senhas não coincidem');
       return;
     }
 
     try {
       setLoading(true);
       await signUp(email, password);
-      toast.success('Conta criada com sucesso! Faça login para continuar.');
+      triggerAnimation();
       navigate('/login');
     } catch (error: any) {
       console.error('Register error:', error);
       if (error.message.includes('already registered')) {
-        toast.error('Este email já está cadastrado');
+        setError('Este email já está cadastrado');
       } else {
-        toast.error('Erro ao criar conta');
+        setError('Erro ao criar conta');
       }
     } finally {
       setLoading(false);
@@ -51,8 +55,6 @@ export const Register = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <Toaster position="top-center" />
-
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <h1 className="text-center text-[34px] font-bold text-gray-900 mb-2">
           Compr.AI
@@ -129,10 +131,11 @@ export const Register = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-ios shadow-sm text-[17px] font-semibold text-white bg-primary hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                className={`w-full flex justify-center py-3 px-4 border border-transparent rounded-ios shadow-sm text-[17px] font-semibold text-white bg-primary hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors ${animationClass}`}
               >
                 {loading ? 'Criando conta...' : 'Criar conta'}
               </button>
+              <ErrorMessage message={error} />
             </div>
           </form>
 
