@@ -80,46 +80,42 @@ export const BottomTabBar = ({}: BottomTabBarProps) => {
           boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04)',
         }}
       >
-        {/* Estilo WhatsApp: compacto e arredondado */}
-        <div className="flex items-center justify-center h-14 px-2 py-2 relative gap-1">
-          {tabs.map((tab, index) => {
+        {/* Estilo Liquid Glass: ocupa toda região disponível */}
+        <div className="flex items-stretch justify-center h-16 px-1 py-1 relative gap-0.5">
+          {tabs.map((tab) => {
             const isActive = location.pathname === tab.path;
-            const isFirst = index === 0;
-            const isLast = index === tabs.length - 1;
 
             return (
               <button
                 key={tab.id}
                 onClick={() => handleTabClick(tab)}
-                className="flex flex-col items-center justify-center relative"
+                className="flex-1 flex flex-col items-center justify-center relative overflow-hidden"
               >
-                <motion.div
-                  whileTap={{ scale: 0.85 }}
-                  className="flex flex-col items-center gap-0.5 relative px-5 py-1.5"
-                >
-                  {/* Fundo arredondado completo (estilo WhatsApp) */}
-                  {isActive && (
-                    <motion.div
-                      layoutId="activeTab"
-                      className={`absolute inset-0 bg-gray-700 dark:bg-gray-700 ${
-                        isFirst
-                          ? 'rounded-l-full rounded-r-full -ml-2'
-                          : isLast
-                          ? 'rounded-r-full rounded-l-full -mr-2'
-                          : 'rounded-full'
-                      }`}
-                      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                    />
-                  )}
+                {/* Fundo Liquid Glass - ocupa 100% da região */}
+                {isActive && (
+                  <motion.div
+                    layoutId="activeTab"
+                    className="absolute inset-0 bg-gradient-to-br from-indigo-600 to-purple-600 dark:from-indigo-500 dark:to-purple-500 rounded-2xl"
+                    style={{
+                      backdropFilter: 'blur(10px)',
+                      WebkitBackdropFilter: 'blur(10px)',
+                    }}
+                    transition={{ type: 'spring', stiffness: 380, damping: 32 }}
+                  />
+                )}
 
+                <motion.div
+                  whileTap={{ scale: 0.92 }}
+                  className="flex flex-col items-center gap-1 relative z-10 py-1.5"
+                >
                   {/* Ícone */}
-                  <div className="relative z-10">
+                  <div className="relative">
                     {tab.icon(isActive)}
                   </div>
 
                   {/* Label */}
                   <span
-                    className={`text-[10px] font-medium transition-colors relative z-10 whitespace-nowrap ${
+                    className={`text-[10px] font-medium transition-colors whitespace-nowrap ${
                       isActive ? 'text-white' : 'text-gray-600 dark:text-gray-400'
                     }`}
                   >
