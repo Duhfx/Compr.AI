@@ -73,9 +73,9 @@ export const BottomTabBar = ({}: BottomTabBarProps) => {
   };
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 flex justify-center">
+    <div className="fixed bottom-4 left-4 right-4 z-[9999] flex justify-center pointer-events-none">
       <div
-        className="backdrop-blur-xl bg-white/50 dark:bg-gray-900/50 border border-gray-200/20 rounded-full shadow-lg max-w-sm w-full overflow-hidden"
+        className="backdrop-blur-xl bg-white/50 dark:bg-gray-900/50 border border-gray-200/20 rounded-full shadow-lg max-w-sm w-full overflow-hidden pointer-events-auto"
         style={{
           boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04)',
         }}
@@ -91,7 +91,7 @@ export const BottomTabBar = ({}: BottomTabBarProps) => {
               <button
                 key={tab.id}
                 onClick={() => handleTabClick(tab)}
-                className="flex flex-col items-center justify-center relative"
+                className="flex flex-col items-center justify-center relative pointer-events-auto cursor-pointer"
               >
                 <motion.div
                   whileTap={{ scale: 0.85 }}

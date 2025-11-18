@@ -64,7 +64,7 @@ export const Stats = () => {
   if (statistics.totalPurchases === 0) {
     return (
       <Layout>
-        <div className="px-4 py-4 pb-24">
+        <div className="px-4 py-4 pb-28">
           <h1 className="text-[34px] font-bold text-gray-900 dark:text-white mb-2">
             Estatísticas
           </h1>
@@ -91,7 +91,7 @@ export const Stats = () => {
 
   return (
     <Layout>
-      <div className="px-4 py-4 pb-24">
+      <div className="px-4 py-4 pb-28">
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-[34px] font-bold text-gray-900 dark:text-white mb-2">
