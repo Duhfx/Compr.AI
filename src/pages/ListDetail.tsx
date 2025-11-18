@@ -15,14 +15,14 @@ import { SuggestionsBanner } from '../components/suggestions/SuggestionsBanner';
 import { PredictionModal } from '../components/predictions/PredictionModal';
 import { ChatInterface } from '../components/chat/ChatInterface';
 import toast, { Toaster } from 'react-hot-toast';
-import { Sparkles, MoreVertical, Bell, Users, Share2, Trash2, Edit2, UserCheck, TrendingUp, MessageCircle } from 'lucide-react';
+import { Sparkles, MoreVertical, Bell, Users, Share2, Trash2, Edit2, UserCheck, TrendingUp, MessageCircle, LogOut } from 'lucide-react';
 import type { ShoppingItem } from '../hooks/useSupabaseItems';
 
 export const ListDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  const { getListById, deleteList, updateList } = useSupabaseLists();
+  const { getListById, deleteList, updateList, leaveList } = useSupabaseLists();
   const { items, stats, createItem, updateItem, toggleItem, deleteItem, restoreItem, loadDeletedItems } = useSupabaseItems(id || '');
 
   // Sugestões de IA
@@ -209,6 +209,25 @@ export const ListDetail = () => {
     } catch (error) {
       console.error('Erro ao excluir lista:', error);
       toast.error('Erro ao excluir lista');
+    }
+  };
+
+  const handleLeaveList = async () => {
+    if (!id) return;
+
+    const confirmLeave = window.confirm(
+      `Tem certeza que deseja sair da lista "${list?.name}"?\n\nVocê não terá mais acesso à lista e precisará de um novo código de compartilhamento para entrar novamente.`
+    );
+
+    if (!confirmLeave) return;
+
+    try {
+      await leaveList(id);
+      toast.success('Você saiu da lista compartilhada');
+      navigate('/home');
+    } catch (error) {
+      console.error('Erro ao sair da lista:', error);
+      toast.error('Erro ao sair da lista');
     }
   };
 
@@ -490,18 +509,6 @@ export const ListDetail = () => {
                         Ver Previsão de Gastos
                       </button>
 
-                      {/* Chat com IA - todos podem */}
-                      <button
-                        onClick={() => {
-                          setIsChatOpen(true);
-                          setShowActionsMenu(false);
-                        }}
-                        className="w-full px-4 py-3 text-left text-[15px] font-medium text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600 flex items-center gap-3 transition-colors"
-                      >
-                        <MessageCircle className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                        Chat com IA
-                      </button>
-
                       {/* Compartilhar - apenas owner e edit */}
                       {(userPermission === 'owner' || userPermission === 'edit') && (
                         <button
@@ -509,10 +516,24 @@ export const ListDetail = () => {
                             setIsShareModalOpen(true);
                             setShowActionsMenu(false);
                           }}
-                          className="w-full px-4 py-3 text-left text-[15px] font-medium text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600 flex items-center gap-3 transition-colors border-b border-gray-100 dark:border-gray-700"
+                          className="w-full px-4 py-3 text-left text-[15px] font-medium text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600 flex items-center gap-3 transition-colors"
                         >
                           <Share2 className="w-5 h-5 text-primary dark:text-indigo-400" />
                           Compartilhar lista
+                        </button>
+                      )}
+
+                      {/* Sair da Lista - apenas para não-owners (membros) */}
+                      {userPermission !== 'owner' && userPermission !== null && (
+                        <button
+                          onClick={() => {
+                            handleLeaveList();
+                            setShowActionsMenu(false);
+                          }}
+                          className="w-full px-4 py-3 text-left text-[15px] font-medium text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 active:bg-orange-100 dark:active:bg-orange-900/30 flex items-center gap-3 transition-colors border-t border-gray-100 dark:border-gray-700"
+                        >
+                          <LogOut className="w-5 h-5" />
+                          Sair da Lista
                         </button>
                       )}
 
@@ -523,7 +544,7 @@ export const ListDetail = () => {
                             handleDeleteList();
                             setShowActionsMenu(false);
                           }}
-                          className="w-full px-4 py-3 text-left text-[15px] font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 active:bg-red-100 dark:active:bg-red-900/30 flex items-center gap-3 transition-colors"
+                          className="w-full px-4 py-3 text-left text-[15px] font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 active:bg-red-100 dark:active:bg-red-900/30 flex items-center gap-3 transition-colors border-t border-gray-100 dark:border-gray-700"
                         >
                           <Trash2 className="w-5 h-5" />
                           Excluir lista
