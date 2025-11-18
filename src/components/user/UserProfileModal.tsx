@@ -133,9 +133,9 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
               maxLength={50}
               className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent outline-none transition-all bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
               autoComplete="off"
-              autoCorrect="off"
+              autoCorrect="on"
               autoCapitalize="words"
-              spellCheck="false"
+              spellCheck="true"
             />
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               Este nome será exibido para outros membros das listas compartilhadas

@@ -178,8 +178,9 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
               disabled={isLoading}
               className="flex-1 px-4 py-3 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50 transition-all"
               autoComplete="off"
-              autoCorrect="off"
+              autoCorrect="on"
               autoCapitalize="sentences"
+              spellCheck="true"
             />
             <button
               onClick={handleSend}
