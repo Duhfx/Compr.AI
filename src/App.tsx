@@ -13,6 +13,7 @@ import { JoinList } from './pages/JoinList';
 import { History } from './pages/History';
 import { Profile } from './pages/Profile';
 import { Scanner } from './pages/Scanner';
+import { Stats } from './pages/Stats';
 
 function App() {
   return (
@@ -75,6 +76,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Scanner />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/stats"
+              element={
+                <ProtectedRoute>
+                  <Stats />
                 </ProtectedRoute>
               }
             />

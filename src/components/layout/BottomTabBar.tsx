@@ -1,7 +1,7 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { List, History, Receipt } from 'lucide-react';
+import { List, History, Receipt, BarChart3 } from 'lucide-react';
 
 interface Tab {
   id: string;
@@ -23,6 +23,17 @@ export const BottomTabBar = ({}: BottomTabBarProps) => {
       path: '/home',
       icon: (active: boolean) => (
         <List
+          className={`w-5 h-5 ${active ? 'text-white' : 'text-gray-600 dark:text-gray-400'}`}
+          strokeWidth={active ? 2.5 : 2}
+        />
+      ),
+    },
+    {
+      id: 'stats',
+      label: 'Estatísticas',
+      path: '/stats',
+      icon: (active: boolean) => (
+        <BarChart3
           className={`w-5 h-5 ${active ? 'text-white' : 'text-gray-600 dark:text-gray-400'}`}
           strokeWidth={active ? 2.5 : 2}
         />

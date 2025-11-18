@@ -12,8 +12,10 @@ import { ItemModal } from '../components/items/ItemModal';
 import { ShareListModal } from '../components/lists/ShareListModal';
 import { MembersModal } from '../components/lists/MembersModal';
 import { SuggestionsBanner } from '../components/suggestions/SuggestionsBanner';
+import { PredictionModal } from '../components/predictions/PredictionModal';
+import { ChatInterface } from '../components/chat/ChatInterface';
 import toast, { Toaster } from 'react-hot-toast';
-import { Sparkles, MoreVertical, Bell, Users, Share2, Trash2, Edit2, UserCheck } from 'lucide-react';
+import { Sparkles, MoreVertical, Bell, Users, Share2, Trash2, Edit2, UserCheck, TrendingUp, MessageCircle } from 'lucide-react';
 import type { ShoppingItem } from '../hooks/useSupabaseItems';
 
 export const ListDetail = () => {
@@ -38,6 +40,8 @@ export const ListDetail = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isMembersModalOpen, setIsMembersModalOpen] = useState(false);
+  const [isPredictionModalOpen, setIsPredictionModalOpen] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<ShoppingItem | undefined>(undefined);
   const [deletedItems, setDeletedItems] = useState<ShoppingItem[]>([]);
   const [showDeletedSection, setShowDeletedSection] = useState(false);
@@ -236,8 +240,6 @@ export const ListDetail = () => {
   const handleNotifyMembers = async () => {
     if (!id || !user) return;
 
-    const loadingToast = toast.loading('Enviando notificações...');
-
     try {
       const response = await fetch('/api/notify-members', {
         method: 'POST',
@@ -253,23 +255,14 @@ export const ListDetail = () => {
 
       const data = await response.json();
 
-      toast.dismiss(loadingToast);
-
       if (!response.ok) {
         throw new Error(data.error || 'Erro ao enviar notificações');
       }
 
-      if (data.notifiedCount === 0) {
-        toast('Nenhum membro para notificar', { icon: 'ℹ️' });
-      } else {
-        toast.success(
-          `${data.notifiedCount} ${data.notifiedCount === 1 ? 'membro notificado' : 'membros notificados'}!`
-        );
-      }
+      // Notificação enviada silenciosamente, sem toast
     } catch (error) {
-      toast.dismiss(loadingToast);
       console.error('Erro ao notificar membros:', error);
-      toast.error('Erro ao enviar notificações');
+      // Erro também é silencioso, apenas logado
     }
   };
 
@@ -472,6 +465,31 @@ export const ListDetail = () => {
                       >
                         <Users className="w-5 h-5 text-primary dark:text-indigo-400" />
                         Ver membros
+                      </button>
+
+                      {/* Ver Previsão - todos podem */}
+                      <button
+                        onClick={() => {
+                          setIsPredictionModalOpen(true);
+                          setShowActionsMenu(false);
+                        }}
+                        className="w-full px-4 py-3 text-left text-[15px] font-medium text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600 flex items-center gap-3 transition-colors"
+                        disabled={items.length === 0}
+                      >
+                        <TrendingUp className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                        Ver Previsão de Gastos
+                      </button>
+
+                      {/* Chat com IA - todos podem */}
+                      <button
+                        onClick={() => {
+                          setIsChatOpen(true);
+                          setShowActionsMenu(false);
+                        }}
+                        className="w-full px-4 py-3 text-left text-[15px] font-medium text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600 flex items-center gap-3 transition-colors"
+                      >
+                        <MessageCircle className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                        Chat com IA
                       </button>
 
                       {/* Compartilhar - apenas owner e edit */}
@@ -726,6 +744,24 @@ export const ListDetail = () => {
         currentUserId={user?.id || ''}
         isOpen={isMembersModalOpen}
         onClose={() => setIsMembersModalOpen(false)}
+      />
+
+      {/* Prediction Modal */}
+      <PredictionModal
+        isOpen={isPredictionModalOpen}
+        onClose={() => setIsPredictionModalOpen(false)}
+        items={items}
+        userId={user?.id || ''}
+        listName={list?.name || ''}
+      />
+
+      {/* Chat Interface */}
+      <ChatInterface
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+        userId={user?.id || ''}
+        listId={id}
+        listName={list?.name}
       />
 
       {/* Edit Name Modal */}
