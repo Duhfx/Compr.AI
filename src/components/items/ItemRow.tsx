@@ -114,11 +114,13 @@ export const ItemRow = ({ item, onToggle, onEdit, onDelete }: ItemRowProps) => {
     const newCheckedState = !item.checked;
     setVisualChecked(newCheckedState);
 
-    // Wait for animation to complete before calling onToggle
+    // Call onToggle immediately to start section transition
+    onToggle(item.id);
+
+    // Keep animation flag for longer to prevent visual state reset
     setTimeout(() => {
-      onToggle(item.id);
       setIsAnimating(false);
-    }, 400);
+    }, 800); // Increased to cover both checkbox animation + section transition
   };
 
   const handleEdit = (e: React.MouseEvent) => {

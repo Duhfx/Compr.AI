@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useSupabaseLists } from '../hooks/useSupabaseLists';
 import { useSupabaseItems } from '../hooks/useSupabaseItems';
 import { useAuth } from '../contexts/AuthContext';
@@ -640,15 +641,29 @@ export const ListDetail = () => {
             {/* Unchecked Items */}
             {uncheckedItems.length > 0 && (
               <div className="bg-white dark:bg-gray-800 rounded-ios overflow-hidden">
-                {uncheckedItems.map(item => (
-                  <ItemRow
-                    key={item.id}
-                    item={item}
-                    onToggle={toggleItem}
-                    onEdit={handleEditItem}
-                    onDelete={handleDeleteItem}
-                  />
-                ))}
+                <AnimatePresence mode="popLayout">
+                  {uncheckedItems.map(item => (
+                    <motion.div
+                      key={item.id}
+                      layout
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{
+                        duration: 0.4,
+                        ease: "easeInOut",
+                        layout: { duration: 0.4 }
+                      }}
+                    >
+                      <ItemRow
+                        item={item}
+                        onToggle={toggleItem}
+                        onEdit={handleEditItem}
+                        onDelete={handleDeleteItem}
+                      />
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
               </div>
             )}
 
@@ -659,15 +674,29 @@ export const ListDetail = () => {
                   Comprados
                 </h2>
                 <div className="bg-white dark:bg-gray-800 rounded-ios overflow-hidden opacity-60">
-                  {checkedItems.map(item => (
-                    <ItemRow
-                      key={item.id}
-                      item={item}
-                      onToggle={toggleItem}
-                      onEdit={handleEditItem}
-                      onDelete={handleDeleteItem}
-                    />
-                  ))}
+                  <AnimatePresence mode="popLayout">
+                    {checkedItems.map(item => (
+                      <motion.div
+                        key={item.id}
+                        layout
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{
+                          duration: 0.4,
+                          ease: "easeInOut",
+                          layout: { duration: 0.4 }
+                        }}
+                      >
+                        <ItemRow
+                          item={item}
+                          onToggle={toggleItem}
+                          onEdit={handleEditItem}
+                          onDelete={handleDeleteItem}
+                        />
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
                 </div>
               </div>
             )}
