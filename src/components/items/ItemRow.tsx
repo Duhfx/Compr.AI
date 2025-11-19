@@ -1,6 +1,6 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useDrag } from '@use-gesture/react';
-import { motion, useMotionValue, useSpring } from 'framer-motion';
+import { motion, useMotionValue, useSpring, AnimatePresence } from 'framer-motion';
 import type { ShoppingItem } from '../../hooks/useSupabaseItems';
 
 interface ItemRowProps {
@@ -12,9 +12,18 @@ interface ItemRowProps {
 
 export const ItemRow = ({ item, onToggle, onEdit, onDelete }: ItemRowProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [visualChecked, setVisualChecked] = useState(item.checked);
   const isDragging = useRef(false);
   const x = useMotionValue(0);
   const xSpring = useSpring(x, { damping: 20, stiffness: 300 });
+
+  // Sync visual state when item changes externally (but not during animation)
+  useEffect(() => {
+    if (!isAnimating) {
+      setVisualChecked(item.checked);
+    }
+  }, [item.checked, isAnimating]);
 
   const bind = useDrag(
     ({ movement: [mx], last }) => {
@@ -86,13 +95,30 @@ export const ItemRow = ({ item, onToggle, onEdit, onDelete }: ItemRowProps) => {
       return;
     }
 
+    if (isAnimating) {
+      console.log('[ItemRow] Ignoring toggle during animation');
+      return;
+    }
+
     console.log('[ItemRow] Toggling item:', item.name);
 
     // Haptic feedback
     if ('vibrate' in navigator) {
       navigator.vibrate(10);
     }
-    onToggle(item.id);
+
+    // Trigger animation
+    setIsAnimating(true);
+
+    // Immediately update visual state for animation
+    const newCheckedState = !item.checked;
+    setVisualChecked(newCheckedState);
+
+    // Wait for animation to complete before calling onToggle
+    setTimeout(() => {
+      onToggle(item.id);
+      setIsAnimating(false);
+    }, 400);
   };
 
   const handleEdit = (e: React.MouseEvent) => {
@@ -173,29 +199,43 @@ export const ItemRow = ({ item, onToggle, onEdit, onDelete }: ItemRowProps) => {
           onClick={handleToggle}
           className="w-11 h-11 -ml-2.5 flex items-center justify-center active:bg-gray-100 dark:active:bg-gray-700 rounded-full transition-colors"
         >
-          <div
+          <motion.div
+            animate={{
+              scale: isAnimating ? [1, 1.2, 1] : 1,
+            }}
+            transition={{
+              duration: 0.4,
+              ease: "easeInOut"
+            }}
             className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
-              item.checked
+              visualChecked
                 ? 'bg-primary border-primary'
                 : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700'
             }`}
           >
-            {item.checked && (
-              <svg
-                className="w-4 h-4 text-white"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={3}
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-            )}
-          </div>
+            <AnimatePresence mode="wait">
+              {visualChecked && (
+                <motion.svg
+                  key="checkmark"
+                  initial={{ scale: 0, rotate: -45 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  exit={{ scale: 0, rotate: 45 }}
+                  transition={{ duration: 0.3, ease: "easeOut" }}
+                  className="w-4 h-4 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={3}
+                    d="M5 13l4 4L19 7"
+                  />
+                </motion.svg>
+              )}
+            </AnimatePresence>
+          </motion.div>
         </button>
 
         <div onClick={handleEdit} className="flex-1 cursor-pointer min-w-0">
